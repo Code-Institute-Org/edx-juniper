@@ -17,7 +17,7 @@ import contracts
 contracts.disable_all()
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.aws")
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lms.envs.aws")
 
 import lms.startup as startup
 startup.run()

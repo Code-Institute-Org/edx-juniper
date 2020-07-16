@@ -17,7 +17,7 @@ import contracts
 contracts.disable_all()
 
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms.envs.aws")
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cms.envs.aws")
 
 import cms.startup as startup
 startup.run()
