@@ -105,6 +105,7 @@
             'hls': 'common/js/vendor/hls',
             'tinymce': 'js/vendor/tinymce/js/tinymce/tinymce.full.min',
             'jquery.tinymce': 'js/vendor/tinymce/js/tinymce/jquery.tinymce.min',
+            'jquery_extend_patch': 'js/src/jquery_extend_patch'
         },
         shim: {
             'annotator_1.2.9': {

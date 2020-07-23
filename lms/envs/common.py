@@ -1162,7 +1162,7 @@ SESSION_COOKIE_DOMAIN = ""
 SESSION_COOKIE_NAME = 'sessionid'
 
 # django-session-cookie middleware
-DCS_SESSION_COOKIE_SAMESITE = 'None'
+DCS_SESSION_COOKIE_SAMESITE = 'Lax'
 DCS_SESSION_COOKIE_SAMESITE_FORCE_ALL = True
 
 # CMS base
@@ -3591,7 +3591,7 @@ COMPREHENSIVE_THEME_LOCALE_PATHS = []
 # set to None if you want to use openedx theme
 DEFAULT_SITE_THEME = None
 
-ENABLE_COMPREHENSIVE_THEMING = False
+ENABLE_COMPREHENSIVE_THEMING = True
 
 # API access management
 API_ACCESS_MANAGER_EMAIL = 'api-access@example.com'

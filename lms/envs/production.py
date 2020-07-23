@@ -22,6 +22,7 @@ import codecs
 import copy
 import datetime
 import os
+import json
 
 import dateutil
 import yaml
@@ -958,6 +959,16 @@ COMPLETION_VIDEO_COMPLETE_PERCENTAGE = ENV_TOKENS.get('COMPLETION_VIDEO_COMPLETE
 COMPLETION_VIDEO_COMPLETE_PERCENTAGE = ENV_TOKENS.get('COMPLETION_BY_VIEWING_DELAY_MS',
                                                       COMPLETION_BY_VIEWING_DELAY_MS)
 
+
+
+################# JWT #####################
+
+JWT_AUTH["JWT_ISSUER"] = ENV_TOKENS["JWT_ISSUER"]
+JWT_AUTH["JWT_AUDIENCE"] = ENV_TOKENS["JWT_AUDIENCE"]
+JWT_AUTH["JWT_SECRET_KEY"] = ENV_TOKENS["JWT_SECRET_KEY"]
+JWT_AUTH["JWT_PRIVATE_SIGNING_JWK"] = ENV_TOKENS["JWT_PRIVATE_SIGNING_JWK"]
+JWT_AUTH["JWT_PUBLIC_SIGNING_JWK_SET"] = ENV_TOKENS["JWT_PUBLIC_SIGNING_JWK_SET"]
+JWT_AUTH["JWT_ISSUERS"] = ENV_TOKENS["JWT_ISSUERS"]
 
 
 ################################ DEBUG TOOLBAR ################################
