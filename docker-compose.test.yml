@@ -1,0 +1,127 @@
+version: "3.7"
+services:
+    
+  ci-lms:
+    image: edx-juniper:latest
+    environment:
+      DEBUG: "True"
+    command: ./manage.py lms runserver 0.0.0.0:8000
+    volumes:
+      - ./config/:/openedx/config/
+      - ./lms:/openedx/edx-platform/lms
+      - ./common:/openedx/edx-platform/common
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - mysql
+      - elasticsearch
+      - memcached
+      - mongodb
+      - rabbitmq
+      - smtp
+      - lms-worker
+      - nginx
+
+
+  ci-cms:
+    image: edx-juniper:latest
+    environment:
+      SERVICE_VARIANT: cms
+      DEBUG: "True"
+    restart: unless-stopped
+    command: ./manage.py cms runserver 0.0.0.0:8000
+    ports:
+      - "8001:8000"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./config/:/openedx/config/
+      - ./cms:/openedx/edx-platform/cms
+      - ./common:/openedx/edx-platform/common
+    depends_on:
+      - mysql
+      - elasticsearch
+      - memcached
+      - mongodb
+      - rabbitmq
+      - smtp
+
+
+  memcached:
+    image: docker.io/memcached:1.4.38
+    restart: unless-stopped
+  
+
+  mongodb:
+    image: docker.io/mongo:3.2.16
+    command: mongod --smallfiles --nojournal --storageEngine wiredTiger
+    restart: unless-stopped
+    volumes:
+      - /var/edx/data/mongodb:/data/db
+
+
+  mysql:
+    image: docker.io/mysql:5.6.36
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/edx/data/mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "a4sQrRUq"
+      MYSQL_DATABASE: openedx
+      MYSQL_USER: openedx
+      MYSQL_PASSWORD: "h61EqXte"
+
+
+  elasticsearch:
+    image: docker.io/elasticsearch:1.5.2
+    command: ["elasticsearch", "--cluster.name=openedx", "--bootstrap.mlockall=true"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+    volumes:
+      - /var/edx/data/elasticsearch:/usr/share/elasticsearch/data
+
+
+  rabbitmq:
+    image: docker.io/rabbitmq:3.6.10-management-alpine
+    restart: unless-stopped
+
+
+  smtp:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+
+  lms-worker:
+    image: edx-juniper:latest
+    environment:
+      SERVICE_VARIANT: lms
+      C_FORCE_ROOT: "1"
+    command: ./manage.py lms celery worker --loglevel=info --hostname=edx.lms.core.default.%%h --maxtasksperchild 100
+    restart: unless-stopped
+    volumes:
+      - ./config/:/openedx/config/
+      - /var/edx/data/lms:/openedx/data
+      - /var/edx/data/openedx-media:/openedx/media
+    depends_on:
+      - rabbitmq
+
+
+  nginx:
+    image: docker.io/nginx:1.13
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./conf/nginx:/etc/nginx/conf.d/:ro
+      - /var/edx/data/openedx:/var/www/openedx:ro
+      - /var/edx/data/openedx-media:/var/www/openedx-media:ro
