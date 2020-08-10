@@ -53,7 +53,6 @@ COPY ./docs/ /openedx/edx-platform/docs
 COPY ./openedx/ /openedx/edx-platform/openedx
 COPY ./pavelib/ /openedx/edx-platform/pavelib
 COPY ./scripts/ /openedx/edx-platform/scripts
-COPY ./settings/ /openedx/edx-platform/settings
 COPY ./vendor_extra/ /openedx/edx-platform/vendor_extra
 COPY ./webpack-config/ /openedx/edx-platform/webpack-config
 COPY ./themes/ /openedx/edx-platform/themes

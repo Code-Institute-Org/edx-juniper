@@ -1027,3 +1027,13 @@ SENTRY_DSN = os.environ.get('SENTRY_DSN')
 
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+
+# CodeInstitute
+
+ZOHO_CLIENT_ID = os.environ.get('ZOHO_CLIENT_ID')
+ZOHO_CLIENT_SECRET = os.environ.get('ZOHO_CLIENT_SECRET')
+ZOHO_REFRESH_TOKEN = os.environ.get('ZOHO_REFRESH_TOKEN')
+ZOHO_REFRESH_ENDPOINT = os.environ.get('ZOHO_REFRESH_ENDPOINT')
+ZOHO_STUDENTS_ENDPOINT = os.environ.get('ZOHO_STUDENTS_ENDPOINT')
+ZOHO_MENTORS_ENDPOINT = os.environ.get('ZOHO_MENTORS_ENDPOINT')
+ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT = os.environ.get('ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT')

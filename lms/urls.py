@@ -972,3 +972,10 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/course_experience/', include('openedx.features.course_experience.api.v1.urls')),
 ]
+
+# CodeInstitute
+urlpatterns += [
+    url(r'^ci_program/', include('lms.djangoapps.ci_program.urls')),
+    url(r'^ci_support/', include('lms.djangoapps.ci_support.urls')),
+    url(r'^challenges/', include('lms.djangoapps.challenges.urls')),
+]

@@ -251,6 +251,7 @@ xmlsec==1.3.8             # via python3-saml
 xss-utils==0.1.3          # via -r requirements/edx/base.in
 zipp==1.0.0               # via -c requirements/edx/../constraints.txt, -r requirements/edx/paver.txt, importlib-metadata
 sentry-sdk==0.10.2
+django-extensions==3.0.4
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
