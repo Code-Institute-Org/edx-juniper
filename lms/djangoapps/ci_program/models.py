@@ -23,6 +23,9 @@ class Program(TimeStampedModel):
     Representation of a Program.
     """
 
+    class Meta:
+        app_label = 'ci_program'
+
     uuid = models.UUIDField(
         blank=True,
         default=uuid4,
@@ -405,6 +408,10 @@ class CourseCode(models.Model):
     """
     Store the key and a display names for each course that belongs to a program 
     """
+
+    class Meta:
+        app_label = 'ci_program'
+
     key = models.CharField(
         help_text="The 'course' part of course_keys associated with this course code, "
                   "for example 'DemoX' in 'edX/DemoX/Demo_Course'.",
@@ -431,6 +438,7 @@ class ProgramCourseCode(TimeStampedModel):
 
     class Meta(object):  # pylint: disable=missing-docstring
         ordering = ['position']
+        app_label = 'ci_program'
 
     def __unicode__(self):
         return unicode(self.course_code)
