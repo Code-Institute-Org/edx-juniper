@@ -1,0 +1,153 @@
+version: "2.4"
+services:
+
+
+  ci-lms:
+    image: 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:1.4
+    environment:
+      SERVICE_VARIANT: lms
+      DEBUG: "True"
+    command: ./manage.py lms runserver 0.0.0.0:8000
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ${PWD}/config/:/openedx/config/                            # required to load env config
+
+#      - ${PWD}/../edx-juniper/lms:/openedx/edx-platform/lms
+#      - ${PWD}/../edx-juniper/common:/openedx/edx-platform/common
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      memcached:
+        condition: service_started
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      smtp:
+        condition: service_started
+
+  ci-cms:
+    image: 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:1.4
+    environment:
+      SERVICE_VARIANT: cms
+      DEBUG: "True"
+    restart: unless-stopped
+
+    command: ./manage.py cms runserver 0.0.0.0:8000
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ${PWD}/config/:/openedx/config/
+      - ${PWD}/edxdata/edx:/edx # shared with cms worker service for uploads (import course)
+
+#      - ${PWD}/../edx-juniper/lms:/openedx/edx-platform/cms
+#      - ${PWD}/../edx-juniper/common:/openedx/edx-platform/common
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      memcached:
+        condition: service_started
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      smtp:
+        condition: service_started
+
+  memcached:
+    image: docker.io/memcached:1.4.38
+    restart: unless-stopped
+ 
+  mongodb:
+    image: docker.io/mongo:3.2.16
+    command: mongod --smallfiles --nojournal --storageEngine wiredTiger
+    restart: unless-stopped
+    volumes:
+      - ./edxdata/mongodb:/data/db
+
+  mysql:
+    image: docker.io/mysql:5.6.36
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "arglebargle"
+      MYSQL_DATABASE: openedx
+      MYSQL_USER: openedx
+      MYSQL_PASSWORD: "arglebargle"
+    volumes:
+      - ${PWD}/edxdata/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+
+  elasticsearch:
+    image: docker.io/elasticsearch:1.5.2
+    command: ["elasticsearch", "--cluster.name=openedx", "--bootstrap.mlockall=true"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+  
+  rabbitmq:
+    image: docker.io/rabbitmq:3.6.10-management-alpine
+    restart: unless-stopped
+  
+  smtp:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+  lms-worker:
+    image: 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:1.4
+    environment:
+      SERVICE_VARIANT: lms
+      C_FORCE_ROOT: "1"
+    command: ./manage.py lms celery worker --loglevel=info --hostname=edx.lms.core.default.%%h --maxtasksperchild 100
+    restart: unless-stopped
+    volumes:
+      - ${PWD}/config/:/openedx/config/
+      - ${PWD}/edxdata/openedx-media:/openedx/media
+    depends_on:
+      - rabbitmq
+      - mysql
+      - ci-lms
+
+  nginx:
+    image: docker.io/nginx:1.13
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ${PWD}/conf/nginx:/etc/nginx/conf.d/:ro
+      - ${PWD}/edxdata/openedx-media:/var/www/openedx-media:ro
+    depends_on:
+      - ci-lms
+      - ci-cms
+
+
+  cms-worker:
+    image: 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:1.4
+    environment:
+      SERVICE_VARIANT: cms
+      C_FORCE_ROOT: "1"
+    command: ./manage.py cms celery worker --loglevel=info --hostname=edx.cms.core.default.%%h --maxtasksperchild 100
+    volumes:
+      - ${PWD}/config/:/openedx/config/
+      - ${PWD}/edxdata/lms:/openedx/data
+      - ${PWD}/edxdata/openedx-media:/openedx/media
+      - ${PWD}/edxdata/edx:/edx # shared with cms service for uploads (import course)
+    depends_on:
+      - mysql
+      - ci-cms
+
