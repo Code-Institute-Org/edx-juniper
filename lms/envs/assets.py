@@ -28,3 +28,20 @@ LOCALE_PATHS.append("/openedx/locale/user/locale")
 # for local debugging, when DEBUG=True
 INSTALLED_APPS += ['debug_toolbar', 'debug_toolbar_mongo']
 MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+
+ZOHO_CLIENT_ID = None
+ZOHO_CLIENT_SECRET = None
+ZOHO_REFRESH_TOKEN = None
+ZOHO_REFRESH_ENDPOINT = None
+ZOHO_STUDENTS_ENDPOINT = None
+ZOHO_MENTORS_ENDPOINT = None
+ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT = None
+
+RDS_DB_USER = None
+RDS_DB_PASS = None
+RDS_DB_ENDPOINT = None
+RDS_DB_PORT = None
+RDS_LMS_DB = None
+
+LMS_SYLLABUS = None
+BREADCRUMB_INDEX_URL = None
