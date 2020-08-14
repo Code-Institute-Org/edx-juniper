@@ -111,8 +111,8 @@ class Program(TimeStampedModel):
         
         return template_location, subject
 
-    def __unicode__(self):
-        return unicode(self.name)
+    def __str__(self):
+        return self.name
     
     def get_program_descriptor(self, user):
         """
@@ -424,8 +424,8 @@ class CourseCode(models.Model):
     programs = models.ManyToManyField(
         Program, related_name='course_codes', through='ProgramCourseCode')
 
-    def __unicode__(self):
-        return unicode(self.display_name)
+    def __str__(self):
+        return self.display_name
 
 
 class ProgramCourseCode(TimeStampedModel):
@@ -440,5 +440,5 @@ class ProgramCourseCode(TimeStampedModel):
         ordering = ['position']
         app_label = 'ci_program'
 
-    def __unicode__(self):
-        return unicode(self.course_code)
+    def __str__(self):
+        return self.course_code

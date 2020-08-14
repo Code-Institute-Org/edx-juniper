@@ -27,7 +27,7 @@ class ProgramAccessStatus(models.Model):
     class Meta:
         app_label = 'student_enrollment'
 
-    def __unicode__(self):
+    def __str_(self):
         return "Program is accessible for {}: {}".format(
             self.user, self.program_access)
     
@@ -200,7 +200,7 @@ class EnrollmentStatusHistory(models.Model):
     email_sent = models.BooleanField(null=False, blank=False)
     enrollment_attempt = models.DateTimeField(auto_now_add=True)
 
-    def __unicode__(self):
+    def __str__(self):
         if self.registered and self.enrolled and self.email_sent:
             return "{} process for {} was successfully completed at {}".format(
                 self.get_enrollment_type_display(), self.student,
