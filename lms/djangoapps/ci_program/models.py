@@ -441,4 +441,4 @@ class ProgramCourseCode(TimeStampedModel):
         app_label = 'ci_program'
 
     def __str__(self):
-        return self.course_code
+        return self.course_code.key
