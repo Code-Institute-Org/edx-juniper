@@ -39,7 +39,6 @@ from util.password_policy_validators import DEFAULT_MAX_PASSWORD_LENGTH
 
 log = logging.getLogger(__name__)
 
-
 def _apply_third_party_auth_overrides(request, form_desc):
     """Modify the login form if the user has authenticated with a third-party provider.
     If a user has successfully authenticated with a third-party provider,
@@ -103,6 +102,7 @@ def get_login_session_form(request):
         "email",
         field_type="email",
         label=email_label,
+        placeholder="Email",
         instructions=email_instructions,
         restrictions={
             "min_length": accounts.EMAIL_MIN_LENGTH,
@@ -117,6 +117,7 @@ def get_login_session_form(request):
     form_desc.add_field(
         "password",
         label=password_label,
+        placeholder="Password",
         field_type="password",
         restrictions={'max_length': DEFAULT_MAX_PASSWORD_LENGTH}
     )
