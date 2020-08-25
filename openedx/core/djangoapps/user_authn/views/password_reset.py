@@ -76,7 +76,7 @@ def get_password_reset_form():
 
     # Translators: This example email address is used as a placeholder in
     # a field on the password reset form meant to hold the user's email address.
-    email_placeholder = _(u"username@domain.com")
+    email_placeholder = _(u"Email")
 
     # Translators: These instructions appear on the password reset form,
     # immediately below a field meant to hold the user's email address.
