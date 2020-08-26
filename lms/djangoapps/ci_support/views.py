@@ -28,7 +28,7 @@ def support(request, course_id, student_id=None):
     course = get_course_with_access(request.user, 'load', course_key)
 
     return render_to_response(
-        'courseware/support.html',
+        'ci_support/support.html',
         {"course": course, 'student': request.user})
 
 
@@ -44,7 +44,7 @@ def tutor(request, course_id, student_id=None):
     course = get_course_with_access(request.user, 'load', course_key)
 
     return render_to_response(
-        'courseware/support/tutor_page.html',
+        'ci_support/support/tutor_page.html',
         {"course": course, 'student': request.user})
 
 
@@ -58,11 +58,11 @@ def mentor(request, course_id, student_id=None):
     course_key = CourseKey.from_string(course_id)
 
     course = get_course_with_access(request.user, 'load', course_key)
-    
+
     mentor = get_mentor_details(request.user.email)
 
     return render_to_response(
-        "courseware/support/mentor.html",
+        "ci_support/support/mentor.html",
         {
             "course": course,
             "student": request.user,
@@ -82,7 +82,7 @@ def slack(request, course_id, student_id=None):
     course = get_course_with_access(request.user, 'load', course_key)
 
     return render_to_response(
-        'courseware/support/slack.html',
+        'ci_support/support/slack.html',
         {"course": course, 'student': request.user})
 
 
@@ -98,9 +98,9 @@ def troubleshooting(request, course_id, student_id=None):
     course = get_course_with_access(request.user, 'load', course_key)
 
     return render_to_response(
-        'courseware/support/troubleshooting.html',
+        'ci_support/support/troubleshooting.html',
         {"course": course, 'student': request.user})
-        
+
 
 @transaction.non_atomic_requests
 @login_required
@@ -112,12 +112,12 @@ def studentcare(request, course_id, student_id=None):
     course_key = CourseKey.from_string(course_id)
 
     course = get_course_with_access(request.user, 'load', course_key)
-    
+
     if request.method == 'POST':
         student_email = request.user.email
         email_subject = request.POST["email-subject"]
         email_body = request.POST["email-body"]
-        
+
         resp = send_email_from_zapier({
             'student_email': student_email,
             'email_subject': email_subject,
@@ -125,10 +125,10 @@ def studentcare(request, course_id, student_id=None):
         })
 
         messages.success(request, 'Thank you! Your message has been sent to our Student Care team. We\'ll respond to you shortly.')
-        
+
 
     return render_to_response(
-        "courseware/support/student_care.html",
+        "ci_support/support/student_care.html",
         {
             "course": course,
             "student": request.user,

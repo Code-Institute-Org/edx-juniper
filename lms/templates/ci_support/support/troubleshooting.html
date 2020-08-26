@@ -1,0 +1,44 @@
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%namespace name='static' file='/static_content.html'/>
+<%def name="online_help_token()"><% return "progress" %>
+    </%def>
+    <%!
+from course_modes.models import CourseMode
+from lms.djangoapps.certificates.models import CertificateStatuses
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+from django.urls import reverse
+from django.conf import settings
+from django.utils.http import urlquote_plus
+%>
+        <%block name="bodyclass">view-in-course view-progress</%block>
+
+<%block name="headextra">
+<%static:css group='style-course-vendor'/>
+<%static:css group='style-course'/>
+</%block>
+
+<%include file="/courseware/course_navigation.html" args="active_page='progress'" />
+
+<main id="main" aria-label="Content" tabindex="-1" class="support-page">
+  <div class="container">
+    <div class="profile-wrapper row">
+      <div class="col-sm-12 col-md-12 col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
+        <section class="troubleshoot-page" id="troubleshoot-page">
+          <nav class="top-navigation">
+            <div class="container">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <h3>Troubleshooting Tips</h3>
+                  <a href="${reverse('support', kwargs={'course_id': course.id})}" class="btn-back"><i class="fa fa-caret-left" aria-hidden="true"></i> <span>Back to Support Page</span></a>
+                </div>
+              </div>
+            </div>
+          </nav>
+          <!-- container-->
+         </section>
+      </div>
+    </div>
+  </div>
+</main>
