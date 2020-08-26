@@ -1,0 +1,78 @@
+<%page expression_filter="h"/>
+<%inherit file="/main.html" />
+<%namespace name='static' file='/static_content.html'/>
+<%def name="online_help_token()"><% return "progress" %>
+    </%def>
+    <%!
+from course_modes.models import CourseMode
+from lms.djangoapps.certificates.models import CertificateStatuses
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+from django.urls import reverse
+from django.conf import settings
+from django.utils.http import urlquote_plus
+%>
+<%block name="bodyclass">view-in-course view-progress</%block>
+<%block name="headextra">
+<%static:css group='style-course-vendor'/>
+<%static:css group='style-course'/>
+</%block>
+
+<%include file="/courseware/course_navigation.html" args="active_page='support'" />
+% if messages:
+    <ul class="messages alert alert-primary" role="alert">
+        % for message in messages:
+            <li> ${ message } </li>
+        % endfor
+    </ul>
+% endif
+
+<main id="main" aria-label="Content" tabindex="-1" class="support-page">
+  <div class="container">
+    <div class="profile-wrapper row">
+
+        <section class="main-page" id="main-page" style="display:block">
+
+    <div class="page-wrapper">
+
+        <div class="container-fluid">
+            <div class="row support-card-row">
+                <div class="support-card col-xl-2 col-md-4">
+                    <div class="inner">
+                        <a href="${reverse('tutor', kwargs={'course_id': course.id})}" class="btn-orange btn-orange btn-page">Tutor me</a>
+                    </div>
+                </div>
+
+                <div class="support-card col-xl-2 col-md-4">
+                   <div class="inner">
+                        <a href="${reverse('mentor', kwargs={'course_id': course.id})}" class="btn-orange btn-page">Schedule session</a>
+                   </div>
+                </div>
+
+                <div class="support-card col-xl-2 col-md-4">
+                    <div class="inner">
+                        <a href="${reverse('slack', kwargs={'course_id': course.id})}"  class="btn-orange btn-page">Let's Slack</a>
+                    </div>
+                </div>
+
+                <div class="support-card col-xl-2 col-md-4">
+                   <div class="inner">
+                        <a href="${reverse('troubleshooting', kwargs={'course_id': course.id})}"  class="btn-orange btn-page">Troubleshoot it</a>
+                   </div>
+                </div>
+
+                <div class="support-card col-xl-2 col-md-4">
+                   <div class="inner">
+                        <a href="${reverse('studentcare', kwargs={'course_id': course.id})}" class="btn-orange btn-page">Something else?</a>
+                   </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+    </div>
+  </div>
+</main>
