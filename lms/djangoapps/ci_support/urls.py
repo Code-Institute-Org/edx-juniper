@@ -4,16 +4,10 @@ from django.conf import settings
 from .views import support, tutor, mentor, slack, troubleshooting, studentcare
 
 urlpatterns = [
-    url(r'^courses/{}/support$'.format(
-        settings.COURSE_ID_PATTERN), support, name='support'),
-    url(r'^courses/{}/tutor$'.format(
-        settings.COURSE_ID_PATTERN), tutor, name='tutor'),
-    url(r'^courses/{}/mentor$'.format(
-        settings.COURSE_ID_PATTERN), mentor, name='mentor'),
-    url(r'^courses/{}/slack$'.format(
-        settings.COURSE_ID_PATTERN), slack, name='slack'),
-    url(r'^courses/{}/troubleshooting$'.format(
-        settings.COURSE_ID_PATTERN), troubleshooting, name='troubleshooting'),
-    url(r'^courses/{}/studentcare$'.format(
-        settings.COURSE_ID_PATTERN), studentcare, name='studentcare'),
+    url(r'^(?P<program_slug>\w+)/support$', support, name='support'),
+    url(r'^(?P<program_slug>\w+)/tutor$', tutor, name='tutor'),
+    url(r'^(?P<program_slug>\w+)/mentor$', mentor, name='mentor'),
+    url(r'^(?P<program_slug>\w+)/slack$', slack, name='slack'),
+    url(r'^(?P<program_slug>\w+)/troubleshooting$', troubleshooting, name='troubleshooting'),
+    url(r'^(?P<program_slug>\w+)/studentcare$', studentcare, name='studentcare'),
 ]

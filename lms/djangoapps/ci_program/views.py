@@ -30,5 +30,6 @@ def show_programs(request, program_name):
         'disable_courseware_js': True,
         'uses_bootstrap': True,
         'on_course_outline_page': True,
+        'program_slug': program_name,
     }
     return render_to_response('programs/programs.html', context)
