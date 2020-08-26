@@ -1354,8 +1354,8 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.util.apps.UtilConfig',
 
     # Tracking
-    'track',
-    'eventtracking.django.apps.EventTrackingConfig',
+#    'track',
+#    'eventtracking.django.apps.EventTrackingConfig',
 
     # For asset pipelining
     'edxmako.apps.EdxMakoConfig',
@@ -1538,12 +1538,13 @@ TRACKING_BACKENDS = {
         }
     }
 }
+TRACKING_BACKENDS = {}
 
 # We're already logging events, and we don't want to capture user
 # names/passwords.  Heartbeat events are likely not interesting.
 TRACKING_IGNORE_URL_PATTERNS = [r'^/event', r'^/login', r'^/heartbeat']
 
-EVENT_TRACKING_ENABLED = True
+EVENT_TRACKING_ENABLED = False
 EVENT_TRACKING_BACKENDS = {
     'tracking_logs': {
         'ENGINE': 'eventtracking.backends.routing.RoutingBackend',
@@ -1583,6 +1584,8 @@ EVENT_TRACKING_BACKENDS = {
         }
     }
 }
+EVENT_TRACKING_BACKENDS = []
+
 EVENT_TRACKING_PROCESSORS = []
 
 EVENT_TRACKING_SEGMENTIO_EMIT_WHITELIST = []
