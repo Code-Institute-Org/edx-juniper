@@ -110,8 +110,7 @@ def construct_email(to_address, from_address, template_location, **kwargs):
     }
     context.update(kwargs)
 
-    html_content = render_to_string(template_location, context).encode(
-        "utf-8")
+    html_content = render_to_string(template_location, context)
 
     return html_content
 

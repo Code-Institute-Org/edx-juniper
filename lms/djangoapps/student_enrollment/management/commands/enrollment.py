@@ -12,8 +12,8 @@ from student_enrollment.zoho import (
     get_students_to_be_enrolled,
     parse_course_of_interest_code
 )
-from lms.djangoapps.student_enrollment.models import EnrollmentStatusHistory
-from lms.djangoapps.student_enrollment.models import ProgramAccessStatus
+from student_enrollment.models import EnrollmentStatusHistory
+from student_enrollment.models import ProgramAccessStatus
 
 log = getLogger(__name__)
 
