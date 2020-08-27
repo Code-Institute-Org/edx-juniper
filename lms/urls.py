@@ -53,6 +53,7 @@ from static_template_view import views as static_template_view_views
 from staticbook import views as staticbook_views
 from student import views as student_views
 from util import views as util_views
+from student_enrollment.views import StudentEnrollment
 
 RESET_COURSE_DEADLINES_NAME = 'reset_course_deadlines'
 RENDER_XBLOCK_NAME = 'render_xblock'
@@ -175,6 +176,11 @@ urlpatterns = [
     url(r'^api/discounts/', include(('openedx.features.discounts.urls', 'openedx.features.discounts'),
                                     namespace='api_discounts')),
 ]
+
+# Student Enrollment
+urlpatterns += (
+    url(r'^enrollment/enroll/', StudentEnrollment.as_view(), name='student_enrollment'),
+)
 
 if settings.FEATURES.get('ENABLE_MOBILE_REST_API'):
     urlpatterns += [
