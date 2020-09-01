@@ -11,8 +11,10 @@ import subprocess
 
 import mongoengine
 import unicodecsv as csv
+import requests
 
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -41,6 +43,7 @@ from student.models import CourseEnrollment, Registration, UserProfile
 from student.roles import CourseInstructorRole, CourseStaffRole
 from xmodule.modulestore.django import modulestore
 from ci_program.models import Program
+from student_enrollment.utils import get_or_register_student
 
 ENROLL_ENDPOINT = settings.LMS_ROOT_URL + reverse('student_enrollment')
 
@@ -584,14 +587,45 @@ class Enrollment(SysadminDashboardView):
         manual_override = input_data['manual_override']
         full_name = input_data['full_name']
 
-        resp = requests.post(ENROLL_ENDPOINT, data={
-            'email': email,
-            'course_code': program_code,
-            'manual_override': manual_override,
-            'full_name': full_name
-        }, verify=False)
+        # Get the program using the code
+        program = get_object_or_404(Program, program_code=program_code)
 
-        return resp
+        # Create the user and get their password so they can be
+        # emailed to the student later
+        log.info("Creating user for %s" % email)
+        user, password, _ = get_or_register_student(email, full_name)
+
+        # If `None` was returned instead of a user instance then
+        # respond with a 500 error and the corresponding failure
+        # reason
+        if user:
+            log.info("User created successfully for %s" % email)
+        else:
+            log.error("User creation failed for %s" % email)
+            return HttpResponse(b'Unknown error creating student', content_type=500)
+
+        # Enroll the new student into the chosen program
+        log.info("Enrolling %s into %s" % (email, program.name))
+        program_enrollment_status = program.enroll_student_in_program(email)
+
+        # If the enrollment was successful then continue as usual,
+        # otherwise issue a 500 response
+        if program_enrollment_status:
+            log.info("%s successfully enrolled in %s", (email, program.name))
+        else:
+            log.error("Unable to enroll %s in %s", (email, program.name))
+            return HttpResponse(b'Unknown error enrolling student', content_type=500)
+
+        # Send the email to the student
+        log.info("Sending login credentials to %s", email)
+        email_sent_status = program.send_email(user, 0, password)
+
+        # Check to see if the email was sent and if theyn't then
+        # respond with a 500 error
+        if not email_sent_status:
+            log.error("Unknown error sending enrollment email to %s", email)
+
+        return HttpResponse(b'Ok')
 
     @method_decorator(login_required)
     def get(self, request):
