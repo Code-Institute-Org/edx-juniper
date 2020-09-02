@@ -45,8 +45,6 @@ from xmodule.modulestore.django import modulestore
 from ci_program.models import Program
 from student_enrollment.utils import get_or_register_student
 
-ENROLL_ENDPOINT = settings.LMS_ROOT_URL + reverse('student_enrollment')
-
 log = logging.getLogger(__name__)
 
 
