@@ -121,7 +121,7 @@ class Program(TimeStampedModel):
     def __str__(self):
         return self.name
 
-    def get_program_descriptor(self, user):
+    def get_program_descriptor(self, user, request):
         """
         The program descriptor will return all of necessary courseware
         info for a given program. The information contained in the descriptor
@@ -179,6 +179,20 @@ class Program(TimeStampedModel):
                     "course": course_overview,
                     "course_image": course_image_url(course_descriptor)
                 })
+
+        from openedx.features.course_experience.utils import get_course_outline_block_tree
+
+        activity = user.studentmodule_set.filter(course_id__in=self.get_course_locators())
+        activity = activity.order_by('-modified')
+        completed_block_ids = [ac.module_state_key.block_id for ac in activity]
+        latest_block_id = completed_block_ids[0] if completed_block_ids else None
+
+        for index, module in enumerate(courses):
+            course_block_tree = get_course_outline_block_tree(request, str(module['course_key']), request.user)
+            module['course_block_tree'] = course_block_tree
+            for section in course_block_tree['children']:
+                section['resume_block'] = section['block_id'] == latest_block_id
+                section['complete'] = section['block_id'] in completed_block_ids
 
         # Create a dict out the information gathered
         program_descriptor = {

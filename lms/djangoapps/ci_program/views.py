@@ -9,7 +9,7 @@ def show_programs(request, program_name):
     Display the programs page
     """
     program = Program.objects.get(marketing_slug=program_name)
-    program_descriptor = program.get_program_descriptor(request.user)
+    program_descriptor = program.get_program_descriptor(request.user, request)
     enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
     enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
     enrolled_keys = {str(key) for key in enrolled_keys}
