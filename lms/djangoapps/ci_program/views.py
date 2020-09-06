@@ -26,6 +26,9 @@ def show_programs(request, program_name):
             'modules': [m for m in program_descriptor['modules']
                         if m['course_key'].html_id() in enrolled_keys],
             'marketing_slug': program_name,
+            "latest_block_id": program_descriptor['latest_block_id'],
+            "latest_course_key": program_descriptor['latest_course_key'],
+            "program_course_keys": [course['course_key'] for course in program_descriptor['modules']],
         },
         'disable_courseware_js': True,
         'uses_bootstrap': True,

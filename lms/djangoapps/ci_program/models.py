@@ -186,13 +186,20 @@ class Program(TimeStampedModel):
         activity = activity.order_by('-modified')
         completed_block_ids = [ac.module_state_key.block_id for ac in activity]
         latest_block_id = completed_block_ids[0] if completed_block_ids else None
+        latest_course_key = activity[0].module_state_key.course_key
 
         for index, module in enumerate(courses):
             course_block_tree = get_course_outline_block_tree(request, str(module['course_key']), request.user)
             module['course_block_tree'] = course_block_tree
             for section in course_block_tree['children']:
-                section['resume_block'] = section['block_id'] == latest_block_id
+                section['resume_block'] = False
                 section['complete'] = section['block_id'] in completed_block_ids
+                for subsection in section.get('children', []):
+                    # The structure of the block id eludes me. sometimes it refers to the section, and sometimes
+                    # the unit
+                    if subsection['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
+                        section['resume_block'] = True
+                    subsection['complete'] = subsection['block_id'] in completed_block_ids
 
         # Create a dict out the information gathered
         program_descriptor = {
@@ -204,7 +211,9 @@ class Program(TimeStampedModel):
             "length": length,
             "effort": effort,
             "number_of_modules": number_of_modules,
-            "modules": courses
+            "modules": courses,
+            "latest_block_id": latest_block_id,
+            "latest_course_key": latest_course_key,
         }
 
         return program_descriptor
