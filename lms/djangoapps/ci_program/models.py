@@ -121,7 +121,7 @@ class Program(TimeStampedModel):
     def __str__(self):
         return self.name
 
-    def get_program_descriptor(self, user, request):
+    def get_program_descriptor(self, request):
         """
         The program descriptor will return all of necessary courseware
         info for a given program. The information contained in the descriptor
@@ -157,7 +157,7 @@ class Program(TimeStampedModel):
         # Gather the information of each of the modules in the program
         # Get the latest 5DCC for this specific student
         if self.program_code == "5DCC":
-            student = User.objects.get(email=user.email)
+            student = User.objects.get(email=request.user.email)
             users_five_day_module = student.courseenrollment_set.filter(
                 course_id__icontains="dcc").order_by('created').last()
             course_id = users_five_day_module.course_id
@@ -182,7 +182,7 @@ class Program(TimeStampedModel):
 
         from openedx.features.course_experience.utils import get_course_outline_block_tree
 
-        activity = user.studentmodule_set.filter(course_id__in=self.get_course_locators())
+        activity = request.user.studentmodule_set.filter(course_id__in=self.get_course_locators())
         activity = activity.order_by('-modified')
         completed_block_ids = [ac.module_state_key.block_id for ac in activity]
         latest_block_id = completed_block_ids[0] if completed_block_ids else None
