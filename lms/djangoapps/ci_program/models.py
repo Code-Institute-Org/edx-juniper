@@ -15,6 +15,8 @@ from lms.djangoapps.student_enrollment.utils import construct_email
 from lms.djangoapps.courseware.courses import get_course
 from openedx.core.lib.courses import course_image_url
 
+from openedx.features.course_experience.utils import get_course_outline_block_tree
+
 log = getLogger(__name__)
 
 
@@ -180,13 +182,17 @@ class Program(TimeStampedModel):
                     "course_image": course_image_url(course_descriptor)
                 })
 
-        from openedx.features.course_experience.utils import get_course_outline_block_tree
-
         activity = request.user.studentmodule_set.filter(course_id__in=self.get_course_locators())
         activity = activity.order_by('-modified')
         completed_block_ids = [ac.module_state_key.block_id for ac in activity]
         latest_block_id = completed_block_ids[0] if completed_block_ids else None
         latest_course_key = activity[0].module_state_key.course_key
+
+#        enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
+#        enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
+#        enrolled_keys = {str(key) for key in enrolled_keys}
+
+        unit_block_ids = []
 
         for index, module in enumerate(courses):
             course_block_tree = get_course_outline_block_tree(request, str(module['course_key']), request.user)
@@ -200,6 +206,12 @@ class Program(TimeStampedModel):
                     if subsection['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
                         section['resume_block'] = True
                     subsection['complete'] = subsection['block_id'] in completed_block_ids
+                    # There's some sort of linked node tree for the module / section / unit structure here
+                    # Unsure if there are gaps in the tree, simply adding 1 per iteration
+                    unit_block_ids.append(subsection['block_id'])
+
+        total_completed_modules = set(unit_block_ids).intersection(completed_block_ids)
+        completed_percent = int(100 * len(total_completed_modules) / len(unit_block_ids))
 
         # Create a dict out the information gathered
         program_descriptor = {
@@ -214,6 +226,7 @@ class Program(TimeStampedModel):
             "modules": courses,
             "latest_block_id": latest_block_id,
             "latest_course_key": latest_course_key,
+            "completed_percent": completed_percent,
         }
 
         return program_descriptor
