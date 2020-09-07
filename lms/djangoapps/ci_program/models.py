@@ -186,7 +186,7 @@ class Program(TimeStampedModel):
         activity = activity.order_by('-modified')
         completed_block_ids = [ac.module_state_key.block_id for ac in activity]
         latest_block_id = completed_block_ids[0] if completed_block_ids else None
-        latest_course_key = activity[0].module_state_key.course_key
+        latest_course_key = activity[0].module_state_key.course_key if activity else None
 
 #        enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
 #        enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
@@ -211,7 +211,12 @@ class Program(TimeStampedModel):
                     unit_block_ids.append(subsection['block_id'])
 
         total_completed_modules = set(unit_block_ids).intersection(completed_block_ids)
-        completed_percent = int(100 * len(total_completed_modules) / len(unit_block_ids))
+        if unit_block_ids:
+            completed_percent = int(100 * len(total_completed_modules) / len(unit_block_ids))
+        else:
+            completed_percent = 0
+
+
 
         # Create a dict out the information gathered
         program_descriptor = {
