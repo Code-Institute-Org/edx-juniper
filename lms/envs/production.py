@@ -23,6 +23,7 @@ import copy
 import datetime
 import os
 import json
+from _ast import Mod
 
 import dateutil
 import yaml
@@ -1046,3 +1047,13 @@ RDS_LMS_DB = AUTH_TOKENS.get('RDS_LMS_DB')
 
 LMS_SYLLABUS = AUTH_TOKENS.get('LMS_SYLLABUS')
 BREADCRUMB_INDEX_URL = AUTH_TOKENS.get('BREADCRUMB_INDEX_URL')
+
+
+# Mongo connection for getting course lists for programs
+import pymongo
+
+host = CONTENTSTORE['DOC_STORE_CONFIG']['host']
+port = CONTENTSTORE['DOC_STORE_CONFIG']['port']
+db = CONTENTSTORE['DOC_STORE_CONFIG']['db']
+MONGO_CLIENT = pymongo.MongoClient(host=host, port=port)
+MONGO_DB = MONGO_CLIENT[db]
