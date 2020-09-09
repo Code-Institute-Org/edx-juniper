@@ -5,6 +5,7 @@ from django_extensions.db.models import TimeStampedModel
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.conf import settings
 from opaque_keys.edx.locator import CourseLocator
 from openedx.core.djangoapps.xmodule_django.models import CourseKeyField
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
@@ -156,31 +157,15 @@ class Program(TimeStampedModel):
         effort = self.effort
         number_of_modules = self.number_of_modules
 
-        # Gather the information of each of the modules in the program
-        # Get the latest 5DCC for this specific student
-        if self.program_code == "5DCC":
-            student = User.objects.get(email=request.user.email)
-            users_five_day_module = student.courseenrollment_set.filter(
-                course_id__icontains="dcc").order_by('created').last()
-            course_id = users_five_day_module.course_id
-            course_overview = CourseOverview.objects.get(id=course_id)
+        for course_overview in self.get_courses():
+            course_id = course_overview.id
             course_descriptor = get_course(course_id)
 
             courses.append({
-                    "course_key": course_id,
-                    "course": course_overview,
-                    "course_image": course_image_url(course_descriptor)
-                })
-        else:
-            for course_overview in self.get_courses():
-                course_id = course_overview.id
-                course_descriptor = get_course(course_id)
-
-                courses.append({
-                    "course_key": course_id,
-                    "course": course_overview,
-                    "course_image": course_image_url(course_descriptor)
-                })
+                "course_key": course_id,
+                "course": course_overview,
+                "course_image": course_image_url(course_descriptor)
+            })
 
         activity = request.user.studentmodule_set.filter(course_id__in=self.get_course_locators())
         activity = activity.order_by('-modified')
@@ -188,27 +173,23 @@ class Program(TimeStampedModel):
         latest_block_id = completed_block_ids[0] if completed_block_ids else None
         latest_course_key = activity[0].module_state_key.course_key if activity else None
 
-#        enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
-#        enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
-#        enrolled_keys = {str(key) for key in enrolled_keys}
-
         unit_block_ids = []
 
-        for index, module in enumerate(courses):
-            course_block_tree = get_course_outline_block_tree(request, str(module['course_key']), request.user)
-            module['course_block_tree'] = course_block_tree
-            for section in course_block_tree['children']:
+        module_tree = self._read_module_tree_from_mongo(request.user)
+
+        for course_id, module in module_tree.items():
+            for section in module['sections']:
                 section['resume_block'] = False
                 section['complete'] = section['block_id'] in completed_block_ids
-                for subsection in section.get('children', []):
+                for unit in section['units']:
                     # The structure of the block id eludes me. sometimes it refers to the section, and sometimes
                     # the unit
-                    if subsection['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
+                    if unit['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
                         section['resume_block'] = True
-                    subsection['complete'] = subsection['block_id'] in completed_block_ids
+                    unit['complete'] = unit['block_id'] in completed_block_ids
                     # There's some sort of linked node tree for the module / section / unit structure here
                     # Unsure if there are gaps in the tree, simply adding 1 per iteration
-                    unit_block_ids.append(subsection['block_id'])
+                    unit_block_ids.append(unit['block_id'])
 
         total_completed_modules = set(unit_block_ids).intersection(completed_block_ids)
         if unit_block_ids:
@@ -216,7 +197,12 @@ class Program(TimeStampedModel):
         else:
             completed_percent = 0
 
-
+        modules = []
+        for course in courses:
+            course_id = course['course_key'].html_id().split(':')[1]
+            module_tree[course_id]['course_id'] = course_id
+            module_tree[course_id]['course_key'] = course['course_key']
+            modules.append(module_tree[course_id])
 
         # Create a dict out the information gathered
         program_descriptor = {
@@ -228,13 +214,87 @@ class Program(TimeStampedModel):
             "length": length,
             "effort": effort,
             "number_of_modules": number_of_modules,
-            "modules": courses,
+            "modules": modules,
             "latest_block_id": latest_block_id,
             "latest_course_key": latest_course_key,
             "completed_percent": completed_percent,
         }
 
         return program_descriptor
+
+    def _read_module_tree_from_mongo(self, user):
+
+        course_locators = self.get_course_locators_as_tuples()
+
+        if course_locators:
+            aggregate_query = self._create_aggregate_query(course_locators)
+            courses = self._aggregate_courses(aggregate_query)
+            return self._create_program_course_tree(courses, user)
+        else:
+            return {}
+
+    def get_course_locators_as_tuples(self):
+        course_locators = [
+            code.code_sections() for code in self.course_codes.all()]
+        return course_locators
+
+    def _aggregate_courses(self, aggregate_query):
+        return list(settings.MONGO_DB['modulestore.active_versions'].aggregate(
+            aggregate_query))
+
+    def _create_program_course_tree(self, courses, user):
+        root_courses = {}
+        for course in courses:
+            # There should always be a single root level 'course' block or the data is corrupt
+            root_course = next(c for c in course['blocks'] if c['block_type'] == 'course')
+            sections = []
+            for block_type, block_id in root_course.get('fields', {}).get('children', []):
+                for section in course['blocks']:
+                    if section['block_type'] == block_type and section['block_id'] == block_id:
+                        section['units'] = []
+                        if user.is_staff or not section.get('fields', {}).get('visible_to_staff_only'):
+                            sections.append(section)
+                            for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
+                                for unit in course['blocks']:
+                                    if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
+                                        if user.is_staff or not unit.get('fields', {}).get('visible_to_staff_only'):
+                                            section['units'].append(unit)
+            root_course['sections'] = sections
+            root_courses[course['course_id']] = root_course
+        return root_courses
+
+    def _create_aggregate_query(self, course_locators):
+
+        query = [
+            {"$match": {
+                "$or": [
+                    {"org": org, "course": course, "run": run} for (org, course, run) in course_locators]}
+            },
+        ]
+        query.extend([
+            {"$project": {"root_definition_id": "$versions.published-branch",
+                          "course_id": {"$concat": ["$org", "+", "$course", "+", "$run"]}}},
+            {"$lookup": {
+                "from": "modulestore.structures",
+                "localField": "root_definition_id",
+                "foreignField": "_id",
+                "as": "structures",
+            }},
+            {"$project": {"blocks": "$structures.blocks",
+                          "course_id": 1,
+                         }},
+            {"$unwind": "$blocks"},
+        ])
+        query.extend([
+            {"$project": {"blocks.block_id": 1,
+                          "blocks.block_type": 1,
+                          "blocks.fields.display_name": 1,
+                          "blocks.fields.children": 1,
+                          "blocks.fields.visible_to_staff_only": 1,
+                          "course_id": 1,
+                          }},
+        ])
+        return query
 
     def get_course_locators(self):
         """
@@ -267,13 +327,8 @@ class Program(TimeStampedModel):
         list_of_courses = []
 
         for course_code in self.course_codes.all().order_by('programcoursecode'):
-            course_identifiers = course_code.key.split('+')
-            locator = CourseLocator(
-                course_identifiers[0],
-                course_identifiers[1],
-                course_identifiers[2]
-            )
-            list_of_courses.append(CourseOverview.objects.get(id=locator))
+            org, code, run = course_code.code_sections()
+            list_of_courses.append(CourseOverview.objects.get(id=CourseLocator(org, code, run)))
 
         return list_of_courses
 
@@ -446,7 +501,7 @@ class Program(TimeStampedModel):
         else:
             student_successfully_enrolled = False
             log_message = "Failed to enroll %s in module %s of the %s program" % (
-                student_email, course_id, self.name)
+                student_email, course.course_id, self.name)
 
         log.info(log_message)
         return student_successfully_enrolled
@@ -471,6 +526,9 @@ class CourseCode(models.Model):
     )
     programs = models.ManyToManyField(
         Program, related_name='course_codes', through='ProgramCourseCode')
+
+    def code_sections(self):
+        return self.key.split('+')
 
     def __str__(self):
         return self.display_name

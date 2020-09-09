@@ -919,7 +919,6 @@ TRACKING_BACKENDS = {
         }
     }
 }
-TRACKING_BACKENDS = {}
 
 # We're already logging events, and we don't want to capture user
 # names/passwords.  Heartbeat events are likely not interesting.
@@ -1534,10 +1533,10 @@ MIDDLEWARE = [
 
     # Adds user tags to tracking events
     # Must go before TrackMiddleware, to get the context set up
-#    'openedx.core.djangoapps.user_api.middleware.UserTagsEventContextMiddleware',
+    'openedx.core.djangoapps.user_api.middleware.UserTagsEventContextMiddleware',
 
     'django.contrib.messages.middleware.MessageMiddleware',
-#    'track.middleware.TrackMiddleware',
+    'track.middleware.TrackMiddleware',
 
     # CORS and CSRF
     'corsheaders.middleware.CorsMiddleware',

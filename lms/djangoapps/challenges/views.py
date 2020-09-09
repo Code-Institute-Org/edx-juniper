@@ -16,13 +16,13 @@ def get_submission_or_none(student, challenge):
             student=student, challenge=challenge)
     except ChallengeSubmission.DoesNotExist:
         submission = None
-    
+
     return submission
 
 
 @csrf_exempt
 def challenge_handler(request):
-    assignment_data = json.loads(request.body)
+    assignment_data = json.loads(request.body.decode('utf-8'))
 
     student_email = assignment_data['student']['email']
     student_name = "{} {}".format(
@@ -40,14 +40,14 @@ def challenge_handler(request):
         student = User.objects.get(email=student_email)
     except User.DoesNotExist:
         pass
-    
+
     try:
         challenge = Challenge.objects.get(name=assignment_name)
     except Challenge.DoesNotExist:
         pass
-    
+
     submission = get_submission_or_none(student, challenge)
-    
+
     if not submission:
         submission = ChallengeSubmission(
             student=student, challenge=challenge,
@@ -58,9 +58,9 @@ def challenge_handler(request):
     else:
         submission.passed = assignment_passed
         submission.attempts += 1
-        
+
     submission.save()
-    
+
     return HttpResponse(status=200)
 
 
@@ -79,4 +79,4 @@ def has_completed_challenge(request):
 
     return JsonResponse({'submission': True if submission else False, "attempts": attempts})
 
-        
+
