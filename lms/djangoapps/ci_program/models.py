@@ -175,7 +175,7 @@ class Program(TimeStampedModel):
 
         unit_block_ids = []
 
-        module_tree = self._read_module_tree_from_mongo()
+        module_tree = self._read_module_tree_from_mongo(request.user)
 
         for course_id, module in module_tree.items():
             for section in module['sections']:
@@ -222,14 +222,14 @@ class Program(TimeStampedModel):
 
         return program_descriptor
 
-    def _read_module_tree_from_mongo(self):
+    def _read_module_tree_from_mongo(self, user):
 
         course_locators = self.get_course_locators_as_tuples()
 
         if course_locators:
             aggregate_query = self._create_aggregate_query(course_locators)
             courses = self._aggregate_courses(aggregate_query)
-            return self._create_program_course_tree(courses)
+            return self._create_program_course_tree(courses, user)
         else:
             return {}
 
@@ -242,7 +242,7 @@ class Program(TimeStampedModel):
         return list(settings.MONGO_DB['modulestore.active_versions'].aggregate(
             aggregate_query))
 
-    def _create_program_course_tree(self, courses):
+    def _create_program_course_tree(self, courses, user):
         root_courses = {}
         for course in courses:
             # There should always be a single root level 'course' block or the data is corrupt
@@ -252,21 +252,26 @@ class Program(TimeStampedModel):
                 for section in course['blocks']:
                     if section['block_type'] == block_type and section['block_id'] == block_id:
                         section['units'] = []
-                        sections.append(section)
-                        for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
-                            for unit in course['blocks']:
-                                if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
-                                    section['units'].append(unit)
+                        if user.is_staff or not section.get('fields', {}).get('visible_to_staff_only'):
+                            sections.append(section)
+                            for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
+                                for unit in course['blocks']:
+                                    if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
+                                        if user.is_staff or not unit.get('fields', {}).get('visible_to_staff_only'):
+                                            section['units'].append(unit)
             root_course['sections'] = sections
             root_courses[course['course_id']] = root_course
         return root_courses
 
     def _create_aggregate_query(self, course_locators):
-        return [
+
+        query = [
             {"$match": {
                 "$or": [
                     {"org": org, "course": course, "run": run} for (org, course, run) in course_locators]}
             },
+        ]
+        query.extend([
             {"$project": {"root_definition_id": "$versions.published-branch",
                           "course_id": {"$concat": ["$org", "+", "$course", "+", "$run"]}}},
             {"$lookup": {
@@ -276,15 +281,20 @@ class Program(TimeStampedModel):
                 "as": "structures",
             }},
             {"$project": {"blocks": "$structures.blocks",
-                          "course_id": 1}},
+                          "course_id": 1,
+                         }},
             {"$unwind": "$blocks"},
+        ])
+        query.extend([
             {"$project": {"blocks.block_id": 1,
                           "blocks.block_type": 1,
                           "blocks.fields.display_name": 1,
                           "blocks.fields.children": 1,
+                          "blocks.fields.visible_to_staff_only": 1,
                           "course_id": 1,
                           }},
-        ]
+        ])
+        return query
 
     def get_course_locators(self):
         """
