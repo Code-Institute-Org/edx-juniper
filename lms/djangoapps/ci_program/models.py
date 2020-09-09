@@ -239,20 +239,52 @@ class Program(TimeStampedModel):
         return program_descriptor
 
     def _read_module_tree_from_mongo(self):
-        db = settings.MONGO_DB
 
+        course_locators = self.get_course_locators_as_tuples()
+
+        if course_locators:
+            aggregate_query = self._create_aggregate_query(course_locators)
+            courses = self._aggregate_courses(aggregate_query)
+            return self._create_program_course_tree(courses)
+        else:
+            return {}
+
+    def get_course_locators_as_tuples(self):
         course_locators = [
             code.code_sections() for code in self.course_codes.all()]
+        return course_locators
 
-        versions_query = {
-            "$match": {"$or": [
-                {"org": org, "course": course, "run": run} for (org, course, run) in course_locators]}
-        }
+    def _aggregate_courses(self, aggregate_query):
+        return list(settings.MONGO_DB['modulestore.active_versions'].aggregate(
+            aggregate_query))
 
-        aggregate_query = [
-            versions_query,
+    def _create_program_course_tree(self, courses):
+        root_courses = {}
+        for course in courses:
+            # There should always be a single root level 'course' block or the data is corrupt
+            root_course = next(c for c in course['blocks'] if c['block_type'] == 'course')
+            sections = []
+            for block_type, block_id in root_course.get('fields', {}).get('children', []):
+                for section in course['blocks']:
+                    if section['block_type'] == block_type and section['block_id'] == block_id:
+                        section['units'] = []
+                        sections.append(section)
+                        for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
+                            for unit in course['blocks']:
+                                if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
+                                    section['units'].append(unit)
+            root_course['sections'] = sections
+            root_courses[course['course_id']] = root_course
+        return root_courses
+
+    def _create_aggregate_query(self, course_locators):
+        return [
+            {"$match": {
+                "$or": [
+                    {"org": org, "course": course, "run": run} for (org, course, run) in course_locators]}
+            },
             {"$project": {"root_definition_id": "$versions.published-branch",
-                          "course_id": {"$concat": ["$org", "+", "$course" ,"+", "$run"]}}},
+                          "course_id": {"$concat": ["$org", "+", "$course", "+", "$run"]}}},
             {"$lookup": {
                 "from": "modulestore.structures",
                 "localField": "root_definition_id",
@@ -269,25 +301,6 @@ class Program(TimeStampedModel):
                           "course_id": 1,
                           }},
         ]
-
-        courses = list(db['modulestore.active_versions'].aggregate(
-            aggregate_query))
-        root_courses = {}
-        for course in courses:
-            root_course = next(c for c in course['blocks'] if c['block_type'] == 'course')
-            sections = []
-            for block_type, block_id in root_course.get('fields', {}).get('children', []):
-                for section in course['blocks']:
-                    if section['block_type'] == block_type and section['block_id'] == block_id:
-                        section['units'] = []
-                        sections.append(section)
-                        for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
-                            for unit in course['blocks']:
-                                if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
-                                    section['units'].append(unit)
-            root_course['sections'] = sections
-            root_courses[course['course_id']] = root_course
-        return root_courses
 
     def get_course_locators(self):
         """
