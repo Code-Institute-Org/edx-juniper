@@ -157,31 +157,15 @@ class Program(TimeStampedModel):
         effort = self.effort
         number_of_modules = self.number_of_modules
 
-        # Gather the information of each of the modules in the program
-        # Get the latest 5DCC for this specific student
-        if self.program_code == "5DCC":
-            student = User.objects.get(email=request.user.email)
-            users_five_day_module = student.courseenrollment_set.filter(
-                course_id__icontains="dcc").order_by('created').last()
-            course_id = users_five_day_module.course_id
-            course_overview = CourseOverview.objects.get(id=course_id)
+        for course_overview in self.get_courses():
+            course_id = course_overview.id
             course_descriptor = get_course(course_id)
 
             courses.append({
-                    "course_key": course_id,
-                    "course": course_overview,
-                    "course_image": course_image_url(course_descriptor)
-                })
-        else:
-            for course_overview in self.get_courses():
-                course_id = course_overview.id
-                course_descriptor = get_course(course_id)
-
-                courses.append({
-                    "course_key": course_id,
-                    "course": course_overview,
-                    "course_image": course_image_url(course_descriptor)
-                })
+                "course_key": course_id,
+                "course": course_overview,
+                "course_image": course_image_url(course_descriptor)
+            })
 
         activity = request.user.studentmodule_set.filter(course_id__in=self.get_course_locators())
         activity = activity.order_by('-modified')
