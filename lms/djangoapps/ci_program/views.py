@@ -29,6 +29,8 @@ def show_programs(request, program_name):
             "latest_block_id": program_descriptor['latest_block_id'],
             "latest_course_key": program_descriptor['latest_course_key'],
             "completed_percent": program_descriptor['completed_percent'],
+            "latest_section_block_id": program_descriptor['latest_section_block_id'],
+            "latest_unit_block_id": program_descriptor['latest_unit_block_id'],
         },
         'disable_courseware_js': True,
         'uses_bootstrap': True,
