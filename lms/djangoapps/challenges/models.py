@@ -137,7 +137,7 @@ class ChallengeSubmission(models.Model):
         
         Returns the `answer_id`
         """
-        answer_id = state['input_state'].keys()[0]
+        answer_id = list(state['input_state'].keys())[0]
         return answer_id
     
     def create_correct_map(self, answer_id):
@@ -180,7 +180,6 @@ class ChallengeSubmission(models.Model):
 
         student_activity = StudentModule.objects.get(student=self.student,
             module_state_key=block_location, course_id=course_key)
-        
         student_activity.state = self.update_module_state(student_activity)
         student_activity.grade = grade
         student_activity.max_grade = 1.0
