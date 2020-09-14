@@ -15,6 +15,7 @@ from django.utils import translation
 from django.utils.translation.trans_real import get_supported_language_variant
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.contrib.auth.decorators import login_required
 
 import branding.api as branding_api
 import lms.djangoapps.courseware.views.views as courseware_views
@@ -30,54 +31,13 @@ log = logging.getLogger(__name__)
 
 @ensure_csrf_cookie
 @transaction.non_atomic_requests
-@cache_if_anonymous()
+@login_required
 def index(request):
     """
     Redirects to main page -- info page if user authenticated, or marketing if not
     """
-    if request.user.is_authenticated:
-        # Only redirect to dashboard if user has
-        # courses in his/her dashboard. Otherwise UX is a bit cryptic.
-        # In this case, we want to have the user stay on a course catalog
-        # page to make it easier to browse for courses (and register)
-        if configuration_helpers.get_value(
-                'ALWAYS_REDIRECT_HOMEPAGE_TO_DASHBOARD_FOR_AUTHENTICATED_USER',
-                settings.FEATURES.get('ALWAYS_REDIRECT_HOMEPAGE_TO_DASHBOARD_FOR_AUTHENTICATED_USER', True)):
-            return redirect('dashboard')
+    return redirect("dashboard")
 
-    enable_mktg_site = configuration_helpers.get_value(
-        'ENABLE_MKTG_SITE',
-        settings.FEATURES.get('ENABLE_MKTG_SITE', False)
-    )
-
-    if enable_mktg_site:
-        marketing_urls = configuration_helpers.get_value(
-            'MKTG_URLS',
-            settings.MKTG_URLS
-        )
-        return redirect(marketing_urls.get('ROOT'))
-
-    domain = request.META.get('HTTP_HOST')
-
-    # keep specialized logic for Edge until we can migrate over Edge to fully use
-    # configuration.
-    if domain and 'edge.edx.org' in domain:
-        return redirect("signin_user")
-
-    #  we do not expect this case to be reached in cases where
-    #  marketing and edge are enabled
-
-    try:
-        return student.views.index(request, user=request.user)
-    except NoReverseMatch:
-        log.error(
-            'https is not a registered namespace Request from {}'.format(domain),
-            'request_site= {}'.format(request.site.__dict__),
-            'enable_mktg_site= {}'.format(enable_mktg_site),
-            'Auth Status= {}'.format(request.user.is_authenticated),
-            'Request Meta= {}'.format(request.META)
-        )
-        raise
 
 
 @ensure_csrf_cookie
