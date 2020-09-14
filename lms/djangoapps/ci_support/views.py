@@ -10,7 +10,6 @@ from util.views import ensure_valid_course_key
 from opaque_keys.edx.keys import CourseKey
 from courseware.courses import get_course_with_access
 from edxmako.shortcuts import render_to_response
-from lms.djangoapps.ci_support.utils import get_a_students_mentor
 from lms.djangoapps.ci_support.utils import get_mentor_details
 from lms.djangoapps.ci_support.utils import send_email_from_zapier
 
