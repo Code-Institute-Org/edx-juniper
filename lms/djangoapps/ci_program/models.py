@@ -177,6 +177,9 @@ class Program(TimeStampedModel):
 
         module_tree = self._read_module_tree_from_mongo(request.user)
 
+        latest_section_block_id = None
+        latest_unit_block_id = None
+
         for course_id, module in module_tree.items():
             for section in module['sections']:
                 section['resume_block'] = False
@@ -186,6 +189,10 @@ class Program(TimeStampedModel):
                     # the unit
                     if unit['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
                         section['resume_block'] = True
+                        if section['block_id'] == latest_block_id:
+                            latest_section_block_id = section['block_id']
+                        else:
+                            latest_unit_block_id = unit['block_id']
                     unit['complete'] = unit['block_id'] in completed_block_ids
                     # There's some sort of linked node tree for the module / section / unit structure here
                     # Unsure if there are gaps in the tree, simply adding 1 per iteration
@@ -218,6 +225,8 @@ class Program(TimeStampedModel):
             "latest_block_id": latest_block_id,
             "latest_course_key": latest_course_key,
             "completed_percent": completed_percent,
+            "latest_section_block_id": latest_section_block_id,
+            "latest_unit_block_id": latest_unit_block_id,
         }
 
         return program_descriptor
