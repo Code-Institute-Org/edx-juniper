@@ -1,0 +1,84 @@
+
+<%page expression_filter="h"/>
+
+<!-- if this isn't here, it loads lms-main-v1.css -->
+<%! main_css = "style-main-v2" %>
+
+<%namespace name='static' file='../static_content.html'/>
+
+<%inherit file="../main.html" />
+<%!
+from django.urls import reverse
+%>
+
+
+<%block name="content">
+<main id="main" aria-label="Content" tabindex="-1">
+    <div class="page-content">
+
+    <div class="course-bookmarks courseware-results-wrapper" id="main" tabindex="-1">
+        <div id="loading-message" aria-live="polite" aria-relevant="all"></div>
+        <div id="error-message" aria-live="polite"></div>
+
+        <div class="paging-header">
+            <div class="search-tools listing-tools">
+                <span class="search-count listing-count">
+                    Showing ${page} out of ${total_pages} total
+                </span>
+            </div>
+        </div>
+
+        <div class="bookmarks-results-list">
+
+            % for index, bookmark in enumerate(bookmarks):
+                 <a class="bookmarks-results-list-item" href="${reverse('jump_to', kwargs={'course_id': bookmark.course_key, 'location': bookmark.usage_key})}" aria-labelledby="bookmark-link-0"  data-component-type="vertical"  aria-describedby="bookmark-type-0 bookmark-date-0">
+                    <div class="list-item-content">
+                        <div class="list-item-left-section">
+                            <h3 id="bookmark-link-0" class="list-item-breadcrumbtrail">
+                                % for entry in bookmark.path:
+                                    ${entry.display_name} <span class="icon fa fa-caret-right" aria-hidden="true"></span><span class="sr">-</span>
+                                % endfor
+                                ${bookmark.display_name}
+                            </h3>
+                            <p id="bookmark-date-0" class="list-item-date"> Bookmarked on ${bookmark.created} </p>
+                        </div>
+
+                        <p id="bookmark-type-0" class="list-item-right-section">
+                            <span aria-hidden="true">View</span>
+                            <span class="icon fa fa-arrow-right" aria-hidden="true"></span>
+                        </p>
+                    </div>
+                </a>
+            % endfor
+        </div>
+
+        <div class="paging-footer">
+            <nav class="pagination pagination-full bottom" aria-label="Pagination">
+                <div class="nav-item previous">
+                    % if page == 1:
+                    <button class="nav-link previous-page-link is-disabled" aria-disabled="true"><span class="icon fa fa-angle-left" aria-hidden="true"></span> <span class="nav-label">Previous</span></button></div>
+                    % else:
+                    <a href="${reverse('show_program_bookmarks', kwargs={'program_name': program_name})}?page=${page-1}">
+                        <button class="nav-link previous-page-link" aria-disabled="true"><span class="icon fa fa-angle-left" aria-hidden="true"></span> <span class="nav-label">Previous</span></button></div>
+                    </a>
+                    % endif
+                    <div class="nav-item page">
+                       <span>${page}</span>
+                        <span aria-hidden="true">/</span>
+                        <span>${total_pages}</span>
+                    </div>
+                    % if page < total_pages:
+                    <a href="${reverse('show_program_bookmarks', kwargs={'program_name': program_name})}?page=${page+1}">
+                        <div class="nav-item next"><button class="nav-link next-page-link " aria-disabled="true"><span class="nav-label">Next</span> <span class="icon fa fa-angle-right" aria-hidden="true"></span></button></div>
+                    </a>
+                    % else:
+                        <div class="nav-item next"><button class="nav-link next-page-link is-disabled" aria-disabled="true"><span class="nav-label">Next</span> <span class="icon fa fa-angle-right" aria-hidden="true"></span></button></div>
+                    % endif
+            </nav>
+        </div>
+
+    </div>
+
+    </div>
+</main>
+</%block>
