@@ -1,3 +1,4 @@
+import json
 from logging import getLogger
 from uuid import uuid4
 from django.db import models
@@ -176,6 +177,14 @@ class Program(TimeStampedModel):
         unit_block_ids = []
 
         module_tree = self._read_module_tree_from_mongo(request.user)
+
+        if latest_block_id == 'course' and latest_course_key:
+            latest_course_id = latest_course_key.html_id().split(':')[1]
+            course_xblock = module_tree[latest_course_id]
+            children = course_xblock.get('fields', {}).get('children')
+            activity_state = json.loads(activity[0].state)
+            latest_section_block = children[activity_state.get('position', 1) - 1] if children else None
+            latest_block_id = latest_section_block[1] if latest_section_block else None
 
         latest_section_block_id = None
         latest_unit_block_id = None
