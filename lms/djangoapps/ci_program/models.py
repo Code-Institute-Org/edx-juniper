@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
 from opaque_keys.edx.locator import CourseLocator
+
+from ci_program.xblock_tree_builder import XBlockTreeBuilder
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from student.models import CourseEnrollmentAllowed
 from lms.djangoapps.instructor.enrollment import enroll_email, unenroll_email
@@ -59,13 +61,15 @@ class Program(TimeStampedModel):
     enrolled_students = models.ManyToManyField(
         User, blank=True)
     # This is used for getting the path to the enrollment email files
-    program_code_friendly_name = models.CharField(max_length=50, null=True, blank=True)
+    program_code_friendly_name = models.CharField(max_length=50, null=True,
+                                                  blank=True)
 
     @staticmethod
     def lookup_programs_by_course(course):
         course_id = course.id.html_id()
         course_key = course_id.split(':')[1]
-        course_codes = ProgramCourseCode.objects.filter(course_code__key=course_key)
+        course_codes = ProgramCourseCode.objects.filter(
+            course_code__key=course_key)
         return [code.program for code in course_codes]
 
     @property
@@ -92,8 +96,8 @@ class Program(TimeStampedModel):
         # i.e. enrollment, unenrollment & reenrollment, along with the
         # accompany subject
         if self.enrollment_type == 0:
-            subject = "You have been enrolled in your Code Institute {} program".format(
-                self.name)
+            subject = "You have been enrolled in your Code Institute {}"\
+                      " program".format(self.name)
             template_type_name = "enrollment_email.html"
         elif self.enrollment_type == 1:
             subject = "Code Institute Unenrollment"
@@ -102,8 +106,8 @@ class Program(TimeStampedModel):
             subject = "You have been re-enrolled!"
             template_type_name = "reenrollment_email.html"
         elif self.enrollment_type == 3:
-            subject = "You have been enrolled in your Code Institute {} program".format(
-                self.name)
+            subject = "You have been enrolled in your Code Institute {} "\
+                      "program".format(self.name)
             template_type_name = "upgrade_enrollment_email.html"
 
         # Get the name of the directory where the program's emails are
@@ -142,21 +146,25 @@ class Program(TimeStampedModel):
         """
 
         # Gather the basic information about the program
-        activity_log = request.user.studentmodule_set.filter(course_id__in=self.get_course_locators())
+        activity_log = request.user.studentmodule_set.filter(
+            course_id__in=self.get_course_locators())
         activity_log = activity_log.order_by('-modified')
 
         module_tree = self._read_module_tree_from_mongo(request.user)
 
         latest_course_key = self._get_latest_course_key(activity_log)
-        latest_block_id = self._get_latest_block_id(activity_log[0], latest_course_key, module_tree)
+        latest_block_id = self._get_or_infer_block_id(
+            activity_log[0], latest_course_key, module_tree)
 
-        completed_block_ids = [ac.module_state_key.block_id for ac in activity_log]
-        self._add_progress_info_to_module_tree(completed_block_ids, latest_block_id, module_tree)
-        completed_percent = self._calculate_percent_completed(completed_block_ids, module_tree)
+        completed_block_ids = [
+            ac.module_state_key.block_id for ac in activity_log]
+        self._add_progress_info_to_module_tree(
+            completed_block_ids, latest_block_id, module_tree)
+        completed_percent = self._calculate_percent_completed(
+            completed_block_ids, module_tree)
 
         modules = self._extract_ordered_modules(module_tree, request)
 
-        # Create a dict out the information gathered
         program_descriptor = {
             "name": self.name,
             "subtitle": self.subtitle,
@@ -174,17 +182,21 @@ class Program(TimeStampedModel):
 
         return program_descriptor
 
-    def _add_progress_info_to_module_tree(self, completed_block_ids, latest_block_id, module_tree):
-        ''' Adds the 'resume_block' field to each of the sections, True if it was the last section viewed
+    def _add_progress_info_to_module_tree(
+            self, completed_block_ids, latest_block_id, module_tree):
+        ''' Adds the 'resume_block' field to each of the sections, True if
+            it was the last section viewed
         '''
         for course_id, module in module_tree.items():
             for section in module['sections']:
                 section['resume_block'] = False
                 section['complete'] = section['block_id'] in completed_block_ids
                 for unit in section['units']:
-                    # The structure of the block id eludes me. sometimes it refers to the section, and sometimes
+                    # The structure of the block id eludes me. sometimes it
+                    # refers to the section, and sometimes
                     # the unit
-                    if unit['block_id'] == latest_block_id or section['block_id'] == latest_block_id:
+                    if (unit['block_id'] == latest_block_id or
+                            section['block_id'] == latest_block_id):
                         section['resume_block'] = True
                     unit['complete'] = unit['block_id'] in completed_block_ids
 
@@ -194,9 +206,11 @@ class Program(TimeStampedModel):
             for section in module['sections']:
                 for unit in section['units']:
                     unit_block_ids.append(unit['block_id'])
-        total_completed_modules = set(unit_block_ids).intersection(completed_block_ids)
+        total_completed_modules = set(unit_block_ids).intersection(
+            completed_block_ids)
         if unit_block_ids:
-            completed_percent = int(100 * len(total_completed_modules) / len(unit_block_ids))
+            completed_percent = int(
+                100 * len(total_completed_modules) / len(unit_block_ids))
         else:
             completed_percent = 0
         return completed_percent
@@ -204,8 +218,10 @@ class Program(TimeStampedModel):
     def _extract_ordered_modules(self, module_tree, request):
         ''' Extract the modules from the module tree in the correct order
         '''
-        enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
-        enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
+        enrolled_courses = request.user.courseenrollment_set.filter(
+            is_active=True)
+        enrolled_keys = set(enrolled_courses.values_list(
+            'course_id', flat=True))
         enrolled_keys = {str(key).split(':')[1] for key in enrolled_keys}
         modules = []
         for course in self.get_courses():
@@ -218,30 +234,37 @@ class Program(TimeStampedModel):
         return modules
 
     def _get_latest_course_key(self, activity_log):
-        return activity_log[0].module_state_key.course_key if activity_log else None
+        if activity_log:
+            return activity_log[0].module_state_key.course_key
+        else:
+            return None
 
-    def _get_latest_block_id(self, last_activity, latest_course_key, module_tree):
-        ''' The activity log will sometimes refer to the first section in a module as type "course" with the "state"
-            containing json containing "position" field. Otherwise it refers to the xblock of either the section
-            or the unit directly.
-            This method will resolve the xblock id if the activity log type is "course", and otherwise return
-            the latest xblock id.
+    def _get_or_infer_block_id(
+            self, activity, course_key, module_tree):
+        ''' Resolves the xblock id if the activity log type is "course", and
+            otherwise return the latest xblock id.
+
+            The activity log will sometimes refer to the first section in a
+            module as type "course" with the "state" containing json containing
+            "position" field. Otherwise it refers to the xblock of either the
+            section or the unit directly.
         '''
-        latest_block_id = last_activity.module_state_key.block_id if last_activity else None
-        if latest_block_id == 'course' and latest_course_key:
-            latest_course_id = latest_course_key.html_id().split(':')[1]
+        block_id = activity.module_state_key.block_id if activity else None
+        if block_id == 'course' and course_key:
+            latest_course_id = course_key.html_id().split(':')[1]
             course_xblock = module_tree[latest_course_id]
             children = course_xblock.get('fields', {}).get('children')
-            activity_state = json.loads(last_activity.state)
-            latest_section_block = children[activity_state.get('position', 1) - 1] if children else None
-            latest_block_id = latest_section_block[1] if latest_section_block else None
-        return latest_block_id
+            if children:
+                activity_state = json.loads(activity.state)
+                section_block = children[activity_state.get('position', 1) - 1]
+                block_id = section_block[1] if section_block else None
+        return block_id
 
     def _read_module_tree_from_mongo(self, user):
-        if self.course_codes.all():
+        if self.course_codes.exists():
             aggregate_query = self._create_aggregate_query()
             courses = self._aggregate_courses(aggregate_query)
-            return self._create_program_course_tree(courses, user)
+            return XBlockTreeBuilder(courses, user).create_program_course_tree()
         else:
             return {}
 
@@ -249,44 +272,22 @@ class Program(TimeStampedModel):
         return list(settings.MONGO_DB['modulestore.active_versions'].aggregate(
             aggregate_query))
 
-    def _create_program_course_tree(self, courses, user):
-        ''' Given a list of courses, each contains a list of xblocks
-            Each xblock list is unordered, but has one root block of type 'course'
-            Each xblock contains a list of block_ids in fields.children which refer to other xblocks in the same list
-            The result is a tree of Course->Section->Unit
-         '''
-        root_courses = {}
-        for course in courses:
-            # There should always be a single root level 'course' block or the data is corrupt
-            root_course = next(c for c in course['blocks'] if c['block_type'] == 'course')
-            sections = []
-            for block_type, block_id in root_course.get('fields', {}).get('children', []):
-                for section in course['blocks']:
-                    if section['block_type'] == block_type and section['block_id'] == block_id:
-                        section['units'] = []
-                        if user.is_staff or not section.get('fields', {}).get('visible_to_staff_only'):
-                            sections.append(section)
-                            for unit_block_type, unit_block_id in section.get('fields', {}).get('children', []):
-                                for unit in course['blocks']:
-                                    if unit['block_type'] == unit_block_type and unit['block_id'] == unit_block_id:
-                                        if user.is_staff or not unit.get('fields', {}).get('visible_to_staff_only'):
-                                            section['units'].append(unit)
-            root_course['sections'] = sections
-            root_courses[course['course_id']] = root_course
-        return root_courses
-
     def _create_aggregate_query(self):
-        course_locators = [code.code_sections() for code in self.course_codes.all()]
+        course_locators = [code.code_sections() for code in
+                           self.course_codes.all()]
 
         query = [
             {"$match": {
                 "$or": [
-                    {"org": org, "course": course, "run": run} for (org, course, run) in course_locators]}
+                    {"org": org, "course": course, "run": run} for (
+                        org, course, run) in course_locators]}
             },
         ]
         query.extend([
             {"$project": {"root_definition_id": "$versions.published-branch",
-                          "course_id": {"$concat": ["$org", "+", "$course", "+", "$run"]}}},
+                          "course_id": {
+                              "$concat": [
+                                  "$org", "+", "$course", "+", "$run"]}}},
             {"$lookup": {
                 "from": "modulestore.structures",
                 "localField": "root_definition_id",
@@ -341,7 +342,8 @@ class Program(TimeStampedModel):
 
         for course_code in self.course_codes.all().order_by('programcoursecode'):
             org, code, run = course_code.code_sections()
-            list_of_courses.append(CourseOverview.objects.get(id=CourseLocator(org, code, run)))
+            list_of_courses.append(
+                CourseOverview.objects.get(id=CourseLocator(org, code, run)))
 
         return list_of_courses
 
