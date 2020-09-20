@@ -1054,6 +1054,11 @@ import pymongo
 
 host = CONTENTSTORE['DOC_STORE_CONFIG']['host']
 port = CONTENTSTORE['DOC_STORE_CONFIG']['port']
+username = CONTENTSTORE['DOC_STORE_CONFIG'].get('user')
+password = CONTENTSTORE['DOC_STORE_CONFIG'].get('password')
 db = CONTENTSTORE['DOC_STORE_CONFIG']['db']
-MONGO_CLIENT = pymongo.MongoClient(host=host, port=port)
+authSource = CONTENTSTORE['DOC_STORE_CONFIG'].get('authSource', db)
+
+MONGO_CLIENT = pymongo.MongoClient(host=host, port=port, username=username,
+                                   password=password, authSource=authSource)
 MONGO_DB = MONGO_CLIENT[db]
