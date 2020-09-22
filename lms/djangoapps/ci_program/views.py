@@ -2,7 +2,6 @@
 import math
 
 from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
 from edxmako.shortcuts import render_to_response
 from ci_program.models import Program
 from openedx.core.djangoapps.bookmarks.models import Bookmark
@@ -18,15 +17,14 @@ def show_programs(request, program_name):
     enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
     enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
     enrolled_keys = {str(key).split(':')[1] for key in enrolled_keys}
-    student_project_deadlines = get_students_project_deadlines(
-        student_email=request.user.email)
+    project_deadlines = get_student_deadlines(student_email=request.user.email)
     context = {
         'program': program_descriptor,
         'disable_courseware_js': True,
         'uses_bootstrap': True,
         'on_course_outline_page': True,
         'program_slug': program_name,
-        'project_deadlines': student_project_deadlines,
+        'project_deadlines': project_deadlines,
     }
     return render_to_response('programs/programs.html', context)
 
