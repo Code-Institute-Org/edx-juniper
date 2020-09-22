@@ -154,7 +154,7 @@ class Program(TimeStampedModel):
 
         latest_course_key = self._get_latest_course_key(activity_log)
         latest_block_id = self._get_or_infer_block_id(
-            activity_log[0], latest_course_key, module_tree)
+            activity_log, latest_course_key, module_tree)
 
         completed_block_ids = [
             ac.module_state_key.block_id for ac in activity_log]
@@ -240,7 +240,7 @@ class Program(TimeStampedModel):
             return None
 
     def _get_or_infer_block_id(
-            self, activity, course_key, module_tree):
+            self, activity_log, course_key, module_tree):
         ''' Resolves the xblock id if the activity log type is "course", and
             otherwise return the latest xblock id.
 
@@ -249,13 +249,15 @@ class Program(TimeStampedModel):
             "position" field. Otherwise it refers to the xblock of either the
             section or the unit directly.
         '''
-        block_id = activity.module_state_key.block_id if activity else None
+        if not activity_log:
+            return None
+        block_id = activity_log[0].module_state_key.block_id
         if block_id == 'course' and course_key:
             latest_course_id = course_key.html_id().split(':')[1]
             course_xblock = module_tree[latest_course_id]
             children = course_xblock.get('fields', {}).get('children')
             if children:
-                activity_state = json.loads(activity.state)
+                activity_state = json.loads(activity_log[0].state)
                 section_block = children[activity_state.get('position', 1) - 1]
                 block_id = section_block[1] if section_block else None
         return block_id
