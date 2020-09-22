@@ -15,9 +15,6 @@ def show_programs(request, program_name):
     """
     program = Program.objects.get(marketing_slug=program_name)
     program_descriptor = program.get_program_descriptor(request)
-    enrolled_courses = request.user.courseenrollment_set.filter(is_active=True)
-    enrolled_keys = set(enrolled_courses.values_list('course_id', flat=True))
-    enrolled_keys = {str(key).split(':')[1] for key in enrolled_keys}
     project_deadlines = get_student_deadlines(student_email=request.user.email)
     context = {
         'program': program_descriptor,
