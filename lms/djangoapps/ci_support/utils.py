@@ -1,4 +1,6 @@
+import logging
 import requests
+
 from django.conf import settings
 
 ZOHO_CLIENT_ID = settings.ZOHO_CLIENT_ID
@@ -10,12 +12,18 @@ ZOHO_MENTORS_ENDPOINT = settings.ZOHO_MENTORS_ENDPOINT
 
 ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT = settings.ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT
 
+logger = logging.getLogger(__name__)
+
 
 def get_student_record_from_zoho(email):
     """Fetch from Zoho all data for a student
     API documentation for this endpoint:
     https://www.zoho.com/crm/help/api/getsearchrecordsbypdc.html
     """
+    if not settings.ZOHO_CLIENT_ID:
+        logger.warning("ZOHO_CLIENT_ID is not set.")
+        return {}
+
     params = {'email': email}
     student_resp = requests.get(
         ZOHO_STUDENTS_ENDPOINT + '/search',
@@ -50,7 +58,7 @@ def get_mentor_details(student_email):
     }
     
     student_record = get_student_record_from_zoho(student_email)
-    assigned_mentor = student_record['Assigned_Mentor']
+    assigned_mentor = student_record.get('Assigned_Mentor')
     
     if assigned_mentor:
         mentor_resp = requests.get(
