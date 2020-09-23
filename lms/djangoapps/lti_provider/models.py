@@ -23,6 +23,10 @@ log = logging.getLogger("edx.lti_provider")
 
 
 class LtiConsumer(models.Model):
+
+    class Meta:
+        app_label = 'lti_provider'
+
     """
     Database model representing an LTI consumer. This model stores the consumer
     specific settings, such as the OAuth key/secret pair and any LTI fields
@@ -101,6 +105,9 @@ class OutcomeService(models.Model):
     lis_outcome_service_url = models.CharField(max_length=255, unique=True)
     lti_consumer = models.ForeignKey(LtiConsumer, on_delete=models.CASCADE)
 
+    class Meta:
+        app_label = 'lti_provider'
+
 
 class GradedAssignment(models.Model):
     """
@@ -127,7 +134,7 @@ class GradedAssignment(models.Model):
 
     class Meta(object):
         unique_together = ('outcome_service', 'lis_result_sourcedid')
-
+        app_label = 'lti_provider'
 
 class LtiUser(models.Model):
     """
@@ -144,3 +151,4 @@ class LtiUser(models.Model):
 
     class Meta(object):
         unique_together = ('lti_consumer', 'lti_user_id')
+        app_label = 'lti_provider'

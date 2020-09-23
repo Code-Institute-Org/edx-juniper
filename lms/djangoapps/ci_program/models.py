@@ -1,4 +1,5 @@
 import json
+import os
 from logging import getLogger
 from uuid import uuid4
 from django.db import models
@@ -118,8 +119,12 @@ class Program(TimeStampedModel):
         # template
         template_location = 'emails/{0}/{1}'.format(
             template_dir_name, template_type_name)
-
-        return template_location, subject
+        if os.path.exists(template_location):
+            return template_location, subject
+        else:
+            log.exception("No email template found for %s/%s, using default",
+                          template_dir_name, template_type_name)
+            return 'emails/default/{0}'.format(template_type_name), "LMS"
 
     def __str__(self):
         return self.name

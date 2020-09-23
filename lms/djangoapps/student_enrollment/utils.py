@@ -39,7 +39,7 @@ def register_student(email, full_name, password=None):
         not provided
     """
     username = email
-    
+
     if password:
         user = User.objects.create_user(username, email, password)
         create_user_profile(user, full_name)
@@ -59,7 +59,7 @@ def get_or_register_student(email, full_name, password=None):
     If the student already exists in the system then this is considered to
     be a re-enrollment, but if this are not already registered then they
     will be enrolled.
-    
+
     `user` is an object that should at least contain an email and
         a full_name property
 
@@ -90,7 +90,7 @@ def create_email_connection():
     use_tls = settings.EMAIL_USE_TLS
 
     connection = get_connection(host=host, port=port,
-                                username=username, password=password, 
+                                username=username, password=password,
                                 use_tls=use_tls)
     return connection
 
@@ -106,7 +106,8 @@ def construct_email(to_address, from_address, template_location, **kwargs):
     Returns the HTML email that's to be sent (with the inject template context)
     """
     context = {
-        'email': to_address
+        'email': to_address,
+        'site_url': settings.LMS_BASE,
     }
     context.update(kwargs)
 
