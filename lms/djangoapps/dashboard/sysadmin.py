@@ -609,9 +609,9 @@ class Enrollment(SysadminDashboardView):
         # If the enrollment was successful then continue as usual,
         # otherwise issue a 500 response
         if program_enrollment_status:
-            log.info("%s successfully enrolled in %s", (email, program.name))
+            log.info("%s successfully enrolled in %s", email, program.name)
         else:
-            log.error("Unable to enroll %s in %s", (email, program.name))
+            log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
 
         # Send the email to the student
