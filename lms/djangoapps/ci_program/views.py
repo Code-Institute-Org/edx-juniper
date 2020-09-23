@@ -4,6 +4,7 @@ import math
 from django.contrib.auth.decorators import login_required
 from edxmako.shortcuts import render_to_response
 from ci_program.models import Program
+from ci_program.utils import get_student_deadlines
 from openedx.core.djangoapps.bookmarks.models import Bookmark
 
 
@@ -14,12 +15,14 @@ def show_programs(request, program_name):
     """
     program = Program.objects.get(marketing_slug=program_name)
     program_descriptor = program.get_program_descriptor(request)
+    project_deadlines = get_student_deadlines(student_email=request.user.email)
     context = {
         'program': program_descriptor,
         'disable_courseware_js': True,
         'uses_bootstrap': True,
         'on_course_outline_page': True,
         'program_slug': program_name,
+        'project_deadlines': project_deadlines,
     }
     return render_to_response('programs/programs.html', context)
 
