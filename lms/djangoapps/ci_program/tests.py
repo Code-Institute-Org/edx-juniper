@@ -93,5 +93,4 @@ class ProjectDeadlinesUnitTest(TestCase):
         self.assertEqual(1, len(mail.outbox))
 
         email = mail.outbox[0]
-        self.assertTrue('Username: student@codeinstitute.net' in email.body)
-        program.save()
+        self.assertIn('Username: student@codeinstitute.net', email.body)
