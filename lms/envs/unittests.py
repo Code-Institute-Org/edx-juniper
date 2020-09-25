@@ -8,3 +8,10 @@ index = MIDDLEWARE.index(
 MIDDLEWARE.remove(
     'openedx.core.djangoapps.safe_sessions.middleware.SafeSessionMiddleware')
 MIDDLEWARE.insert(index, 'django.contrib.sessions.middleware.SessionMiddleware')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
