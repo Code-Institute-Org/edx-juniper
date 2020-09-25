@@ -35,8 +35,11 @@ def get_student_deadlines(student_email):
         return cache.get(cache_key)
 
     student_record = get_student_record_from_zoho(student_email)
-    student_deadlines = get_student_deadlines_from_zoho_data(student_record)
-    cache.set(cache_key, student_deadlines)
+    if student_record:
+        student_deadlines = get_student_deadlines_from_zoho_data(student_record)
+        cache.set(cache_key, student_deadlines)
+    else:
+        student_deadlines = []
     return student_deadlines
 
 
