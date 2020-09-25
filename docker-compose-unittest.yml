@@ -23,6 +23,8 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_started
+      memcached:
+        condition: service_started
 
   mongodb:
     image: docker.io/mongo:3.2.16
@@ -40,3 +42,7 @@ services:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       timeout: 5s
       retries: 10
+
+  memcached:
+    image: docker.io/memcached:1.4.38
+    restart: unless-stopped
