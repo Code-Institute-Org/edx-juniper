@@ -51,6 +51,8 @@ from .latest_update import LatestUpdateFragmentView
 from .next_up_banner import NextUpBannerFragmentView
 from .welcome_message import WelcomeMessageFragmentView
 
+from django.http import HttpResponseRedirect
+
 EMPTY_HANDOUTS_HTML = u'<ol></ol>'
 
 
@@ -66,7 +68,8 @@ class CourseHomeView(CourseTabView):
         """
         Displays the home page for the specified course.
         """
-        return super(CourseHomeView, self).get(request, course_id, 'courseware', **kwargs)
+        # Removing this view in favour of dashboard view
+        return HttpResponseRedirect(reverse('dashboard'))
 
     def uses_bootstrap(self, request, course, tab):
         """
