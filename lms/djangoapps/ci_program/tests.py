@@ -1,10 +1,12 @@
 
-from django.test import TestCase
+from django.urls import reverse
+from django.test import TestCase, override_settings
 from freezegun import freeze_time
 from .utils import get_student_deadlines_from_zoho_data
 from .models import Program
 from django.contrib.auth.models import User
 from django.core import mail
+import responses
 
 
 class ProjectDeadlinesUnitTest(TestCase):
@@ -94,3 +96,19 @@ class ProjectDeadlinesUnitTest(TestCase):
 
         email = mail.outbox[0]
         self.assertIn('Username: student@codeinstitute.net', email.body)
+
+    @responses.activate
+    @override_settings(ZOHO_CLIENT_ID='TEST_API_KEY',
+                       ZOHO_STUDENTS_ENDPOINT='http://test.zoho.api')
+    def test_show_programs_blank_zoho_user(self):
+        responses.add(
+            'GET',
+            'http://test.zoho.api/search',
+            body='{"data": []}',
+            content_type='application/json',
+            status=404)
+        Program.objects.create(program_name='test_program')
+        response = self.client.get(
+                reverse('show_programs',
+                        kwargs={'program_name': 'test_program'}))
+        self.assertEqual(200, response.status_code)
