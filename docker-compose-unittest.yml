@@ -1,0 +1,42 @@
+version: "2.4"
+services:
+
+  ci-lms:
+    image: ${EDX_IMAGE:-edx-juniper}
+    environment:
+      SERVICE_VARIANT: lms
+      DEBUG: "True"
+    command: ./manage.py lms test
+    stdin_open: true
+    tty: true
+
+    volumes:
+      - ${PWD}/config/:/openedx/config/                            # required to load env config
+
+      - ${PWD}/lms:/openedx/edx-platform/lms
+      - ${PWD}/cms:/openedx/edx-platform/cms
+      - ${PWD}/common:/openedx/edx-platform/common
+      - ${PWD}/openedx:/openedx/edx-platform/openedx
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+
+  mongodb:
+    image: docker.io/mongo:3.2.16
+    command: mongod --smallfiles --nojournal --storageEngine wiredTiger
+
+  mysql:
+    image: docker.io/mysql:5.6.36
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+    restart: unless-stopped
+    environment:
+      # This is not a valid authentication approach for production - this file is used only when running
+      # unit tests locally. Hence the bad password.
+      MYSQL_ROOT_PASSWORD: "arglebargle"
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10

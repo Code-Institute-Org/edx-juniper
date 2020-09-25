@@ -1,10 +1,13 @@
 
-import unittest
+from django.test import TestCase
 from freezegun import freeze_time
-from spike import get_student_deadlines_from_zoho_data
+from .utils import get_student_deadlines_from_zoho_data
+from .models import Program
+from django.contrib.auth.models import User
+from django.core import mail
 
 
-class ProjectDeadlinesUnitTest(unittest.TestCase):
+class ProjectDeadlinesUnitTest(TestCase):
     """ Testing creating the project deadlines data from the ZOHO api data """
     def setUp(self):
         self.max_diff = None
@@ -72,3 +75,22 @@ class ProjectDeadlinesUnitTest(unittest.TestCase):
              'overdue': False,
              'next_project': True},
         ], result)
+
+    def test_program_email_template(self):
+        program = Program(program_code_friendly_name='nonexistant')
+        program.enrollment_type = 0
+
+        template_location, subject = program.email_template_location
+        self.assertEqual('LMS', subject)
+        self.assertEqual('emails/default/enrollment_email.html', template_location)
+
+    def test_send_email(self):
+        program = Program(program_code_friendly_name='default')
+        student = User(username='student', email='student@codeinstitute.net')
+
+        self.assertEqual(0, len(mail.outbox))
+        program.send_email(student, 0, 'newpassword')
+        self.assertEqual(1, len(mail.outbox))
+
+        email = mail.outbox[0]
+        self.assertIn('Username: student@codeinstitute.net', email.body)
