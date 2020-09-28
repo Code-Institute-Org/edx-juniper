@@ -13,7 +13,7 @@ import json
 
 import requests
 
-LMS_TABLE = 'lms_breadcrumbs_v3'
+BREADCRUMBS_TABLE = settings.BREADCRUMBS_TABLE
 
 # Need to create an engine using sqlalchemy to be able to
 # connect with pandas .to_sql
@@ -117,7 +117,7 @@ class Command(BaseCommand):
         df = df.merge(df_breadcrumb_idx, on=['module', 'lesson'], how='left')
         
         engine = create_engine(CONNECTION_STRING, echo=False)
-        df.to_sql(name=LMS_TABLE, 
+        df.to_sql(name=BREADCRUMBS_TABLE,
                   con=engine, 
                   if_exists='replace', 
                   dtype={'order_index': types.INT})

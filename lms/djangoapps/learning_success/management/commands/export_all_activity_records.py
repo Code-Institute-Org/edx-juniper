@@ -32,7 +32,7 @@ CONNECTION_STRING = 'mysql+mysqldb://%s:%s@%s:%s/%s%s' % (
     settings.RDS_LMS_DB,
     '?charset=utf8')
 
-LMS_ACTIVITY_TABLE = 'lms_activity'
+LMS_ACTIVITY_TABLE = settings.LMS_ACTIVITY_TABLE
 ROWS_PER_PACKET = 1000
 
 
