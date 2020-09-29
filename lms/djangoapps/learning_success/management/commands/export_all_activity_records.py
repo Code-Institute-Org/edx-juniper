@@ -308,12 +308,6 @@ class Command(BaseCommand):
         program = get_program_by_program_code(PROGRAM_CODE)
         student_data = list(all_student_data(program))
 
-        # TODO: Remove once the connection to the RDS is implemented in AMOS
-        api_endpoint = settings.STRACKR_LMS_API_ENDPOINT
-        resp = requests.post(api_endpoint, data=json.dumps(student_data))
-        if resp.status_code != 200:
-            raise CommandError(resp.text)
-
         df = pd.DataFrame(student_data)
         engine = create_engine(CONNECTION_STRING, echo=False)
         row_count = df.shape[0]
