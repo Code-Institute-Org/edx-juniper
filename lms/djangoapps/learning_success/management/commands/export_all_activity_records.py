@@ -16,7 +16,6 @@ import requests
 from sqlalchemy import create_engine, types
 
 PROGRAM_CODE = 'FS'  # Our Full-Stack program
-BREADCRUMB_INDEX_URL = settings.BREADCRUMB_INDEX_URL
 KEYS = ['module','section','lesson']
 utc=pytz.UTC
 
@@ -212,8 +211,10 @@ def all_student_data(program):
 
     Input is a pregenerated dictionary mapping block IDs in LMS to breadcrumbs
     """
+    breadcrumb_index_url = ('%s?format=amos_fractions' %
+                            settings.BREADCRUMB_INDEX_URL)
     all_components = harvest_program(program)
-    lesson_fractions = requests.get(BREADCRUMB_INDEX_URL).json()['LESSONS']
+    lesson_fractions = requests.get(breadcrumb_index_url).json()['LESSONS']
     module_fractions = {item['module'] : item['fractions']['module_fraction']
                         for item in lesson_fractions.values()}
     challenges = extract_all_student_challenges(program)

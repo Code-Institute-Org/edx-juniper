@@ -27,8 +27,6 @@ CONNECTION_STRING = 'mysql+mysqldb://%s:%s@%s:%s/%s%s' % (
     settings.RDS_LMS_DB,
     '?charset=utf8')
 
-BREADCRUMB_INDEX_URL = settings.BREADCRUMB_INDEX_URL
-
 # Keys are representing the internal edx terminology
 # and the values are our CI terminology (also based on edx)
 BLOCK_TYPES = {
@@ -113,7 +111,9 @@ class Command(BaseCommand):
         
         # Need to get lesson order from syllabus for ordering the modules
         # And course fractions
-        df_breadcrumb_idx = get_breadcrumb_index(BREADCRUMB_INDEX_URL)
+        breadcrumb_index_url = ('%s?format=schedule' %
+                            settings.BREADCRUMB_INDEX_URL)
+        df_breadcrumb_idx = get_breadcrumb_index(breadcrumb_index_url)
         df = df.merge(df_breadcrumb_idx, on=['module', 'lesson'], how='left')
         
         engine = create_engine(CONNECTION_STRING, echo=False)
