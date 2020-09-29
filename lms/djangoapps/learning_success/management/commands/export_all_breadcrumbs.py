@@ -27,7 +27,7 @@ CONNECTION_STRING = 'mysql+mysqldb://%s:%s@%s:%s/%s%s' % (
     settings.RDS_LMS_DB,
     '?charset=utf8')
 
-BREADCRUMB_INDEX_URL = settings.LMS_SYLLABUS
+BREADCRUMB_INDEX_URL = settings.BREADCRUMB_INDEX_URL
 
 # Keys are representing the internal edx terminology
 # and the values are our CI terminology (also based on edx)
@@ -38,7 +38,7 @@ BLOCK_TYPES = {
     'vertical': 'unit',
 }
 
-PROGRAM_CODE = 'FS'  # Our Full-Stack program
+PROGRAM_CODE = 'DISD'  # Diploma in Software Development
 
 
 def get_safely(breadcrumbs, index):
