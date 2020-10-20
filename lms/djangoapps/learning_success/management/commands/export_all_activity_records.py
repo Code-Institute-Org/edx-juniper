@@ -15,7 +15,7 @@ import pytz
 import requests
 from sqlalchemy import create_engine, types
 
-PROGRAM_CODE = 'FS'  # Our Full-Stack program
+PROGRAM_CODE = 'disd'  # Our Full-Stack program
 KEYS = ['module','section','lesson']
 utc=pytz.UTC
 

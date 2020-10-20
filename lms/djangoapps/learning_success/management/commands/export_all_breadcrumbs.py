@@ -36,7 +36,7 @@ BLOCK_TYPES = {
     'vertical': 'unit',
 }
 
-PROGRAM_CODE = 'DISD'  # Diploma in Software Development
+PROGRAM_CODE = 'disd'  # Diploma in Software Development
 
 
 def get_safely(breadcrumbs, index):
