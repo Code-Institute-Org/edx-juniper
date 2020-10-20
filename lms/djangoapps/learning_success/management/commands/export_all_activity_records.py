@@ -15,8 +15,7 @@ import pytz
 import requests
 from sqlalchemy import create_engine, types
 
-PROGRAM_CODE = 'FS'  # Our Full-Stack program
-BREADCRUMB_INDEX_URL = settings.BREADCRUMB_INDEX_URL
+PROGRAM_CODE = 'disd'  # Our Full-Stack program
 KEYS = ['module','section','lesson']
 utc=pytz.UTC
 
@@ -212,8 +211,10 @@ def all_student_data(program):
 
     Input is a pregenerated dictionary mapping block IDs in LMS to breadcrumbs
     """
+    breadcrumb_index_url = ('%s?format=amos_fractions' %
+                            settings.BREADCRUMB_INDEX_URL)
     all_components = harvest_program(program)
-    lesson_fractions = requests.get(BREADCRUMB_INDEX_URL).json()['LESSONS']
+    lesson_fractions = requests.get(breadcrumb_index_url).json()['LESSONS']
     module_fractions = {item['module'] : item['fractions']['module_fraction']
                         for item in lesson_fractions.values()}
     challenges = extract_all_student_challenges(program)
@@ -307,12 +308,6 @@ class Command(BaseCommand):
         """
         program = get_program_by_program_code(PROGRAM_CODE)
         student_data = list(all_student_data(program))
-
-        # TODO: Remove once the connection to the RDS is implemented in AMOS
-        api_endpoint = settings.STRACKR_LMS_API_ENDPOINT
-        resp = requests.post(api_endpoint, data=json.dumps(student_data))
-        if resp.status_code != 200:
-            raise CommandError(resp.text)
 
         df = pd.DataFrame(student_data)
         engine = create_engine(CONNECTION_STRING, echo=False)
