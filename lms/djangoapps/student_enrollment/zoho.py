@@ -9,26 +9,48 @@ REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 
+# COQL Queries
+# LMS_Version can be removed from where clause when Ginkgo is decommissioned 
+# Target decommission date: End of Q1 2020
+
 ENROLL_QUERY = """
-SELECT Email, Full_Name, Course_of_Interest_Code
+SELECT Email, Full_Name, Programme_Id
 FROM Contacts
-WHERE Lead_Status = 'Enroll'
-AND Course_of_Interest_Code is not null
+WHERE (
+    (
+        (Lead_Status = 'Enroll')
+        AND (LMS_Version is 'Juniper')
+    )
+    AND (Programme_Id is not null)
+)
 LIMIT {page},{per_page}
 """
 UNENROLL_QUERY = """
-SELECT Email, Full_Name, Course_of_Interest_Code
+SELECT Email, Full_Name, Programme_Id
 FROM Contacts
-WHERE (((LMS_Access_Status = 'To be removed')
-AND (Reason_for_Unenrollment is not null))
-AND (Course_of_Interest_Code is not null))
+WHERE (
+    (
+        (LMS_Access_Status = 'To be removed')
+        AND (Reason_for_Unenrollment is not null)
+    )
+    AND 
+    (
+        (Programme_Id is not null)
+        AND (LMS_Version is 'Juniper')
+    )
+)
 LIMIT {page},{per_page}
 """
 ENROLL_IN_CAREERS_MODULE_QUERY = """
-SELECT Email, Full_Name, Course_of_Interest_Code
+SELECT Email, Full_Name, Programme_Id
 FROM Contacts
-WHERE Access_to_Careers_Module = 'Enroll'
-AND Course_of_Interest_Code is not null
+WHERE (
+    (
+        (Access_to_Careers_Module = 'Enroll')
+        AND (LMS_Version is 'Juniper')
+    )
+    AND (Programme_Id is not null)
+)
 LIMIT {page},{per_page}
 """
 RECORDS_PER_PAGE = 200
