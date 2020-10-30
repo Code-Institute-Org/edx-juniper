@@ -27,9 +27,7 @@ Zap.
 This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
-EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1',
-                            'course-v1:CodeInstitute+F101+2017_T1',
-                            ]
+EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
 
 
 class Command(BaseCommand):
@@ -61,22 +59,13 @@ class Command(BaseCommand):
                 student['Email'], student['Email'])
 
             # Get the code for the course the student is enrolling in
-            program_to_enroll_in = parse_course_of_interest_code(
-                student['Course_of_Interest_Code'])
+            # This will always be disd, based on current coql query
+            program_to_enroll_in = student['Programme_Id']
 
             try:
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
                     program_code=program_to_enroll_in)
-
-            # Catch if there is an error with the Course_of_Interest_Code
-            # and send an email to SC, but continue with the next student
-            except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception(str(does_not_exist_exception))
-                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                                {'email': user.email,
-                                 'crm_field': 'Course_of_Interest_Code'})
-                continue
 
             # Enroll the student in the program
             program_enrollment_status = program.enroll_student_in_program(
