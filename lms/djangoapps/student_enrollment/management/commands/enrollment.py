@@ -69,8 +69,11 @@ class Command(BaseCommand):
                                 {
                                     'email': student['Email'],
                                     'crm_field': 'Programme_Id',
-                                    'unexpected_value': student['Programme_Id']
+                                    'unexpected_value': student['Programme_Id'],
+                                    'attempted_action': 'enroll',
+                                    'message': 'Programme ID does not exist on LMS'
                                 })
+                continue
 
             # Enroll the student in the program
             program_enrollment_status = program.enroll_student_in_program(

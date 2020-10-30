@@ -5,12 +5,13 @@ from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.utils import get_or_register_student
 from student_enrollment.zoho import (
-    get_students_to_be_unenrolled,
-    parse_course_of_interest_code,
+    get_students_to_be_unenrolled
     update_student_record
 )
 from lms.djangoapps.student_enrollment.models import EnrollmentStatusHistory
 from lms.djangoapps.student_enrollment.models import ProgramAccessStatus
+
+log = getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Unenroll students from their relevant programs'
@@ -34,29 +35,49 @@ class Command(BaseCommand):
 
         for student in zoho_students:
             # Get the user
-            user = User.objects.get(email=student['Email'])
-
-            # Get the code for the course the student is enrolling in
-            program_to_enroll_in = parse_course_of_interest_code(
-                student['Course_of_Interest_Code'])
-
-            # DITF is not current present in the Learning Platform so
-            # we'll skip over it until then
-            if 'DITF' in program_to_enroll_in or not program_to_enroll_in:
+            try:
+                user = User.objects.get(email=student['Email'])
+            except ObjectDoesNotExist as does_not_exist_exception:
+                log.exception(str(does_not_exist_exception))
+                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Email',
+                                    'unexpected_value': 'student['Email']',
+                                    'attempted_action': 'unenroll',
+                                    'message': 'Email on Student\'s CRM profile not found on LMS'
+                                })
                 continue
+                        
+            # Get the code for the course the student is enrolling in
+            program_to_unenroll_from = student['Programme_Id']
 
             # Check to make sure that the student is enrolled in that program.
             # If they are not enrolled in that program then we can skip this
             # email and move onto the next user
             try:
                 user.program_set.get(program_code=program_to_enroll_in)
-            except ObjectDoesNotExist:
-                print("{} is not enrolled in this {}".format(
-                    user.email, program_to_enroll_in))
+            except ObjectDoesNotExist as does_not_exist_exception:
+                log.exception(str(does_not_exist_exception))
+                # Student is already unenrolled, so update the CRM accordingly
+                update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
                 continue
 
-            # Get the Program that contains the Zoho program code
-            program = Program.objects.get(program_code=program_to_enroll_in)
+            try:
+                # Get the Program that contains the Zoho program code
+                program = Program.objects.get(
+                    program_code=program_to_unenroll_from)
+            except ObjectDoesNotExist as does_not_exist_exception:
+                log.exception(str(does_not_exist_exception))
+                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Programme_Id',
+                                    'unexpected_value': student['Programme_Id'],
+                                    'attempted_action': 'unenroll',
+                                    'message': 'Programme ID does not exist on LMS'
+                                })
+                continue
 
             # Unenroll the student from the program
             program_enrollment_status = program.unenroll_student_from_program(user)
