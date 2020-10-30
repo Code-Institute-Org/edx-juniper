@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.utils import (
-    get_or_register_student, post_to_zapier
+    get_or_register_student, 
+    post_to_zapier
 )
 from student_enrollment.zoho import (
     get_students_to_be_enrolled

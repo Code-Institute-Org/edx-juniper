@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from django.core.management.base import BaseCommand, CommandError
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
@@ -5,7 +7,7 @@ from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.utils import get_or_register_student
 from student_enrollment.zoho import (
-    get_students_to_be_unenrolled
+    get_students_to_be_unenrolled,
     update_student_record
 )
 from lms.djangoapps.student_enrollment.models import EnrollmentStatusHistory
@@ -56,7 +58,7 @@ class Command(BaseCommand):
             # If they are not enrolled in that program then we can skip this
             # email and move onto the next user
             try:
-                user.program_set.get(program_code=program_to_enroll_in)
+                user.program_set.get(program_code=program_to_unenroll_from)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception(str(does_not_exist_exception))
                 # Student is already unenrolled, so update the CRM accordingly
