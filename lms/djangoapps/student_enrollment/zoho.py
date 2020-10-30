@@ -18,10 +18,11 @@ SELECT Email, Full_Name, Programme_Id
 FROM Contacts
 WHERE (
     (
-        (Lead_Status = 'Enroll')
-        AND (LMS_Version is 'Juniper')
+        (Lead_Status = 'Enroll') AND (Programme_Id is not null)
+    ) AND 
+    (
+        LMS_Version like 'Juniper'
     )
-    AND (Programme_Id is not null)
 )
 LIMIT {page},{per_page}
 """
@@ -36,7 +37,7 @@ WHERE (
     AND 
     (
         (Programme_Id is not null)
-        AND (LMS_Version is 'Juniper')
+        AND (LMS_Version like 'Juniper')
     )
 )
 LIMIT {page},{per_page}
@@ -47,9 +48,9 @@ FROM Contacts
 WHERE (
     (
         (Access_to_Careers_Module = 'Enroll')
-        AND (LMS_Version is 'Juniper')
+        AND (Programme_Id is not null)
     )
-    AND (Programme_Id is not null)
+    AND (LMS_Version like 'Juniper')
 )
 LIMIT {page},{per_page}
 """
@@ -146,31 +147,6 @@ def get_access_token():
 def get_auth_headers():
     access_token = get_access_token()
     return {"Authorization": "Zoho-oauthtoken " + access_token}
-
-
-def parse_course_of_interest_code(course_of_interest_code):
-    """
-    Course codes in Zoho are created based on the following criteria:
-
-    <year_and_month><course_identifier>-<course_location>
-
-    For example, a course of interest code of 1708FS-ON translates to:
-    17 -> the year (2017)
-    08 -> the month (August)
-    FS -> Fullstack
-    ON -> Online
-
-    We need to strip away the excess and focus on the course identifier,
-    in this case `FS`
-
-    `course_of_interest_code` is the code that's retrieved from the
-        student's Zoho record
-
-    Returns the course_identifier without the year/month/location
-    """
-    regex_matcher = "\d|\-.*$"
-    course_code = re.sub(regex_matcher, '', course_of_interest_code)
-    return 'FS' if course_code == 'SBFS' else course_code
 
 
 def update_student_record(zap_url, student_email):
