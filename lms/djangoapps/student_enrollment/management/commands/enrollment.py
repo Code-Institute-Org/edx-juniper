@@ -9,8 +9,7 @@ from student_enrollment.utils import (
     get_or_register_student, post_to_zapier
 )
 from student_enrollment.zoho import (
-    get_students_to_be_enrolled,
-    parse_course_of_interest_code
+    get_students_to_be_enrolled
 )
 from student_enrollment.models import EnrollmentStatusHistory
 from student_enrollment.models import ProgramAccessStatus
@@ -41,12 +40,10 @@ class Command(BaseCommand):
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
         will enroll all of the students that have a status of
-        `Enrolling`.
+        `Enroll`.
 
-        If a student doesn't exist in the system then a new a account
-        will be registered. A student can be unenrolled from courses
-        if they miss payments (or other circumstances) which means they
-        may already be registered in the system.
+        If a student doesn't exist in the system, then we will first register them
+        and then enroll them in the relevant programme (specified by programme_id)
         """
         zoho_students = get_students_to_be_enrolled()
 
@@ -66,6 +63,14 @@ class Command(BaseCommand):
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
                     program_code=program_to_enroll_in)
+            except ObjectDoesNotExist as does_not_exist_exception:
+                log.exception(str(does_not_exist_exception))
+                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Programme_Id',
+                                    'unexpected_value': student['Programme_Id']
+                                })
 
             # Enroll the student in the program
             program_enrollment_status = program.enroll_student_in_program(
