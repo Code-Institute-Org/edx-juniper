@@ -14,43 +14,36 @@ COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 # Target decommission date: End of Q1 2020
 
 ENROLL_QUERY = """
-SELECT Email, Full_Name, Programme_Id
+SELECT Email, Full_Name, Programme_ID
 FROM Contacts
-WHERE (
-    (
-        (Lead_Status = 'Enroll') AND (Programme_Id is not null)
-    ) AND 
-    (
-        LMS_Version like 'Juniper'
+WHERE ((
+        (Lead_Status = 'Enroll') AND (Programme_ID is not null)
+    )
+    AND (
+        (LMS_Version = 'Upgrade to Juniper') OR (LMS_Version = 'Juniper (learn.codeinstitute.net)')
     )
 )
 LIMIT {page},{per_page}
 """
 UNENROLL_QUERY = """
-SELECT Email, Full_Name, Programme_Id
+SELECT Email, Full_Name, Programme_ID
 FROM Contacts
-WHERE (
-    (
-        (LMS_Access_Status = 'To be removed')
-        AND (Reason_for_Unenrollment is not null)
+WHERE ((
+        (LMS_Access_Status = 'To be removed') AND (Reason_for_Unenrollment is not null)
     )
-    AND 
-    (
-        (Programme_Id is not null)
-        AND (LMS_Version like 'Juniper')
+    AND (
+        (Programme_ID is not null) AND (LMS_Version = 'Juniper (learn.codeinstitute.net)')
     )
 )
 LIMIT {page},{per_page}
 """
 ENROLL_IN_CAREERS_MODULE_QUERY = """
-SELECT Email, Full_Name, Programme_Id
+SELECT Email, Full_Name, Programme_ID
 FROM Contacts
-WHERE (
-    (
-        (Access_to_Careers_Module = 'Enroll')
-        AND (Programme_Id is not null)
+WHERE ((
+        (Access_to_Careers_Module = 'Enroll') AND (Programme_ID is not null)
     )
-    AND (LMS_Version like 'Juniper')
+    AND (LMS_Version = 'Juniper (learn.codeinstitute.net)')
 )
 LIMIT {page},{per_page}
 """
