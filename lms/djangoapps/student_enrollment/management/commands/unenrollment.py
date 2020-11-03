@@ -44,7 +44,7 @@ class Command(BaseCommand):
                                 {
                                     'email': student['Email'],
                                     'crm_field': 'Email',
-                                    'unexpected_value': 'student['Email']',
+                                    'unexpected_value': student['Email'],
                                     'attempted_action': 'unenroll',
                                     'message': 'Email on Student\'s CRM profile not found on LMS'
                                 })
