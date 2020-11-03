@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
@@ -7,6 +9,8 @@ from student_enrollment.utils import post_to_zapier
 from student_enrollment.zoho import (
     get_students_to_be_enrolled_in_careers_module
 )
+
+log = getLogger(__name__)
 
 CAREERS_COURSE_ID = 'course-v1:code_institute+cc_101+2018_T1'
 """
@@ -30,7 +34,7 @@ class Command(BaseCommand):
         will enroll the student in the Careers module.
         """
         students = get_students_to_be_enrolled_in_careers_module()
-        program = Program.objects.get(program_code='FS')
+        program = Program.objects.get(program_code='disd')
 
         for student in students:
             if not student['Email']:
@@ -39,10 +43,16 @@ class Command(BaseCommand):
             try:
                 # check student is a registered user
                 user = User.objects.get(email=student['Email'])
-            except User.DoesNotExist:
-                print('A user with the email %s could not be found. ' \
-                      'Bypassing request to enroll student in Careers module.' 
-                      % student['Email'])
+            except ObjectDoesNotExist as does_not_exist_exception:
+                log.exception(str(does_not_exist_exception))
+                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Email',
+                                    'unexpected_value': 'student['Email']',
+                                    'attempted_action': 'enroll in careers module',
+                                    'message': 'Email on Student\'s CRM profile not found on LMS'
+                                })
                 continue
 
             for course in program.get_courses():
@@ -54,6 +64,3 @@ class Command(BaseCommand):
                 # Trigger zap to update the CRM
                 post_to_zapier(
                     settings.ZAPIER_CAREERS_MODULE_ENROLLMENT_URL, {"email": user.email})
-
-                print("Successfully enrolled %s in Careers module of Full Stack program"
-                       % user.email)

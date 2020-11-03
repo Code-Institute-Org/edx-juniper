@@ -8,8 +8,7 @@ from ci_program.models import Program
 from student_enrollment.utils import get_or_register_student
 from student_enrollment.zoho import (
     get_students_to_be_unenrolled,
-    update_student_record
-)
+    update_student_record)
 from lms.djangoapps.student_enrollment.models import EnrollmentStatusHistory
 from lms.djangoapps.student_enrollment.models import ProgramAccessStatus
 
@@ -52,7 +51,7 @@ class Command(BaseCommand):
                 continue
                         
             # Get the code for the course the student is enrolling in
-            program_to_unenroll_from = student['Programme_Id']
+            program_to_unenroll_from = student['Programme_ID']
 
             # Check to make sure that the student is enrolled in that program.
             # If they are not enrolled in that program then we can skip this
@@ -74,8 +73,8 @@ class Command(BaseCommand):
                 post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                                 {
                                     'email': student['Email'],
-                                    'crm_field': 'Programme_Id',
-                                    'unexpected_value': student['Programme_Id'],
+                                    'crm_field': 'Programme_ID',
+                                    'unexpected_value': student['Programme_ID'],
                                     'attempted_action': 'unenroll',
                                     'message': 'Programme ID does not exist on LMS'
                                 })
