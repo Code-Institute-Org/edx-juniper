@@ -44,7 +44,7 @@ class Command(BaseCommand):
         `Enroll`.
 
         If a student doesn't exist in the system, then we will first register them
-        and then enroll them in the relevant programme (specified by programme_id)
+        and then enroll them in the relevant programme (specified by Programme_ID)
         """
         zoho_students = get_students_to_be_enrolled()
 
@@ -58,7 +58,7 @@ class Command(BaseCommand):
 
             # Get the code for the course the student is enrolling in
             # This will always be disd, based on current coql query
-            program_to_enroll_in = student['Programme_Id']
+            program_to_enroll_in = student['Programme_ID']
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -69,8 +69,8 @@ class Command(BaseCommand):
                 post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                                 {
                                     'email': student['Email'],
-                                    'crm_field': 'Programme_Id',
-                                    'unexpected_value': student['Programme_Id'],
+                                    'crm_field': 'Programme_ID',
+                                    'unexpected_value': student['Programme_ID'],
                                     'attempted_action': 'enroll',
                                     'message': 'Programme ID does not exist on LMS'
                                 })
