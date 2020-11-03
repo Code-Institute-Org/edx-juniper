@@ -83,15 +83,6 @@ class Command(BaseCommand):
             # Unenroll the student from the program
             program_enrollment_status = program.unenroll_student_from_program(user)
 
-            # Set the students access level (i.e. determine whether or not a student
-            # is allowed to access to the LMS.
-            access, created = ProgramAccessStatus.objects.get_or_create(
-                user=user, program_access=True)
-
-            if not created:
-                access.allowed_access = False
-                access.save()
-
             update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
 
             # Create a new entry in the EnrollmentStatusHistory to
