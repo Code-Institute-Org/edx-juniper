@@ -9,8 +9,6 @@ from student_enrollment.utils import get_or_register_student
 from student_enrollment.zoho import (
     get_students_to_be_unenrolled,
     update_student_record)
-from lms.djangoapps.student_enrollment.models import EnrollmentStatusHistory
-from lms.djangoapps.student_enrollment.models import ProgramAccessStatus
 
 log = getLogger(__name__)
 
@@ -81,18 +79,6 @@ class Command(BaseCommand):
                 continue
 
             # Unenroll the student from the program
-            program_enrollment_status = program.unenroll_student_from_program(user)
+            program.unenroll_student_from_program(user)
 
             update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
-
-            # Create a new entry in the EnrollmentStatusHistory to
-            # indicate whether or not each step of the process was
-            # successful
-            # email_sent is set to False, no requirement to send email from LMS
-            # Automated unenrollment emails are configured in Zoho CRM
-            enrollment_status = EnrollmentStatusHistory(student=user, program=program,
-                                                        registered=bool(user),
-                                                        enrollment_type=ENROLLMENT_TYPE,
-                                                        enrolled=bool(program_enrollment_status),
-                                                        email_sent=False)
-            enrollment_status.save()
