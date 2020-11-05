@@ -313,13 +313,9 @@ class Command(BaseCommand):
                 program_code: Program code of program to use 'disd'
         """
 
-<<<<<<< HEAD
         program = get_program_by_program_code(program_code)
         student_data = list(all_student_data(program))
 
-=======
-        df = pd.DataFrame(student_data)
->>>>>>> bf0ad3852475834a57c59a3fa55748f6fc71216d
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
             # remove existing
