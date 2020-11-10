@@ -15,7 +15,6 @@ import pytz
 import requests
 from sqlalchemy import create_engine, types
 
-PROGRAM_CODE = 'disd'  # Our Full-Stack program
 KEYS = ['module','section','lesson']
 utc=pytz.UTC
 
@@ -303,19 +302,34 @@ def all_student_data(program):
 class Command(BaseCommand):
     help = 'Extract student data from the open-edX server for use in Strackr'
 
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('source_platform', type=str)
+        parser.add_argument('program_code', type=str)
+
+    def handle(self, source_platform, program_code, **kwargs):
         """POST the collected data to the api endpoint from the settings
+            Arguments:
+                source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
+                program_code: Program code of program to use 'disd'
         """
-        program = get_program_by_program_code(PROGRAM_CODE)
+
+        program = get_program_by_program_code(program_code)
         student_data = list(all_student_data(program))
 
-        df = pd.DataFrame(student_data)
         engine = create_engine(CONNECTION_STRING, echo=False)
-        row_count = df.shape[0]
+        with engine.begin() as conn:
+            # remove existing
+            conn.execute("delete from lms_activity where source_platform = %s", (source_platform,))
 
-        for subset_start in range(0, row_count, ROWS_PER_PACKET):
-            write_type = 'replace' if subset_start == 0 else 'append'
-            df_subset = df.loc[subset_start:subset_start+ROWS_PER_PACKET-1]
-            df_subset.to_sql(name=LMS_ACTIVITY_TABLE,
-                    con=engine,
-                    if_exists=write_type)
+            # add new
+            df = pd.DataFrame(student_data)
+            df['created'] = datetime.now()
+            # TODO: Add arg for source_platform
+            df['source_platform'] = source_platform
+            df['program_code'] = program_code
+            write_type = 'append'
+
+            df.to_sql(name=LMS_ACTIVITY_TABLE,
+                    con=conn,
+                    if_exists=write_type,
+                    chunksize=1000)
