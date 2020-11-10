@@ -6,11 +6,11 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.utils import (
-    get_or_register_student, post_to_zapier
+    get_or_register_student, 
+    post_to_zapier
 )
 from student_enrollment.zoho import (
-    get_students_to_be_enrolled,
-    parse_course_of_interest_code
+    get_students_to_be_enrolled
 )
 from student_enrollment.models import EnrollmentStatusHistory
 from student_enrollment.models import ProgramAccessStatus
@@ -27,9 +27,7 @@ Zap.
 This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
-EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1',
-                            'course-v1:CodeInstitute+F101+2017_T1',
-                            ]
+EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
 
 
 class Command(BaseCommand):
@@ -43,12 +41,10 @@ class Command(BaseCommand):
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
         will enroll all of the students that have a status of
-        `Enrolling`.
+        `Enroll`.
 
-        If a student doesn't exist in the system then a new a account
-        will be registered. A student can be unenrolled from courses
-        if they miss payments (or other circumstances) which means they
-        may already be registered in the system.
+        If a student doesn't exist in the system, then we will first register them
+        and then enroll them in the relevant programme (specified by Programme_ID)
         """
         zoho_students = get_students_to_be_enrolled()
 
@@ -61,21 +57,23 @@ class Command(BaseCommand):
                 student['Email'], student['Email'])
 
             # Get the code for the course the student is enrolling in
-            program_to_enroll_in = parse_course_of_interest_code(
-                student['Course_of_Interest_Code'])
+            # This will always be disd, based on current coql query
+            program_to_enroll_in = student['Programme_ID']
 
             try:
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
                     program_code=program_to_enroll_in)
-
-            # Catch if there is an error with the Course_of_Interest_Code
-            # and send an email to SC, but continue with the next student
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception(str(does_not_exist_exception))
                 post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                                {'email': user.email,
-                                 'crm_field': 'Course_of_Interest_Code'})
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Programme_ID',
+                                    'unexpected_value': student['Programme_ID'],
+                                    'attempted_action': 'enroll',
+                                    'message': 'Programme ID does not exist on LMS'
+                                })
                 continue
 
             # Enroll the student in the program
