@@ -38,8 +38,6 @@ def get_env_setting(setting):
 
 DEBUG = False
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-
 # IMPORTANT: With this enabled, the server must always be behind a proxy that
 # strips the header HTTP_X_FORWARDED_PROTO from client requests. Otherwise,
 # a user can fool our server into thinking it was an https connection.
