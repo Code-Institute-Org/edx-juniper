@@ -557,13 +557,6 @@ AWS_S3_CUSTOM_DOMAIN = 'SET-ME-PLEASE (ex. bucket-name.s3.amazonaws.com)'
 
 EDX_ROOT_URL = ''
 
-# use the ratelimit backend to prevent brute force attacks
-AUTHENTICATION_BACKENDS = [
-    'rules.permissions.ObjectPermissionBackend',
-    'openedx.core.djangoapps.oauth_dispatch.dot_overrides.backends.EdxRateLimitedAllowAllUsersModelBackend',
-    'bridgekeeper.backends.RulePermissionBackend',
-]
-
 STATIC_ROOT_BASE = '/edx/var/edxapp/staticfiles'
 
 # License for serving content in China
@@ -668,13 +661,11 @@ MIDDLEWARE = [
     'django_sites_extensions.middleware.RedirectMiddleware',
 
     # Instead of SessionMiddleware, we use a more secure version
-    # 'django.contrib.sessions.middleware.SessionMiddleware',
-    'openedx.core.djangoapps.safe_sessions.middleware.SafeSessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
 
     'method_override.middleware.MethodOverrideMiddleware',
 
-    # Instead of AuthenticationMiddleware, we use a cache-backed version
-    'openedx.core.djangoapps.cache_toolbox.middleware.CacheBackedAuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
 
     'student.middleware.UserStandingMiddleware',
     'openedx.core.djangoapps.contentserver.middleware.StaticContentServer',
@@ -916,7 +907,6 @@ COURSES_WITH_UNSAFE_CODE = []
 DEBUG = False
 SESSION_COOKIE_SECURE = False
 SESSION_SAVE_EVERY_REQUEST = False
-SESSION_SERIALIZER = 'openedx.core.lib.session_serializers.PickleSerializer'
 SESSION_COOKIE_DOMAIN = ""
 SESSION_COOKIE_NAME = 'cisessionid' # avoids conflict with Wordpress bug
 

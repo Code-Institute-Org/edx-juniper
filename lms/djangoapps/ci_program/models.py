@@ -127,7 +127,7 @@ class Program(TimeStampedModel):
             return 'emails/default/{0}'.format(template_type_name), "LMS"
 
     def __str__(self):
-        return self.name
+        return "<%s: %s>" % (self.name, self.program_code)
 
     def get_program_descriptor(self, request):
         """
@@ -553,7 +553,7 @@ class CourseCode(models.Model):
         return self.key.split('+')
 
     def __str__(self):
-        return self.display_name
+        return "<%s: %s>" % (self.key, self.display_name)
 
 
 class ProgramCourseCode(TimeStampedModel):
@@ -569,4 +569,4 @@ class ProgramCourseCode(TimeStampedModel):
         app_label = 'ci_program'
 
     def __str__(self):
-        return self.course_code.key
+        return "<%s: %s>" % (self.program.name, self.course_code.key)
