@@ -907,6 +907,7 @@ COURSES_WITH_UNSAFE_CODE = []
 DEBUG = False
 SESSION_COOKIE_SECURE = False
 SESSION_SAVE_EVERY_REQUEST = False
+SESSION_SERIALIZER = 'openedx.core.lib.session_serializers.PickleSerializer'
 SESSION_COOKIE_DOMAIN = ""
 SESSION_COOKIE_NAME = 'cisessionid' # avoids conflict with Wordpress bug
 
