@@ -1486,10 +1486,6 @@ CREDIT_NOTIFICATION_CACHE_TIMEOUT = 5 * 60 * 60
 MIDDLEWARE = [
     'openedx.core.lib.x_forwarded_for.middleware.XForwardedForMiddleware',
 
-    # Avoid issue with https://blog.heroku.com/chrome-changes-samesite-cookie
-    # Override was found here https://github.com/django/django/pull/11894
-    'django_cookies_samesite.middleware.CookiesSameSite',
-
     'crum.CurrentRequestUserMiddleware',
 
     # A newer and safer request cache.
@@ -1499,16 +1495,12 @@ MIDDLEWARE = [
     # Generate code ownership metrics. Keep this immediately after RequestCacheMiddleware.
     'lms.djangoapps.monitoring.middleware.CodeOwnerMetricMiddleware',
 
-    # Cookie monitoring
-    'openedx.core.lib.request_utils.CookieMetricsMiddleware',
-
     'mobile_api.middleware.AppVersionUpgrade',
     'openedx.core.djangoapps.header_control.middleware.HeaderControlMiddleware',
     'lms.djangoapps.discussion.django_comment_client.middleware.AjaxExceptionMiddleware',
     'django.middleware.common.CommonMiddleware',
 
     'django.contrib.sites.middleware.CurrentSiteMiddleware',
-    'edx_rest_framework_extensions.auth.jwt.middleware.JwtAuthCookieMiddleware',
 
     # Allows us to define redirects via Django admin
     'django_sites_extensions.middleware.RedirectMiddleware',
@@ -1557,9 +1549,6 @@ MIDDLEWARE = [
     # catches any uncaught RateLimitExceptions and returns a 403 instead of a 500
     'ratelimitbackend.middleware.RateLimitMiddleware',
 
-    # for expiring inactive sessions
-    'openedx.core.djangoapps.session_inactivity_timeout.middleware.SessionInactivityTimeout',
-
     # use Django built in clickjacking protection
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
@@ -1583,9 +1572,6 @@ MIDDLEWARE = [
 
     # Handles automatically storing user ids in django-simple-history tables when possible.
     'simple_history.middleware.HistoryRequestMiddleware',
-
-    # This must be last
-    'openedx.core.djangoapps.site_configuration.middleware.SessionCookieDomainOverrideMiddleware',
 ]
 
 # Clickjacking protection can be disbaled by setting this to 'ALLOW'
