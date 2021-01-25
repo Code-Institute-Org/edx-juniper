@@ -244,6 +244,7 @@ class DjangoXBlockUserStateClient(XBlockUserStateClient):
         evt_time = time()
 
         for usage_key, state in block_keys_to_state.items():
+            # CI-LRS insert
             try:
                 student_module, created = StudentModule.objects.get_or_create(
                     student=user,

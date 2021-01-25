@@ -90,6 +90,7 @@ def perform_module_state_update(update_fcn, filter_fcn, _entry_id, course_id, ta
     task_progress.update_task_state()
 
     for module_to_update in modules_to_update:
+        # CI-LRS insert
         task_progress.attempted += 1
         module_descriptor = problems[six.text_type(module_to_update.module_state_key)]
         # There is no try here:  if there's an error, we let it throw, and the task will
