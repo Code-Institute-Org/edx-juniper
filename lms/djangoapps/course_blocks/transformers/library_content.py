@@ -102,6 +102,7 @@ class ContentLibraryTransformer(FilteringTransformerMixin, BlockStructureTransfo
                 # Save back any changes
                 if any(block_keys[changed] for changed in ('invalid', 'overlimit', 'added')):
                     state_dict['selected'] = list(selected)
+                    # CI-LRS insert
                     StudentModule.save_state(
                         student=usage_info.user,
                         course_id=usage_info.course_key,

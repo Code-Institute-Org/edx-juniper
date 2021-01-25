@@ -997,6 +997,7 @@ def set_score(user_id, usage_key, score, max_score):
     """
     created = False
     kwargs = {"student_id": user_id, "module_state_key": usage_key, "course_id": usage_key.context_key}
+    # CI-LRS insert
     try:
         with transaction.atomic():
             student_module, created = StudentModule.objects.get_or_create(

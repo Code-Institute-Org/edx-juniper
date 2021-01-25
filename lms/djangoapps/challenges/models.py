@@ -185,4 +185,5 @@ class ChallengeSubmission(models.Model):
         student_activity.max_grade = 1.0
 
         student_activity.save()
+        # CI-LRS insert
         super(ChallengeSubmission, self).save(*args, **kwargs)
