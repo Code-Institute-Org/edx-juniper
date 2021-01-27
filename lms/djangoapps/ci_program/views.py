@@ -2,6 +2,7 @@
 import math
 
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from edxmako.shortcuts import render_to_response
 from ci_program.models import Program
 from ci_program.utils import get_student_deadlines
@@ -14,6 +15,7 @@ def show_programs(request, program_name):
     Display the programs page
     """
     program = Program.objects.get(marketing_slug=program_name)
+    cache.set('program_name', program_name)
     program_descriptor = program.get_program_descriptor(request)
     project_deadlines = get_student_deadlines(student_email=request.user.email)
     context = {
