@@ -8,6 +8,7 @@ import logging
 from time import time
 
 import six
+from django.conf import settings
 from django.utils.translation import ugettext_noop
 from opaque_keys.edx.keys import UsageKey
 from xblock.runtime import KvsFieldData
@@ -28,6 +29,7 @@ from xmodule.modulestore.django import modulestore
 from ..exceptions import UpdateProblemModuleStateError
 from .runner import TaskProgress
 from .utils import UNKNOWN_TASK_ID, UPDATE_STATUS_FAILED, UPDATE_STATUS_SKIPPED, UPDATE_STATUS_SUCCEEDED
+from lms.djangoapps.ci_lrs.utils import store_lrs_record
 
 TASK_LOG = logging.getLogger('edx.celery.task')
 
@@ -91,6 +93,9 @@ def perform_module_state_update(update_fcn, filter_fcn, _entry_id, course_id, ta
 
     for module_to_update in modules_to_update:
         # CI-LRS insert
+        if settings.DATABASES.get('student_module_history'):
+                store_lrs_record(user, 'completed', 
+                                '%s:%s' % (usage_key.context_key, usage_key))
         task_progress.attempted += 1
         module_descriptor = problems[six.text_type(module_to_update.module_state_key)]
         # There is no try here:  if there's an error, we let it throw, and the task will
