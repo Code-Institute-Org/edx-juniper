@@ -15,9 +15,9 @@ jobs:
       - name: Install AWS CLI
         run: sudo apt-get update -y && sudo apt-get install -y awscli
       - run: docker info
-#      - name: Docker Login
-#        run: AWS_DEFAULT_REGION=eu-west-1 AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY}} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} aws ecr get-login-password | docker login --username AWS --password-stdin 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform
-#      - name: Build the Docker image
-#        run: docker build . --file Dockerfile --tag 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:${GITHUB_REF##*/}
-#      - name: Push Image
-#        run: docker push 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:${GITHUB_REF##*/}
+      - name: Docker Login
+        run: AWS_DEFAULT_REGION=eu-west-1 AWS_ACCESS_KEY_ID=${{secrets.AWS_ACCESS_KEY}} AWS_SECRET_ACCESS_KEY=${{secrets.AWS_SECRET_ACCESS_KEY}} aws ecr get-login-password | docker login --username AWS --password-stdin 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:${GITHUB_REF##*/}
+      - name: Push Image
+        run: docker push 949266541515.dkr.ecr.eu-west-1.amazonaws.com/ci-edx-platform:${GITHUB_REF##*/}
