@@ -14,10 +14,13 @@ def show_programs(request, program_name):
     """
     Display the programs page
     """
+    student_email=request.user.email
+    cache_key = '%s_program_name' % student_email
+    
     program = Program.objects.get(marketing_slug=program_name)
-    cache.set('program_name', program_name)
+    cache.set(cache_key, program_name)
     program_descriptor = program.get_program_descriptor(request)
-    project_deadlines = get_student_deadlines(student_email=request.user.email)
+    project_deadlines = get_student_deadlines(student_email=student_email)
     context = {
         'program': program_descriptor,
         'disable_courseware_js': True,
