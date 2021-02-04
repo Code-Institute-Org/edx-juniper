@@ -66,8 +66,8 @@ COPY ./*.json /openedx/edx-platform/
 COPY ./openedx.yaml /openedx/edx-platform/
 COPY ./codecov.yml /openedx/edx-platform/
 COPY ./circle.yml /openedx/edx-platform/
-COPY ./setup.cfg /openedx/edx-platform/
-COPY ./setup.py /openedx/edx-platform/
+COPY ./setup.cfg ./setup.py /openedx/edx-platform/
+# COPY ./setup.py /openedx/edx-platform/
 COPY ./.babelrc /openedx/edx-platform/
 COPY ./.coveragerc /openedx/edx-platform/
 COPY ./.editorconfig /openedx/edx-platform/
