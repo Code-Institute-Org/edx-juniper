@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+#    schedule:
+#      interval: "daily"
+#      time: "09:00"
+  - package-ecosystem: "pip"
+    directory: "/requirements/edx"
+#    schedule:
+#      interval: "daily"
+#      time: "09:00"
