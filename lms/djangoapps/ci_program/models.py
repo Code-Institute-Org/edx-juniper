@@ -119,7 +119,7 @@ class Program(TimeStampedModel):
         # template
         template_location = 'emails/{0}/{1}'.format(
             template_dir_name, template_type_name)
-        if os.path.exists(template_location):
+        if os.path.exists(os.path.join("lms/templates", template_location)):
             return template_location, subject
         else:
             log.exception("No email template found for %s/%s, using default",
