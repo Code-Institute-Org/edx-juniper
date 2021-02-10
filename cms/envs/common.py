@@ -260,7 +260,7 @@ FEATURES = {
     'ALLOW_COURSE_RERUNS': True,
 
     # Certificates Web/HTML Views
-    'CERTIFICATES_HTML_VIEW': True,
+    'CERTIFICATES_HTML_VIEW': False,
 
     # Teams feature
     'ENABLE_TEAMS': True,

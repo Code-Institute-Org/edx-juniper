@@ -311,7 +311,7 @@ FEATURES = {
     'LICENSING': False,
 
     # Certificates Web/HTML Views
-    'CERTIFICATES_HTML_VIEW': True,
+    'CERTIFICATES_HTML_VIEW': False,
 
     # Course discovery feature
     'ENABLE_COURSE_DISCOVERY': False,
