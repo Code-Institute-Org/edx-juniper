@@ -43,6 +43,7 @@ CODING_CHALLENGES = [
     "lesson_5_challenge_3"
 ]
 
+
 class Command(BaseCommand):
     help = 'Post the results of challenge submissions submitted in the last day for a given coding challenge program'
 
@@ -86,7 +87,6 @@ class Command(BaseCommand):
         ).sort("submitted", pymongo.DESCENDING)
         return submissions_since_yday
 
-
     def get_results_for_all_students(self):
         """Get results from challenge submissions for all students
         enrolled in a given program.
@@ -127,7 +127,6 @@ class Command(BaseCommand):
 
         return results
 
-
     def post_to_hubspot(self, endpoint, student, properties):
         """Post results of challenge submissions to the student profiles on HubSpot"""
         url = "%s/email/%s/profile?hapikey=%s" % (
@@ -147,7 +146,6 @@ class Command(BaseCommand):
                 "Attempt to send challenge results for %s to HubSpot " \
                 "failed with following response %s: %s" % (
                     student, response.status_code, response.json))
-
 
     def get_access_token(self):
         """Retrieve a Zoho CRM access token.
@@ -171,12 +169,10 @@ class Command(BaseCommand):
                 )
                 time.sleep(REFRESH_SLEEP_SECS)
 
-
     def get_auth_headers(self):
         """Return HTTP headers to authenticate against Zoho CRM."""
         access_token = self.get_access_token()
         return {"Authorization": "Zoho-oauthtoken " + access_token}
-
 
     def post_to_learningpeople(self, CHALLENGE_ENDPOINT, auth_headers, json, student):
         response = requests.post(
@@ -190,8 +186,7 @@ class Command(BaseCommand):
             log.info(
                 "Attempt to send challenge results for %s to LP " \
                 "failed with the following response %s: %s" % (
-                    student, response.status_code, response.json))  
-
+                    student, response.status_code, response.json))
 
     def export_challenges_submitted(self):
         """Get results for all students and prepare those results in a format
@@ -227,5 +222,3 @@ class Command(BaseCommand):
                         "value": result
                     })
                 self.post_to_hubspot(HUBSPOT_CONTACTS_ENDPOINT, student, properties)
-
-
