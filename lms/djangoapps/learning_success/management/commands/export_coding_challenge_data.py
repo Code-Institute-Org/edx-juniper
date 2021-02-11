@@ -53,9 +53,8 @@ def get_students(program_code):
     return {student.id: student.email for student in enrolled_students}
 
 
-def get_challenges():
+def get_challenges(db):
     """Return dict of challenges in following format {id: name}"""
-    db = settings.MONGO_DB
     collection = db["challenges"]
     challenges_query = collection.challenges.find({"name": {"$in": CODING_CHALLENGES}})
     challenges = {challenge.get("_id"): challenge.get("name") for challenge in challenges_query}
@@ -97,9 +96,10 @@ def get_results_for_all_students(program_code):
            }
        ]
     """
-
+    import ipdb; ipdb.set_trace()
     students = get_students(program_code)
-    challenges = get_challenges()
+    db = settings.MONGO_DB
+    challenges = get_challenges(db)
 
     one_day_ago = datetime.today() - timedelta(days=1)
     submissions_since_yday = get_submissions(db, challenges, students, one_day_ago)
