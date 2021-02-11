@@ -56,7 +56,7 @@ def get_students(program_code):
 def get_challenges(db):
     """Return dict of challenges in following format {id: name}"""
     collection = db["challenges"]
-    challenges_query = collection.challenges.find({"name": {"$in": CODING_CHALLENGES}})
+    challenges_query = collection.find({"name": {"$in": CODING_CHALLENGES}})
     challenges = {challenge.get("_id"): challenge.get("name") for challenge in challenges_query}
     return challenges
 
@@ -68,14 +68,14 @@ def get_submissions(db, challenges, students, submitted_since):
     submissions_since_yday = db.submissions.find(
         {
             "submitted": {"$gte": submitted_since},
-            "challenge_id": {"$in": challenges.keys()},
-            "user_id": {"$in": students.keys()}
+            "challenge_id": {"$in": list(challenges.keys())},
+            "user_id": {"$in": list(students.keys())}
         }
     ).sort("submitted", pymongo.DESCENDING)
     return submissions_since_yday
 
 
-def get_results_for_all_students(program_code):
+def get_results_for_all_students(program_code, dbname):
     """Get results from challenge submissions for all students
     enrolled in a given program.
 
@@ -96,13 +96,12 @@ def get_results_for_all_students(program_code):
            }
        ]
     """
-    import ipdb; ipdb.set_trace()
     students = get_students(program_code)
-    db = settings.MONGO_DB
-    challenges = get_challenges(db)
+    challenges_db = settings.MONGO_CLIENT[dbname]
+    challenges = get_challenges(challenges_db)
 
     one_day_ago = datetime.today() - timedelta(days=1)
-    submissions_since_yday = get_submissions(db, challenges, students, one_day_ago)
+    submissions_since_yday = get_submissions(challenges_db, challenges, students, one_day_ago)
 
     results = {}
     for submission in submissions_since_yday:
@@ -184,12 +183,12 @@ def post_to_learningpeople(CHALLENGE_ENDPOINT, auth_headers, json, student):
                 student, response.status_code, response.json))  
 
 
-def export_challenges_submitted(program_code):
+def export_challenges_submitted(program_code, dbname):
     """Get results for all students and prepare those results in a format
     that can be posted to Zoho if student is on an Learning People program,
     else HubSpot profiles for all other students
     """
-    results_for_all_students = get_results_for_all_students(program_code)
+    results_for_all_students = get_results_for_all_students(program_code, dbname)
     if program_code == "LPCC":
         auth_headers_for_zoho = get_auth_headers()
         for student, results in results_for_all_students.items():
@@ -225,6 +224,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('program_code', type=str)
+        parser.add_argument('--dbname', type=str, default='challenges')
 
     def handle(self, program_code, **kwargs):
-        export_challenges_submitted(program_code)
+        export_challenges_submitted(program_code, kwargs['dbname'])
