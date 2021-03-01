@@ -65,7 +65,7 @@ class Command(BaseCommand):
                     }
                 )
                 continue
-      
+                
             # Check if student is enrolled in the program
             # If not, the student has likely been unenrolled manually
             try:
@@ -76,16 +76,13 @@ class Command(BaseCommand):
                 update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
                 continue
 
-            # If enrolled, deactivate student's course enrollments
+            # To unenroll student, deactivate student's course enrollments
             # for all modules on the given program
             enrollments = student.courseenrollment_set.filter(
                 course_id__in=program.get_courses(),
                 is_active=True
             )
             enrollments.update(is_active=False)
-
-            # Remove student from enrolled_students
-            program.unenroll_student_from_program(user)
 
             # update the student record on the CRM
             update_student_record(settings.ZAPIER_UNENROLLMENT_URL, student.email)
