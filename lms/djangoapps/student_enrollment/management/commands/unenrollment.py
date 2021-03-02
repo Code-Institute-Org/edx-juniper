@@ -91,11 +91,11 @@ class Command(BaseCommand):
 
             # To unenroll student, deactivate student's course enrollments
             # for all modules on the given program
-            enrollments = student.courseenrollment_set.filter(
+            enrollments = user.courseenrollment_set.filter(
                 course_id__in=program.get_courses(),
                 is_active=True
             )
             enrollments.update(is_active=False)
 
             # update the student record on the CRM
-            update_student_record(settings.ZAPIER_UNENROLLMENT_URL, student.email)
+            update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
