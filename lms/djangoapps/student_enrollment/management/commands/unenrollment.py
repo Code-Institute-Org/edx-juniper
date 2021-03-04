@@ -7,7 +7,9 @@ from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.zoho import (
     get_students_to_be_unenrolled,
-    update_student_record)
+    update_student_record,
+    post_to_zapier
+)
 
 log = getLogger(__name__)
 
@@ -78,7 +80,7 @@ class Command(BaseCommand):
                     }
                 )
                 continue
-                
+
             # Check if student is enrolled in the program
             # If not, the student has likely been unenrolled manually
             try:
