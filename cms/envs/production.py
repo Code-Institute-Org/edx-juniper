@@ -611,4 +611,5 @@ SENTRY_DSN = os.environ.get('SENTRY_DSN')
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
-LRS_DATABASE_NAME = os.environ.get('LRS_DATABASE_NAME')
+LRS_ENDPOINT = os.environ.get('ENDPOINT')
+LRS_API_KEY = os.environ.get('LRS_API_KEY')
