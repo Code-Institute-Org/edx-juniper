@@ -313,8 +313,8 @@ class Command(BaseCommand):
                 program_code: Program code of program to use 'disd'
         """
 
-        program = get_program_by_program_code(programme_id)
-        student_data = list(all_student_data(program))
+        programme = get_program_by_program_code(programme_id)
+        student_data = list(all_student_data(programme))
 
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
