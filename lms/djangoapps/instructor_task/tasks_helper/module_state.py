@@ -93,9 +93,8 @@ def perform_module_state_update(update_fcn, filter_fcn, _entry_id, course_id, ta
 
     for module_to_update in modules_to_update:
         # CI-LRS insert
-        if settings.DATABASES.get('student_module_history'):
-                store_lrs_record(user, 'completed', 
-                                '%s:%s' % (usage_key.context_key, usage_key))
+        store_lrs_record(user.id, 'completed',
+                         'hook5:%s:%s' % (usage_key.context_key, usage_key))
         task_progress.attempted += 1
         module_descriptor = problems[six.text_type(module_to_update.module_state_key)]
         # There is no try here:  if there's an error, we let it throw, and the task will
@@ -132,6 +131,10 @@ def rescore_problem_module_state(xmodule_instance_args, module_descriptor, stude
     course_id = student_module.course_id
     student = student_module.student
     usage_key = student_module.module_state_key
+
+    # CI-LRS
+    store_lrs_record(user.id, 'completed',
+                     'hook6:%s:%s' % (usage_key.context_key, usage_key))
 
     with modulestore().bulk_operations(course_id):
         course = get_course_by_id(course_id)

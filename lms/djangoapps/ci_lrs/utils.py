@@ -12,7 +12,8 @@ API_KEY = settings.LRS_API_KEY
 HEADERS = {'x-api-key': API_KEY}
 
 
-def store_lrs_record(actor, activity_action, learning_block_id, extra_data=None):
+def store_lrs_record(actor, activity_action, learning_block_id,
+        extra_data=None):
     """ Sends an API call to store the student progress in an external DB """
     if isinstance(extra_data, dict) or isinstance(extra_data, list):
         extra_data = json.dumps(extra_data)

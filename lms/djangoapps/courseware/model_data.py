@@ -43,6 +43,8 @@ from xmodule.modulestore.django import modulestore
 
 from .models import StudentModule, XModuleStudentInfoField, XModuleStudentPrefsField, XModuleUserStateSummaryField
 
+from lms.djangoapps.ci_lrs.utils import store_lrs_record
+
 log = logging.getLogger(__name__)
 
 
@@ -998,6 +1000,8 @@ def set_score(user_id, usage_key, score, max_score):
     created = False
     kwargs = {"student_id": user_id, "module_state_key": usage_key, "course_id": usage_key.context_key}
     # CI-LRS insert
+    store_lrs_record(user.id, 'completed',
+                     'hook3:%s:%s' % (usage_key.context_key, usage_key))
     try:
         with transaction.atomic():
             student_module, created = StudentModule.objects.get_or_create(
