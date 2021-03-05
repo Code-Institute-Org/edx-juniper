@@ -34,6 +34,8 @@ from six.moves import range
 import coursewarehistoryextended
 from openedx.core.djangolib.markup import HTML
 
+from lms.djangoapps.ci_lrs.utils import store_lrs_record
+
 log = logging.getLogger("edx.courseware")
 
 
@@ -171,6 +173,10 @@ class StudentModule(models.Model):
         if not student.is_authenticated:
             return
         else:
+            # CI-LRS
+            store_lrs_record(user.id, 'completed',
+                             'hook3:%s:%s' % (course_id, module_state_key))
+
             cls.objects.update_or_create(
                 student=student,
                 course_id=course_id,

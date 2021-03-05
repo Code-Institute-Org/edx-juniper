@@ -246,9 +246,10 @@ class DjangoXBlockUserStateClient(XBlockUserStateClient):
 
         for usage_key, state in block_keys_to_state.items():
             # CI-LRS insert
-            if settings.DATABASES.get('student_module_history'):
-                store_lrs_record(user, 'completed', 
-                                '%s:%s' % (usage_key.context_key, usage_key))
+            store_lrs_record(
+                user.id, 'completed',
+                'hook4:%s:%s' % (usage_key.context_key, usage_key),
+                state)
             try:
                 student_module, created = StudentModule.objects.get_or_create(
                     student=user,
