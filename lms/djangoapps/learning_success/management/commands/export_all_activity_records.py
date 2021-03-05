@@ -306,27 +306,33 @@ class Command(BaseCommand):
         parser.add_argument('source_platform', type=str)
         parser.add_argument('program_code', type=str)
 
-    def handle(self, source_platform, program_code, **kwargs):
+    def handle(self, source_platform, programme_id, **kwargs):
         """POST the collected data to the api endpoint from the settings
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
                 program_code: Program code of program to use 'disd'
         """
 
-        program = get_program_by_program_code(program_code)
+        program = get_program_by_program_code(programme_id)
         student_data = list(all_student_data(program))
 
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
             # remove existing
-            conn.execute("delete from lms_activity where source_platform = %s", (source_platform,))
+            conn.execute(
+                ("DELETE FROM lms_activity WHERE source_platform = %s "
+                 "AND programme_id = %s;"), (source_platform, programme_id))
 
+            # format data such that all the student_data is in one cell
+            formatted_student_data = [
+                {'email': student.get('email'), 'student_data': student}
+                for student in student_data]
             # add new
-            df = pd.DataFrame(student_data)
+            df = pd.DataFrame(formatted_student_data)
             df['created'] = datetime.now()
             # TODO: Add arg for source_platform
             df['source_platform'] = source_platform
-            df['program_code'] = program_code
+            df['program_code'] = programme_id
             write_type = 'append'
 
             df.to_sql(name=LMS_ACTIVITY_TABLE,
