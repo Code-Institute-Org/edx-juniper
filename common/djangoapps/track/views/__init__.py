@@ -71,6 +71,7 @@ def user_track(request):
 
     GET or POST call should provide "event_type", "event", and "page" arguments.
     """
+    # CI-LRS
     try:
         username = request.user.username
     except:
