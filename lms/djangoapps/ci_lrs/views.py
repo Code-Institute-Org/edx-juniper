@@ -9,7 +9,7 @@ def test_lrs(request):
     """
     View to test LRS implementation
     """
-    actor = request.user
+    actor = request.user.id
     verb = 'completed'
     activity_object = 'problem 1'
 
