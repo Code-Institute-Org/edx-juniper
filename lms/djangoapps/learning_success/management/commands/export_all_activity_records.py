@@ -270,10 +270,10 @@ def all_student_data(program):
             'date_joined': format_date(first_active),
             'last_login': format_date(student.last_login),
             'latest_unit_completion': format_date(latest_unit_started),
-            'latest_module': latest_unit_breadcrumbs[0].encode('utf-8'),
-            'latest_section': latest_unit_breadcrumbs[1].encode('utf-8'),
-            'latest_lesson': latest_unit_breadcrumbs[2].encode('utf-8'),
-            'latest_unit': latest_unit_breadcrumbs[3].encode('utf-8'),
+            'latest_module': str(latest_unit_breadcrumbs[0]),
+            'latest_section': str(latest_unit_breadcrumbs[1]),
+            'latest_lesson': str(latest_unit_breadcrumbs[2]),
+            'latest_unit': str(latest_unit_breadcrumbs[3]),
             'units_in_30d': thirty_day_units(completed_units.values()),
             'days_into_data': days_into_data(
                 first_active, completed_units.values()),
@@ -304,7 +304,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('source_platform', type=str)
-        parser.add_argument('program_code', type=str)
+        parser.add_argument('programme_id', type=str)
 
     def handle(self, source_platform, programme_id, **kwargs):
         """POST the collected data to the api endpoint from the settings
@@ -318,24 +318,30 @@ class Command(BaseCommand):
 
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
-            # remove existing
+            # remove any existing rows for the day if exists
             conn.execute(
-                ("DELETE FROM lms_activity WHERE source_platform = %s "
-                 "AND programme_id = %s;"), (source_platform, programme_id))
+                ("DELETE FROM lms_records WHERE source_platform = %s "
+                 "AND programme_id = %s "
+                 "AND DATE(created) = %s;"), (
+                    source_platform, programme_id,
+                    datetime.now().strftime(r'%Y-%m-%d')))
 
             # format data such that all the student_data is in one cell
             formatted_student_data = [
-                {'email': student.get('email'), 'student_data': student}
+                {'email': student.get('email'), 
+                 'student_data': json.dumps(student, default=str)}
                 for student in student_data]
             # add new
             df = pd.DataFrame(formatted_student_data)
             df['created'] = datetime.now()
             # TODO: Add arg for source_platform
             df['source_platform'] = source_platform
-            df['program_code'] = programme_id
+            df['programme_id'] = programme_id
+            df['state'] = 'initial'
             write_type = 'append'
 
             df.to_sql(name=LMS_ACTIVITY_TABLE,
-                    con=conn,
-                    if_exists=write_type,
-                    chunksize=1000)
+                      con=conn,
+                      if_exists=write_type,
+                      chunksize=1000,
+                      index=False)

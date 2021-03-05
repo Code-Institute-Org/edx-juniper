@@ -5,5 +5,6 @@ CREATE TABLE lms_records (
 	`student_data` TEXT,
     `programme_id` text DEFAULT NULL,
     `source_platform` text DEFAULT NULL,
+	`state` VARCHAR(255) NOT NULL,
 	CHECK (`student_data` IS NULL OR JSON_VALID(`student_data`))
 );
