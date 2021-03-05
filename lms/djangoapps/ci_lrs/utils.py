@@ -1,33 +1,30 @@
+import json
 import logging
+import requests
 
 from django.conf import settings
-import MySQLdb
+from django.utils import timezone
 
 logger = logging.getLogger(__file__)
 
+ENDPOINT = settings.LRS_ENDPOINT
+API_KEY = settings.LRS_API_KEY
+HEADERS = {'x-api-key': API_KEY}
 
-def store_lrs_record(actor, verb, activity_object, extra_data=None):
-    """ Creates a connection to the MySQL database and inserts a new record """
-    try:
-        db_settings = settings.DATABASES['student_module_history']
-        db = MySQLdb.connect(
-            db_settings['HOST'],
-            db_settings['USER'],
-            db_settings['PASSWORD'],
-            settings.LRS_DATABASE_NAME)
 
-        insert_activity_query = """ INSERT INTO student_learning_activity (
-            actor, verb, activity_object, extra_data) VALUES (
-            '{actor}', '{verb}', '{activity_object}', '{extra_data}'
-            );""".format(actor=actor,
-                         verb=verb,
-                         activity_object=activity_object,
-                         extra_data=extra_data)
-        cursor = db.cursor()
-        statement = cursor.execute(insert_activity_query)
-        db.commit()
-        cursor.close()
-        db.close()
-    except (MySQLdb.Error, MySQLdb.Warning) as e:
-        logger.exception(e)
-    return
+def store_lrs_record(actor, activity_action, learning_block_id, extra_data=None):
+    """ Sends an API call to store the student progress in an external DB """
+    if isinstance(extra_data, dict) or isinstance(extra_data, list):
+        extra_data = json.dumps(extra_data)
+
+    data = {
+        "activity_time": timezone.now().isoformat(),
+        "actor": actor,
+        "activity_action": activity_action,
+        "learning_block_id": learning_block_id,
+        "extra_data": extra_data,
+    }
+    logger.exception(data)
+    res = requests.post(ENDPOINT, data=json.dumps(data), headers=HEADERS)
+    logger.exception(res.content)
+    return res.status_code == 200
