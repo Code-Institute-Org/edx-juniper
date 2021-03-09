@@ -299,6 +299,28 @@ def all_student_data(program):
         yield student_dict
 
 
+def convert_student_data_to_dataframe(student_data, source_platform,
+        programme_id):
+    """ Converts the student_data dict into a Dataframe which will be used
+    to store and write the student data to the MySQL database 
+    
+    Another change is to store the student_data dict as JSON value into one
+    of the DataFrame's column instead of converting the whole dict to a
+    DataFrame in its entirety
+    
+    Returns the created DataFrame """
+    formatted_student_data = [
+        {'email': student.get('email'), 
+            'student_data': json.dumps(student, default=str)}
+        for student in student_data]
+
+    df = pd.DataFrame(formatted_student_data)
+    df['created'] = datetime.now()
+    df['source_platform'] = source_platform
+    df['programme_id'] = programme_id
+    df['state'] = 'initial'
+    return df
+
 class Command(BaseCommand):
     help = 'Extract student data from the open-edX server for use in Strackr'
 
@@ -326,22 +348,11 @@ class Command(BaseCommand):
                     source_platform, programme_id,
                     datetime.now().strftime(r'%Y-%m-%d')))
 
-            # format data such that all the student_data is in one cell
-            formatted_student_data = [
-                {'email': student.get('email'), 
-                 'student_data': json.dumps(student, default=str)}
-                for student in student_data]
-            # add new
-            df = pd.DataFrame(formatted_student_data)
-            df['created'] = datetime.now()
-            # TODO: Add arg for source_platform
-            df['source_platform'] = source_platform
-            df['programme_id'] = programme_id
-            df['state'] = 'initial'
-            write_type = 'append'
-
+            df = convert_student_data_to_dataframe(student_data,
+                                                   source_platform,
+                                                   programme_id)
             df.to_sql(name=LMS_ACTIVITY_TABLE,
                       con=conn,
-                      if_exists=write_type,
+                      if_exists='append',
                       chunksize=1000,
                       index=False)
