@@ -333,6 +333,17 @@ class Command(BaseCommand):
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
                 program_code: Program code of program to use 'disd'
+
+            The table should have one entry per day per platform and programme
+            per student.
+
+            In order to be able to easily re-run the extract any given day
+            without any further intervention we are deleting any existing
+            entry first.
+
+            With the use of one transaction for deletion and insertion we can
+            make sure that one does not happen without the other as to not
+            lose any information.
         """
 
         programme = get_program_by_program_code(programme_id)
@@ -340,7 +351,6 @@ class Command(BaseCommand):
 
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
-            # remove any existing rows for the day if exists
             conn.execute(
                 ("DELETE FROM lms_records WHERE source_platform = %s "
                  "AND programme_id = %s "
