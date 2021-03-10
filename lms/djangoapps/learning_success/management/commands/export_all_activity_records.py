@@ -325,21 +325,21 @@ class Command(BaseCommand):
         parser.add_argument('programme_ids', type=str)
 
     def handle(self, source_platform, pathway, programme_ids, **kwargs):
-        """POST the collected data to the api endpoint from the settings
+        """ POST the collected data to the api endpoint from the settings
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
                 program_code: Program code of program to use 'disd'
 
-            The table should have one entry per day per platform and programme
-            per student.
+        The table should have one entry per day per platform and programme
+        per student.
 
-            In order to be able to easily re-run the extract any given day
-            without any further intervention we are deleting any existing
-            entry first.
+        In order to be able to easily re-run the extract any given day
+        without any further intervention we are deleting any existing
+        entry first.
 
-            With the use of one transaction for deletion and insertion we can
-            make sure that one does not happen without the other as to not
-            lose any information.
+        With the use of one transaction for deletion and insertion we can
+        make sure that one does not happen without the other as to not
+        lose any information.
         """
         student_data = {}
         programme_components = {}
@@ -350,7 +350,7 @@ class Command(BaseCommand):
         fullstack_programme_ids = {p.id for p in fullstack_programmes}
 
         breadcrumb_index_url = ('%s?format=amos_fractions' %
-                            settings.BREADCRUMB_INDEX_URL)
+                                settings.BREADCRUMB_INDEX_URL)
         lesson_fractions = requests.get(breadcrumb_index_url).json()['LESSONS']
         module_fractions = {
             item['module'] : item['fractions']['module_fraction']
