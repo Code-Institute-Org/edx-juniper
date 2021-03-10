@@ -36,8 +36,6 @@ BLOCK_TYPES = {
     'vertical': 'unit',
 }
 
-PROGRAM_CODE = 'disd'  # Diploma in Software Development
-
 
 def get_safely(breadcrumbs, index):
     try:
@@ -71,13 +69,13 @@ def harvest_course_tree(tree, output_list, prefix=()):
         harvest_course_tree(subtree, output_list, prefix=block_breadcrumbs)
     
 
-def harvest_program(program):
+def harvest_programme(programme):
     """Harvest the breadcrumbs from all components in the program
 
     Returns a list of dictionaries containing xblock meta data
     """
     all_blocks = []
-    for course_locator in program.get_course_locators():
+    for course_locator in programme.get_course_locators():
         course = modulestore().get_course(course_locator)
         harvest_course_tree(course, all_blocks)
     return all_blocks
@@ -101,18 +99,20 @@ def get_breadcrumb_index(URL):
 
 
 class Command(BaseCommand):
-    help = 'Extract student data from the open-edX server for use in Strackr'
+    help = 'Extract LMS breadcrumbs into a table in a AWS RDS'
 
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('programme_id', type=str)
 
-        program = get_program_by_program_code(PROGRAM_CODE)
-        all_components = harvest_program(program)        
+    def handle(self, programme_id, **kwargs):
+        programme = get_program_by_program_code(programme_id)
+        all_components = harvest_programme(programme)        
         df = pd.DataFrame(all_components)
         
         # Need to get lesson order from syllabus for ordering the modules
         # And course fractions
         breadcrumb_index_url = ('%s?format=schedule' %
-                            settings.BREADCRUMB_INDEX_URL)
+                                settings.BREADCRUMB_INDEX_URL)
         df_breadcrumb_idx = get_breadcrumb_index(breadcrumb_index_url)
         df = df.merge(df_breadcrumb_idx, on=['module', 'lesson'], how='left')
         
