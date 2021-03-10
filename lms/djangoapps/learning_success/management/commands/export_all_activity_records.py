@@ -1,10 +1,12 @@
 from ci_program.api import get_program_by_program_code
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from opaque_keys.edx.locator import CourseLocator
 from xmodule.modulestore.django import modulestore
 from lms.djangoapps.learning_success.management.commands.challenges_helper import extract_all_student_challenges
+from ci_program.models import Program
 
 from collections import Counter, defaultdict, OrderedDict
 from datetime import datetime, timedelta
@@ -205,102 +207,95 @@ def get_fractions(lesson_fractions, completed_fractions, block_id, breadcrumbs,
         'cumulative_fraction' : cumulative_fraction}
 
 
-def all_student_data(program):
-    """Yield a progress metadata dictionary for each of the students
+def construct_student_data(student, program, lesson_fractions, module_fractions,
+        all_components, challenges):
+    """ Returns a progress metadata dictionary for a single student
 
-    Input is a pregenerated dictionary mapping block IDs in LMS to breadcrumbs
+    Input is a pregenerated dictionary mapping block IDs in LMS to breadcrumbs,
+    the lesson fractions, module fractions, the harbested programme tree and
+    all student challenges
     """
-    breadcrumb_index_url = ('%s?format=amos_fractions' %
-                            settings.BREADCRUMB_INDEX_URL)
-    all_components = harvest_program(program)
-    lesson_fractions = requests.get(breadcrumb_index_url).json()['LESSONS']
-    module_fractions = {item['module'] : item['fractions']['module_fraction']
-                        for item in lesson_fractions.values()}
-    challenges = extract_all_student_challenges(program)
+    # A short name for the activities queryset
+    student_activities = student.studentmodule_set.filter(
+        course_id__in=program.get_course_locators())
 
-    for student in program.enrolled_students.all():
-        # A short name for the activities queryset
-        student_activities = student.studentmodule_set.filter(
-            course_id__in=program.get_course_locators())
+    student_challenges = challenges.get(student.email, {})
 
-        student_challenges = challenges.get(student.email, {})
+    # remember details of the first activity
+    first_activity = student_activities.order_by('created').first()
+    first_active = (
+        first_activity.created if first_activity else student.date_joined)
 
-        # remember details of the first activity
-        first_activity = student_activities.order_by('created').first()
-        first_active = (
-            first_activity.created if first_activity else student.date_joined)
+    # We care about the lesson level (depth 3) and unit level (depth 4).
+    # Dictionaries of breadcrumbs to timestamps of completion
+    completed_lessons = {}
+    completed_fractions = {}
+    completed_units = {}
+    all_fractions = create_fractions_dict(lesson_fractions)
 
-        # We care about the lesson level (depth 3) and unit level (depth 4).
-        # Dictionaries of breadcrumbs to timestamps of completion
-        completed_lessons = {}
-        completed_fractions = {}
-        completed_units = {}
-        all_fractions = create_fractions_dict(lesson_fractions)
+    # Provide default values in cases where student hasn't started
+    latest_unit_started = None
+    latest_unit_breadcrumbs = (u'',) * 4
+    for activity in student_activities.order_by('modified'):
+        block_id = activity.module_state_key.block_id
+        breadcrumbs = all_components.get(block_id)
+        if breadcrumbs and len(breadcrumbs) == 3:  # lesson
+            # for each lesson learned, store latest timestamp
+            completed_lessons[breadcrumbs] = activity.modified
 
-        # Provide default values in cases where student hasn't started
-        latest_unit_started = None
-        latest_unit_breadcrumbs = (u'',) * 4
-        for activity in student_activities.order_by('modified'):
-            block_id = activity.module_state_key.block_id
-            breadcrumbs = all_components.get(block_id)
-            if breadcrumbs and len(breadcrumbs) == 3:  # lesson
-                # for each lesson learned, store latest timestamp
-                completed_lessons[breadcrumbs] = activity.modified
+            # get timestamp and fractions for each breadcrumb
+            get_fractions(lesson_fractions, completed_fractions, block_id,
+                            breadcrumbs, activity.modified)
 
-                # get timestamp and fractions for each breadcrumb
-                get_fractions(lesson_fractions, completed_fractions, block_id,
-                              breadcrumbs, activity.modified)
+        if breadcrumbs and len(breadcrumbs) >= 4:  # unit or inner block
+            unit_breadcrumbs = breadcrumbs[:4]
+            # for each unit learned, store latest timestamp
+            completed_units[unit_breadcrumbs] = activity.modified
 
-            if breadcrumbs and len(breadcrumbs) >= 4:  # unit or inner block
-                unit_breadcrumbs = breadcrumbs[:4]
-                # for each unit learned, store latest timestamp
-                completed_units[unit_breadcrumbs] = activity.modified
-
-                # remember details of the latest unit overall
-                # we use 'created' (not 'modified') to ignore backward leaps
-                # to old units; sadly, there's no way to ignore forward leaps
-                latest_unit_started = activity.created
-                latest_unit_breadcrumbs = unit_breadcrumbs
+            # remember details of the latest unit overall
+            # we use 'created' (not 'modified') to ignore backward leaps
+            # to old units; sadly, there's no way to ignore forward leaps
+            latest_unit_started = activity.created
+            latest_unit_breadcrumbs = unit_breadcrumbs
 
 
-        completed_fractions_last14d = n_days_fractions(
-                completed_fractions.values(), 14)
-        student_dict = {
-            'email': student.email,
-            'date_joined': format_date(first_active),
-            'last_login': format_date(student.last_login),
-            'latest_unit_completion': format_date(latest_unit_started),
-            'latest_module': str(latest_unit_breadcrumbs[0]),
-            'latest_section': str(latest_unit_breadcrumbs[1]),
-            'latest_lesson': str(latest_unit_breadcrumbs[2]),
-            'latest_unit': str(latest_unit_breadcrumbs[3]),
-            'units_in_30d': thirty_day_units(completed_units.values()),
-            'days_into_data': days_into_data(
-                first_active, completed_units.values()),
-            'completed_fractions_14d' : completed_fractions_last14d,
-            'completed_fractions_28d' : n_days_fractions(
-                completed_fractions.values(), 28) - completed_fractions_last14d,
-            'cumulative_completed_fractions' : n_days_fractions(
-                completed_fractions.values()),
-            'fractions_per_day': fractions_per_day(
-                first_active, completed_fractions.values())
-        }
+    completed_fractions_last14d = n_days_fractions(
+            completed_fractions.values(), 14)
+    student_dict = {
+        'email': student.email,
+        'date_joined': format_date(first_active),
+        'last_login': format_date(student.last_login),
+        'latest_unit_completion': format_date(latest_unit_started),
+        'latest_module': str(latest_unit_breadcrumbs[0]),
+        'latest_section': str(latest_unit_breadcrumbs[1]),
+        'latest_lesson': str(latest_unit_breadcrumbs[2]),
+        'latest_unit': str(latest_unit_breadcrumbs[3]),
+        'units_in_30d': thirty_day_units(completed_units.values()),
+        'days_into_data': days_into_data(
+            first_active, completed_units.values()),
+        'completed_fractions_14d' : completed_fractions_last14d,
+        'completed_fractions_28d' : n_days_fractions(
+            completed_fractions.values(), 28) - completed_fractions_last14d,
+        'cumulative_completed_fractions' : n_days_fractions(
+            completed_fractions.values()),
+        'fractions_per_day': fractions_per_day(
+            first_active, completed_fractions.values())
+    }
 
-        completed_fractions_per_module = fractions_per_module(all_fractions,
-            completed_fractions)
+    completed_fractions_per_module = fractions_per_module(all_fractions,
+        completed_fractions)
 
-        student_dict.update(completed_fractions_per_module)
-        student_dict.update(completed_lessons_per_module(completed_lessons))
-        student_dict.update(completed_units_per_module(completed_units))
-        student_dict.update(
-            lessons_days_into_per_module(first_active, completed_lessons))
-        student_dict.update(student_challenges)
+    student_dict.update(completed_fractions_per_module)
+    student_dict.update(completed_lessons_per_module(completed_lessons))
+    student_dict.update(completed_units_per_module(completed_units))
+    student_dict.update(
+        lessons_days_into_per_module(first_active, completed_lessons))
+    student_dict.update(student_challenges)
 
-        yield student_dict
+    return student_dict
 
 
-def convert_student_data_to_dataframe(student_data, source_platform,
-        programme_id):
+def convert_student_data_to_dataframe(student_data, source_platform, pathway):
     """ Converts the student_data dict into a Dataframe which will be used
     to store and write the student data to the MySQL database 
     
@@ -310,14 +305,14 @@ def convert_student_data_to_dataframe(student_data, source_platform,
     
     Returns the created DataFrame """
     formatted_student_data = [
-        {'email': student.get('email'), 
-            'student_data': json.dumps(student, default=str)}
-        for student in student_data]
+        {'email': student_email,
+         'student_data': json.dumps(student, default=str)}
+        for student_email, student in student_data.items()]
 
     df = pd.DataFrame(formatted_student_data)
-    df['created'] = datetime.now()
+    df['date'] = datetime.now()
     df['source_platform'] = source_platform
-    df['programme_id'] = programme_id
+    df['pathway'] = pathway
     df['state'] = 'initial'
     return df
 
@@ -326,9 +321,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('source_platform', type=str)
-        parser.add_argument('programme_id', type=str)
+        parser.add_argument('pathway', type=str)
+        parser.add_argument('programme_ids', type=str)
 
-    def handle(self, source_platform, programme_id, **kwargs):
+    def handle(self, source_platform, pathway, programme_ids, **kwargs):
         """POST the collected data to the api endpoint from the settings
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
@@ -345,22 +341,54 @@ class Command(BaseCommand):
             make sure that one does not happen without the other as to not
             lose any information.
         """
+        student_data = {}
+        programme_components = {}
+        programme_challenges = {}
+        fullstack_pathway_programme_codes = programme_ids.split(',')
+        fullstack_programmes = Program.objects.filter(
+            program_code__in=fullstack_pathway_programme_codes)
+        fullstack_programme_ids = {p.id for p in fullstack_programmes}
 
-        programme = get_program_by_program_code(programme_id)
-        student_data = list(all_student_data(programme))
+        breadcrumb_index_url = ('%s?format=amos_fractions' %
+                            settings.BREADCRUMB_INDEX_URL)
+        lesson_fractions = requests.get(breadcrumb_index_url).json()['LESSONS']
+        module_fractions = {
+            item['module'] : item['fractions']['module_fraction']
+            for item in lesson_fractions.values()}
+
+        for programme in fullstack_programmes:
+            programme_components[programme.program_code] = harvest_program(
+                programme)
+            programme_challenges[programme.program_code
+                ] = extract_all_student_challenges(programme)
+
+        fullstack_students = User.objects.filter(
+            program__id__in=fullstack_programme_ids)
+
+        for student in fullstack_students:
+            student_data.setdefault(student.email, {})
+            student_data[student.email].setdefault('lms', {})
+            programmes = student.program_set.filter(
+                id__in=fullstack_programme_ids)
+            for programme in programmes:
+                student_data[student.email]['lms'][programme.program_code] = (
+                    construct_student_data(
+                        student, programme, lesson_fractions, module_fractions,
+                        programme_components[programme.program_code],
+                        programme_challenges[programme.program_code]))
 
         engine = create_engine(CONNECTION_STRING, echo=False)
         with engine.begin() as conn:
             conn.execute(
                 ("DELETE FROM lms_records WHERE source_platform = %s "
-                 "AND programme_id = %s "
-                 "AND DATE(created) = %s;"), (
-                    source_platform, programme_id,
+                 "AND pathway = %s "
+                 "AND DATE(date) = %s;"), (
+                    source_platform, pathway,
                     datetime.now().strftime(r'%Y-%m-%d')))
 
             df = convert_student_data_to_dataframe(student_data,
                                                    source_platform,
-                                                   programme_id)
+                                                   pathway)
             df.to_sql(name=LMS_ACTIVITY_TABLE,
                       con=conn,
                       if_exists='append',
