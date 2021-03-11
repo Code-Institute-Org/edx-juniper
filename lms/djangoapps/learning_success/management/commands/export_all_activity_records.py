@@ -52,13 +52,13 @@ def harvest_course_tree(tree, output_dict, prefix=()):
         harvest_course_tree(subtree, output_dict, prefix=block_breadcrumbs)
 
 
-def harvest_program(program):
-    """Harvest the breadcrumbs from all components in the program
+def harvest_programme(programme):
+    """Harvest the breadcrumbs from all components in the programme
 
     Returns a dictionary mapping block IDs to the matching breadcrumbs
     """
     all_blocks = {}
-    for course_locator in program.get_course_locators():
+    for course_locator in programme.get_course_locators():
         course = modulestore().get_course(course_locator)
         harvest_course_tree(course, all_blocks)
     return all_blocks
@@ -207,17 +207,17 @@ def get_fractions(lesson_fractions, completed_fractions, block_id, breadcrumbs,
         'cumulative_fraction' : cumulative_fraction}
 
 
-def construct_student_data(student, program, lesson_fractions, module_fractions,
-        all_components, challenges):
+def construct_student_data(student, programme, lesson_fractions,
+        module_fractions, all_components, challenges):
     """ Returns a progress metadata dictionary for a single student
 
     Input is a pregenerated dictionary mapping block IDs in LMS to breadcrumbs,
-    the lesson fractions, module fractions, the harbested programme tree and
+    the lesson fractions, module fractions, the harvested programme tree and
     all student challenges
     """
     # A short name for the activities queryset
     student_activities = student.studentmodule_set.filter(
-        course_id__in=program.get_course_locators())
+        course_id__in=programme.get_course_locators())
 
     student_challenges = challenges.get(student.email, {})
 
@@ -322,13 +322,16 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('source_platform', type=str)
         parser.add_argument('pathway', type=str)
-        parser.add_argument('programme_ids', type=str)
+        parser.add_argument('programme_ids', type=str, nargs='+')
 
     def handle(self, source_platform, pathway, programme_ids, **kwargs):
         """ POST the collected data to the api endpoint from the settings
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
-                program_code: Program code of program to use 'disd'
+                programme_ids: Programme ids of programme to use 'disd'
+            
+        Example command: 
+        docker-compose exec ci-lms python3 manage.py lms export_all_activity_records juniper fullstack disd diwad
 
         The table should have one entry per day per platform and programme
         per student.
@@ -344,9 +347,8 @@ class Command(BaseCommand):
         student_data = {}
         programme_components = {}
         programme_challenges = {}
-        fullstack_pathway_programme_codes = programme_ids.split(',')
         fullstack_programmes = Program.objects.filter(
-            program_code__in=fullstack_pathway_programme_codes)
+            program_code__in=programme_ids)
         fullstack_programme_ids = {p.id for p in fullstack_programmes}
 
         breadcrumb_index_url = ('%s?format=amos_fractions' %
@@ -357,7 +359,7 @@ class Command(BaseCommand):
             for item in lesson_fractions.values()}
 
         for programme in fullstack_programmes:
-            programme_components[programme.program_code] = harvest_program(
+            programme_components[programme.program_code] = harvest_programme(
                 programme)
             programme_challenges[programme.program_code
                 ] = extract_all_student_challenges(programme)
