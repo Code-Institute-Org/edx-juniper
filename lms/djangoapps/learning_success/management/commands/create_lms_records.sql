@@ -3,6 +3,9 @@ CREATE TABLE lms_records (
     `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `email` TEXT NOT NULL,
     `student_data` TEXT,
+    -- A pathway (temporary name; still to be agreed) is the grouping of
+    -- multiple LMS programmes which amalgamated should represent the student's
+    -- journey on that pathway (e.g. fullstack for disd and diwad)
     `pathway` text DEFAULT NULL,
     `source_platform` text DEFAULT NULL,
     `state` VARCHAR(255) NOT NULL,
