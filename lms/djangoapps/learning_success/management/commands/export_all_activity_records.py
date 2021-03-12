@@ -6,7 +6,9 @@ from django.utils import timezone
 from opaque_keys.edx.locator import CourseLocator
 from xmodule.modulestore.django import modulestore
 from lms.djangoapps.learning_success.management.commands.challenges_helper import extract_all_student_challenges
+from lms.djangoapps.learning_success.management.commands.utils import get_students_programme_ids
 from ci_program.models import Program
+
 
 from collections import Counter, defaultdict, OrderedDict
 from datetime import datetime, timedelta
@@ -295,7 +297,8 @@ def construct_student_data(student, programme, lesson_fractions,
     return student_dict
 
 
-def convert_student_data_to_dataframe(student_data, source_platform, pathway):
+def convert_student_data_to_dataframe(student_data, source_platform, pathway,
+        crm_programme_ids):
     """ Converts the student_data dict into a Dataframe which will be used
     to store and write the student data to the MySQL database 
     
@@ -314,6 +317,7 @@ def convert_student_data_to_dataframe(student_data, source_platform, pathway):
     df['source_platform'] = source_platform
     df['pathway'] = pathway
     df['state'] = 'initial'
+    df['current_programme'] = df['email'].map(crm_programme_ids)
     return df
 
 class Command(BaseCommand):
@@ -388,9 +392,11 @@ class Command(BaseCommand):
                     source_platform, pathway,
                     datetime.now().strftime(r'%Y-%m-%d')))
 
+            crm_programme_ids = get_students_programme_ids()
             df = convert_student_data_to_dataframe(student_data,
                                                    source_platform,
-                                                   pathway)
+                                                   pathway,
+                                                   crm_programme_ids)
             df.to_sql(name=LMS_ACTIVITY_TABLE,
                       con=conn,
                       if_exists='append',
