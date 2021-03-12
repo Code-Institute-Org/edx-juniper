@@ -309,7 +309,7 @@ def convert_student_data_to_dataframe(student_data, source_platform, pathway,
     Returns the created DataFrame """
     formatted_student_data = [
         {'email': student_email,
-         'student_data': json.dumps(student, default=str)}
+         'partial_student_data': json.dumps(student, default=str)}
         for student_email, student in student_data.items()]
 
     df = pd.DataFrame(formatted_student_data)
@@ -373,11 +373,10 @@ class Command(BaseCommand):
 
         for student in fullstack_students:
             student_data.setdefault(student.email, {})
-            student_data[student.email].setdefault('lms', {})
             programmes = student.program_set.filter(
                 id__in=fullstack_programme_ids)
             for programme in programmes:
-                student_data[student.email]['lms'][programme.program_code] = (
+                student_data[student.email][programme.program_code] = (
                     construct_student_data(
                         student, programme, lesson_fractions, module_fractions,
                         programme_components[programme.program_code],

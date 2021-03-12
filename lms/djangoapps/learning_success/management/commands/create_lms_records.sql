@@ -2,7 +2,11 @@ CREATE TABLE lms_records (
     `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `email` TEXT NOT NULL,
-    `student_data` TEXT,
+    -- Initial data containing all programmes
+    `partial_student_data` TEXT,
+    -- Final data including combined programme based on current_programme
+    -- and all other data from AMOS
+    `final_student_data` TEXT,
     -- A pathway (temporary name; still to be agreed) is the grouping of
     -- multiple LMS programmes which amalgamated should represent the student's
     -- journey on that pathway (e.g. fullstack for disd and diwad)
@@ -11,5 +15,6 @@ CREATE TABLE lms_records (
     -- current_programme is the current value of the CRM programme_id field
     `current_programme` text NOT NULL,
     `state` VARCHAR(255) NOT NULL,
-    CHECK (`student_data` IS NULL OR JSON_VALID(`student_data`))
+    CHECK (`partial_student_data` IS NULL OR JSON_VALID(`partial_student_data`)),
+    CHECK (`final_student_data` IS NULL OR JSON_VALID(`final_student_data`))
 );
