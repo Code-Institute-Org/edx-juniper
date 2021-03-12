@@ -14,6 +14,7 @@ WHERE Programme_ID is not null
 LIMIT {page},{per_page}
 """
 
+
 def get_students_programme_ids():
     """Fetch from Zoho all students
     with an LMS_Access_Status of 'To be removed'
