@@ -8,14 +8,14 @@ from student_enrollment.zoho import get_auth_headers
 RECORDS_PER_PAGE = 200
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 STUDENT_PROGRAMMES_QUERY = """
-SELECT Email, Programme_ID
+SELECT Email, Programme_ID, LMS_Version
 FROM Contacts
 WHERE Programme_ID is not null
 LIMIT {page},{per_page}
 """
 
 
-def get_students_programme_ids():
+def get_students_programme_ids_and_lms_version():
     """Fetch from Zoho all students
     with an LMS_Access_Status of 'To be removed'
     and a provided 'Reason for Removal'
@@ -39,5 +39,4 @@ def get_students_programme_ids():
 
         students.extend(students_resp.json()['data'])
         if not students_resp.json()['info']['more_records']:
-            return {student.get('Email'): student.get('Programme_ID')
-                    for student in students}
+            return students

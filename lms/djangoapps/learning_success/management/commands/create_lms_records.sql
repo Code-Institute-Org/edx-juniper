@@ -12,8 +12,10 @@ CREATE TABLE lms_records (
     -- journey on that pathway (e.g. fullstack for disd and diwad)
     `pathway` text DEFAULT NULL,
     `source_platform` text DEFAULT NULL,
-    -- current_programme is the current value of the CRM programme_id field
+    -- current_programme is the current value of the CRM Programme_Id field
     `current_programme` text NOT NULL,
+    -- current_lms_version is the current value of the CRM LMS_Version field
+    `current_lms_version` text NOT NULL,
     `state` VARCHAR(255) NOT NULL,
     CHECK (`partial_student_data` IS NULL OR JSON_VALID(`partial_student_data`)),
     CHECK (`final_student_data` IS NULL OR JSON_VALID(`final_student_data`))

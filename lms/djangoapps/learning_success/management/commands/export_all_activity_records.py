@@ -6,7 +6,7 @@ from django.utils import timezone
 from opaque_keys.edx.locator import CourseLocator
 from xmodule.modulestore.django import modulestore
 from lms.djangoapps.learning_success.management.commands.challenges_helper import extract_all_student_challenges
-from lms.djangoapps.learning_success.management.commands.utils import get_students_programme_ids
+from lms.djangoapps.learning_success.management.commands.utils import get_students_programme_ids_and_lms_version
 from ci_program.models import Program
 
 
@@ -298,7 +298,7 @@ def construct_student_data(student, programme, lesson_fractions,
 
 
 def convert_student_data_to_dataframe(student_data, source_platform, pathway,
-        crm_programme_ids):
+        zoho_data):
     """ Converts the student_data dict into a Dataframe which will be used
     to store and write the student data to the MySQL database 
     
@@ -307,6 +307,11 @@ def convert_student_data_to_dataframe(student_data, source_platform, pathway,
     DataFrame in its entirety
     
     Returns the created DataFrame """
+    crm_programme_ids = {student.get('Email'): student.get('Programme_ID')
+                         for student in zoho_data}
+    crm_lms_version = {
+        student.get('Email'): format_lms_version(student.get('LMS_Version'))
+            for student in zoho_data}
     formatted_student_data = [
         {'email': student_email,
          'partial_student_data': json.dumps(student, default=str)}
@@ -318,7 +323,17 @@ def convert_student_data_to_dataframe(student_data, source_platform, pathway,
     df['pathway'] = pathway
     df['state'] = 'initial'
     df['current_programme'] = df['email'].map(crm_programme_ids)
+    df['current_lms_version'] = df['email'].map(crm_lms_version)
     return df
+
+
+def format_lms_version(lms_version):
+    """ Converts the CRM LMS Version field to a more machine readable
+    version """
+    if lms_version == 'Upgrade to Juniper':
+        return 'ginkgo'
+    return lms_version.split(' ')[0].lower()
+
 
 class Command(BaseCommand):
     help = 'Extract student data from the open-edX server for use in Strackr'
@@ -391,11 +406,11 @@ class Command(BaseCommand):
                     source_platform, pathway,
                     datetime.now().strftime(r'%Y-%m-%d')))
 
-            crm_programme_ids = get_students_programme_ids()
+            zoho_data = get_students_programme_ids_and_lms_version()
             df = convert_student_data_to_dataframe(student_data,
                                                    source_platform,
                                                    pathway,
-                                                   crm_programme_ids)
+                                                   zoho_data)
             df.to_sql(name=LMS_ACTIVITY_TABLE,
                       con=conn,
                       if_exists='append',
