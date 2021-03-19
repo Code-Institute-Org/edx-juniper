@@ -194,7 +194,7 @@ class Command(BaseCommand):
         else HubSpot profiles for all other students
         """
         results_for_all_students = self.get_results_for_all_students()
-        if self.program_code == "LPCC":
+        if self.program_code == "lpcc":
             auth_headers_for_zoho = self.get_auth_headers()
             for student, results in results_for_all_students.items():
                 json_for_zoho = {
