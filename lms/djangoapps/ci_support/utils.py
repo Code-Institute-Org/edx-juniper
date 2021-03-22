@@ -27,6 +27,7 @@ def get_student_record_from_zoho(email):
             return None
         return student_resp.json()['data'][0]
     except Exception as e:
+        logger.exception("Exception reading student record %s", email)
         # TODO: specify exception
         return {}
 
