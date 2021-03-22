@@ -9,22 +9,26 @@ logger = logging.getLogger(__name__)
 
 
 def get_student_record_from_zoho(email):
-    """Fetch from Zoho all data for a student
-    API documentation for this endpoint:
-    https://www.zoho.com/crm/help/api/getsearchrecordsbypdc.html
-    """
-    if not settings.ZOHO_CLIENT_ID:
-        logger.warning("ZOHO_CLIENT_ID is not set.")
-        return {}
+    try:
+        """Fetch from Zoho all data for a student
+        API documentation for this endpoint:
+        https://www.zoho.com/crm/help/api/getsearchrecordsbypdc.html
+        """
+        if not settings.ZOHO_CLIENT_ID:
+            logger.warning("ZOHO_CLIENT_ID is not set.")
+            return {}
 
-    params = {'email': email}
-    student_resp = requests.get(
-        settings.ZOHO_STUDENTS_ENDPOINT + '/search',
-        headers=get_auth_headers(),
-        params=params)
-    if student_resp.status_code != 200:
-        return None
-    return student_resp.json()['data'][0]
+        params = {'email': email}
+        student_resp = requests.get(
+            settings.ZOHO_STUDENTS_ENDPOINT + '/search',
+            headers=get_auth_headers(),
+            params=params)
+        if student_resp.status_code != 200:
+            return None
+        return student_resp.json()['data'][0]
+    except Exception as e:
+        # TODO: specify exception
+        return {}
 
 
 def get_a_students_mentor(email):
