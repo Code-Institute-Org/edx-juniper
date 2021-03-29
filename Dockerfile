@@ -85,9 +85,9 @@ COPY ./tox.ini /openedx/edx-platform/
 COPY ./config /openedx/config
 
 # Install edx local
+RUN pip install setuptools_scm==5.0.2
 RUN pip install -r requirements/edx/base.txt
 RUN pip install -r requirements/constraints.txt
-#RUN pip install -e .
 
 
 # Adding this to allow staticfile access from debug server
@@ -104,14 +104,7 @@ RUN npm set progress=false \
     && npm install --verbose --registry=$NPM_REGISTRY
 ENV PATH ./node_modules/.bin:${PATH}
 
-# Install private requirements: this is useful for installing custom xblocks.
-#COPY ./requirements/ /openedx/requirements
-#RUN cd /openedx/requirements/ \
-#  && touch ./private.txt \
-#  && pip install -r ./private.txt
-
-# Create folder that will store *.env.json and *.auth.json files, as well as
-# the tutor-specific settings files.
+# Create folder that will store *.env.json and *.auth.json files
 RUN mkdir -p /openedx/config
 ENV CONFIG_ROOT /openedx/config
 
