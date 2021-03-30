@@ -15,7 +15,7 @@ def test_lrs(request):
         'actor': request.user.id
         'verb': 'completed'
         'activity_object': 'problem 1'
-        'extra_data': {}
+        'extra_data': json.dumps({'position': 1})
     }
     attempt_to_store_lrs_record.apply_async(args=[data])
     return render_to_response('ci_lrs/test_view.html')

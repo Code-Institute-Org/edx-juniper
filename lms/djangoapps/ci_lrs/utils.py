@@ -24,17 +24,15 @@ def attempt_to_store_lrs_record(self, data):
             'activity_time': timezone.now().isoformat(),
             'actor': 1 # (request.user.id),
             'verb': 'play_video', # (this is the edx event_type)
-            'activity_ovject': 'myopenedx.com/urlToPage' # (url to page)
+            'activity_object': 'myopenedx.com/urlToPage' # (url to page)
             'extra_data': '{\"position\": 1}' # (any extra data of the event)
         }
 
     """
     try:
         logger.info("Attempting to store LRS record")
-        logger.info(json.dumps(data))
         res = requests.post(ENDPOINT, data=json.dumps(data), headers=HEADERS,
                             timeout=0.5)
-        logger.info(res.content)
         return res.status_code == 200
     except TimeoutError:
         logger.exception("LRS Timeout")
