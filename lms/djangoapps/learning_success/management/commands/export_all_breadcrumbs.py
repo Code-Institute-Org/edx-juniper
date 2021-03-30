@@ -10,8 +10,8 @@ from sqlalchemy import create_engine, types
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 import json
-
 import requests
+import operator
 
 BREADCRUMBS_TABLE = settings.BREADCRUMBS_TABLE
 
@@ -35,8 +35,6 @@ BLOCK_TYPES = {
     'sequential': 'lesson',
     'vertical': 'unit',
 }
-
-PROGRAM_CODE = 'disd'  # Diploma in Software Development
 
 
 def get_safely(breadcrumbs, index):
@@ -71,13 +69,13 @@ def harvest_course_tree(tree, output_list, prefix=()):
         harvest_course_tree(subtree, output_list, prefix=block_breadcrumbs)
     
 
-def harvest_program(program):
-    """Harvest the breadcrumbs from all components in the program
+def harvest_programme(programme):
+    """Harvest the breadcrumbs from all components in the programme
 
     Returns a list of dictionaries containing xblock meta data
     """
     all_blocks = []
-    for course_locator in program.get_course_locators():
+    for course_locator in programme.get_course_locators():
         course = modulestore().get_course(course_locator)
         harvest_course_tree(course, all_blocks)
     return all_blocks
@@ -89,35 +87,40 @@ def get_breadcrumb_index(URL):
     Returns a Dataframe to join to the rest of the breadcumbs
     """
     breadcrumb_index = requests.get(URL).json()
+
     df_breadcrumb_idx = pd.DataFrame(breadcrumb_index['LESSONS'])
     df_breadcrumb_idx = df_breadcrumb_idx.T
-    df_breadcrumb_idx = df_breadcrumb_idx.reset_index()
-    df_breadcrumb_idx.rename(columns={'index':'order_index'}, inplace=True)
+    df_breadcrumb_idx.reset_index(inplace=True)
+    df_breadcrumb_idx.rename(columns={'index': 'block_id'}, inplace=True)
+    df_breadcrumb_idx['time_fraction'] = df_breadcrumb_idx['fractions'
+        ].apply(operator.itemgetter('lesson_fraction'))
+
     # TODO: remove following line, once the [beta] suffix is removed in the LMS
     df_breadcrumb_idx['module'] = df_breadcrumb_idx['module'].replace(
         'Careers', 'Careers [Beta]')
     df_breadcrumb_idx = df_breadcrumb_idx.reset_index()
-    return df_breadcrumb_idx[['module','lesson','order_index','time_fraction']]
+    return df_breadcrumb_idx[['module','lesson', 'time_fraction']]
 
 
 class Command(BaseCommand):
-    help = 'Extract student data from the open-edX server for use in Strackr'
+    help = 'Extract LMS breadcrumbs into a relational database table'
 
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument('programme_id', type=str)
 
-        program = get_program_by_program_code(PROGRAM_CODE)
-        all_components = harvest_program(program)        
+    def handle(self, programme_id, **kwargs):
+        programme = get_program_by_program_code(programme_id)
+        all_components = harvest_programme(programme)        
         df = pd.DataFrame(all_components)
-        
+
         # Need to get lesson order from syllabus for ordering the modules
         # And course fractions
-        breadcrumb_index_url = ('%s?format=schedule' %
-                            settings.BREADCRUMB_INDEX_URL)
+        breadcrumb_index_url = ('%s?format=amos_fractions' %
+                                settings.BREADCRUMB_INDEX_URL)
         df_breadcrumb_idx = get_breadcrumb_index(breadcrumb_index_url)
         df = df.merge(df_breadcrumb_idx, on=['module', 'lesson'], how='left')
-        
+
         engine = create_engine(CONNECTION_STRING, echo=False)
         df.to_sql(name=BREADCRUMBS_TABLE,
                   con=engine, 
-                  if_exists='replace', 
-                  dtype={'order_index': types.INT})
+                  if_exists='replace')
