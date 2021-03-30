@@ -32,7 +32,7 @@ def attempt_to_store_lrs_record(self, data):
     try:
         logger.info("Attempting to store LRS record")
         res = requests.post(ENDPOINT, data=json.dumps(data), headers=HEADERS,
-                            timeout=0.5)
+                            timeout=1)
         return res.status_code == 200
     except TimeoutError:
         logger.exception("LRS Timeout")
