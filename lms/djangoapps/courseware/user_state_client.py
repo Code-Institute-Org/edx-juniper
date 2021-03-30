@@ -20,7 +20,6 @@ from edx_user_state_client.interface import XBlockUserState, XBlockUserStateClie
 from xblock.fields import Scope
 
 from lms.djangoapps.courseware.models import BaseStudentModuleHistory, StudentModule
-from lms.djangoapps.ci_lrs.utils import store_lrs_record
 
 try:
     import simplejson as json
@@ -245,11 +244,6 @@ class DjangoXBlockUserStateClient(XBlockUserStateClient):
         evt_time = time()
 
         for usage_key, state in block_keys_to_state.items():
-            # CI-LRS insert
-            store_lrs_record(
-                user.id, 'completed',
-                'hook4:%s:%s' % (usage_key.context_key, usage_key),
-                state)
             try:
                 student_module, created = StudentModule.objects.get_or_create(
                     student=user,

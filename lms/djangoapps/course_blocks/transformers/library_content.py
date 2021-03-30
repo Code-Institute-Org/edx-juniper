@@ -99,11 +99,6 @@ class ContentLibraryTransformer(FilteringTransformerMixin, BlockStructureTransfo
                 block_keys = LibraryContentModule.make_selection(selected, library_children, max_count, mode)
                 selected = block_keys['selected']
 
-                # CI-LRS insert
-                store_lrs_record(
-                    usage_info.user.id, 'completed',
-                    'hook2:%s:%s' % (usage_info.course_key, block_key))
-
                 # Save back any changes
                 if any(block_keys[changed] for changed in ('invalid', 'overlimit', 'added')):
                     state_dict['selected'] = list(selected)

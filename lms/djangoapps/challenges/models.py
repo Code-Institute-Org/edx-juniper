@@ -9,8 +9,6 @@ from xmodule.modulestore.django import modulestore
 from lms.djangoapps.courseware.models import StudentModule, StudentModuleHistory
 from capa.correctmap import CorrectMap
 
-from lms.djangoapps.ci_lrs.utils import store_lrs_record
-
 
 class Tag(models.Model):
 
@@ -187,7 +185,4 @@ class ChallengeSubmission(models.Model):
         student_activity.max_grade = 1.0
 
         student_activity.save()
-        # CI-LRS insert
-        store_lrs_record(self.student.id, 'completed',
-                         'hook1:%s:%s' % (course_key, block_location))
         super(ChallengeSubmission, self).save(*args, **kwargs)
