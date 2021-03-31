@@ -3937,3 +3937,6 @@ SUPPORT_HOW_TO_UNENROLL_LINK = ''
 
 ######################## Setting for content libraries ########################
 MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
+
+#### LRS ENDPOINT ####
+LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
