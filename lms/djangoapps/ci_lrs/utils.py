@@ -9,10 +9,6 @@ from django.conf import settings
 from django.conf import settings
 from django.utils import timezone
 
-ENDPOINT = settings.LRS_ENDPOINT
-API_KEY = settings.LRS_API_KEY
-HEADERS = {'x-api-key': API_KEY}
-
 logger = get_task_logger(__name__)
 
 
@@ -31,7 +27,7 @@ def attempt_to_store_lrs_record(self, data):
     """
     try:
         logger.info("Attempting to store LRS record")
-        res = requests.post(ENDPOINT, data=json.dumps(data), headers=HEADERS,
+        res = requests.post(settings.ENDPOINT, data=json.dumps(data), headers={'x-api-key': API_KEY},
                             timeout=1)
         return res.status_code == 200
     except TimeoutError:
