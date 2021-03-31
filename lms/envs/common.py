@@ -2564,11 +2564,13 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content.learning_sequences.apps.LearningSequencesConfig',
 
     # CodeInstitute
+    'ci_lrs',
     'ci_program',
     'ci_support',
     'challenges',
     'student_enrollment',
     'learning_success',
+
 ]
 
 ######################### CSRF #########################################

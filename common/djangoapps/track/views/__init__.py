@@ -5,9 +5,11 @@ import six
 
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.utils import timezone
 from eventtracking import tracker as eventtracker
 from ipware.ip import get_ip
 
+from lms.djangoapps.ci_lrs.utils import attempt_to_store_lrs_record
 from track import contexts, shim, tracker
 
 
@@ -91,6 +93,15 @@ def user_track(request):
     context_override['username'] = username
     context_override['event_source'] = 'browser'
     context_override['page'] = page
+
+    lrs_data = {
+        'activity_time': timezone.now().isoformat(),
+        'actor': request.user.id,
+        'verb': name,
+        'activity_object': page,
+        'extra_data': json.dumps(data, default=str),
+    }
+    attempt_to_store_lrs_record.apply_async(args=[lrs_data])
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
         eventtracker.emit(name=name, data=data)
