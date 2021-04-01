@@ -3,6 +3,7 @@
 import json
 import six
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.utils import timezone
@@ -94,14 +95,15 @@ def user_track(request):
     context_override['event_source'] = 'browser'
     context_override['page'] = page
 
-    lrs_data = {
-        'activity_time': timezone.now().isoformat(),
-        'actor': request.user.id,
-        'verb': name,
-        'activity_object': page,
-        'extra_data': json.dumps(data, default=str),
-    }
-    attempt_to_store_lrs_record.apply_async(args=[lrs_data])
+    if settings.LRS_ENDPOINT:
+        lrs_data = {
+            'activity_time': timezone.now().isoformat(),
+            'actor': request.user.id,
+            'verb': name,
+            'activity_object': page,
+            'extra_data': json.dumps(data, default=str),
+        }
+        attempt_to_store_lrs_record.apply_async(args=[lrs_data])
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
         eventtracker.emit(name=name, data=data)

@@ -2439,7 +2439,7 @@ INSTALLED_APPS = [
 
 
     # Coursegraph
-    'openedx.core.djangoapps.coursegraph.apps.CoursegraphConfig',
+    #'openedx.core.djangoapps.coursegraph.apps.CoursegraphConfig',
 
     # Mailchimp Syncing
     'mailing',
@@ -3937,3 +3937,7 @@ SUPPORT_HOW_TO_UNENROLL_LINK = ''
 
 ######################## Setting for content libraries ########################
 MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
+
+#### LRS ENDPOINT ####
+LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
+LRS_API_KEY = os.environ.get('LRS_API_KEY')
