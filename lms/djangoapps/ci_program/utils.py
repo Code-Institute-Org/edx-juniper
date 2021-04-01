@@ -50,9 +50,13 @@ def get_student_deadlines_from_zoho_data(zoho_record):
         if not project_key:
             continue
 
-        if project_key not in student_data:
-            student_data[project_key] = {}
+        student_data.setdefault(project_key, {})
         student_data[project_key][record_id] = record
+
+    # Filter Blank submission deadlines
+    student_data = dict([
+        (key, submission) for (key, submission) in student_data.items() if
+        submission.get('submission_deadline')])
 
     sorted_student_data = sorted(
         student_data.values(),
