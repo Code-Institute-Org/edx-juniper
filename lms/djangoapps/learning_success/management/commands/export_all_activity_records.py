@@ -307,13 +307,13 @@ def convert_student_data_to_dataframe(student_data, source_platform, pathway,
     DataFrame in its entirety
     
     Returns the created DataFrame """
-    crm_programme_ids = {student.get('Email'): student.get('Programme_ID')
+    crm_programme_ids = {student.get('Email').lower(): student.get('Programme_ID')
                          for student in zoho_data}
     crm_lms_version = {
-        student.get('Email'): format_lms_version(student.get('LMS_Version'))
+        student.get('Email').lower(): format_lms_version(student.get('LMS_Version'))
             for student in zoho_data}
     formatted_student_data = [
-        {'email': student_email,
+        {'email': student_email.lower(),
          'partial_student_data': json.dumps(student, default=str)}
         for student_email, student in student_data.items()]
 
