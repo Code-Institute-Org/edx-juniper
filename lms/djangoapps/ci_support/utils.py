@@ -22,7 +22,8 @@ def get_student_record_from_zoho(email):
         student_resp = requests.get(
             settings.ZOHO_STUDENTS_ENDPOINT + '/search',
             headers=get_auth_headers(),
-            params=params)
+            params=params,
+            timeout=settings.ZOHO_TIMEOUT_SECONDS)
         if student_resp.status_code != 200:
             return None
         return student_resp.json()['data'][0]
@@ -41,7 +42,8 @@ def get_a_students_mentor(email):
     student_resp = requests.get(
         settings.ZOHO_STUDENTS_ENDPOINT + '/search',
         headers=get_auth_headers(),
-        params=params)
+        params=params,
+        timeout=settings.ZOHO_TIMEOUT_SECONDS)
     if student_resp.status_code != 200:
         return None
     return student_resp.json()['data'][0]['Assigned_Mentor']
@@ -61,7 +63,8 @@ def get_mentor_details(student_email):
     if assigned_mentor:
         mentor_resp = requests.get(
             settings.ZOHO_MENTORS_ENDPOINT + assigned_mentor['id'],
-            headers=get_auth_headers())
+            headers=get_auth_headers(),
+            timeout=settings.ZOHO_TIMEOUT_SECONDS)
         if mentor_resp.status_code == 200:
             mentor_dict = mentor_resp.json()['data'][0]
             mentor["name"] = mentor_dict["Name"]
@@ -76,7 +79,7 @@ def get_access_token():
         "client_id": settings.ZOHO_CLIENT_ID,
         "client_secret": settings.ZOHO_CLIENT_SECRET,
         "grant_type": "refresh_token"
-    })
+    }, timeout=settings.ZOHO_TIMEOUT_SECONDS)
     return refresh_resp.json()['access_token']
 
 
