@@ -43,7 +43,7 @@ def get_a_students_mentor(email):
         settings.ZOHO_STUDENTS_ENDPOINT + '/search',
         headers=get_auth_headers(),
         params=params,
-            timeout=settings.ZOHO_TIMEOUT_SECONDS)
+        timeout=settings.ZOHO_TIMEOUT_SECONDS)
     if student_resp.status_code != 200:
         return None
     return student_resp.json()['data'][0]['Assigned_Mentor']
