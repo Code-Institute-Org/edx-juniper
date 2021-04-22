@@ -8,15 +8,14 @@ Example data construct returned:
     }
 }
 """
-from django.conf import settings
-
-from challenges.models import Challenge
-
 from copy import deepcopy
 from collections import Counter, defaultdict
 import json
 import re
 
+from django.conf import settings
+
+from challenges.models import Challenge
 from lms.djangoapps.learning_success.management.commands.export_all_breadcrumbs import get_safely  # noqa: E501
 
 DEFAULT_CHALLENGE = {
