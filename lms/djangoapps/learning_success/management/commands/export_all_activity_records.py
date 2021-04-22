@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from opaque_keys.edx.locator import CourseLocator
 from xmodule.modulestore.django import modulestore
-from lms.djangoapps.learning_success.management.commands.challenges_helper import extract_all_student_challenges
+from lms.djangoapps.learning_success.management.commands.challenges_helper import extract_challenges_for_programme_from_mongodb
 from lms.djangoapps.learning_success.management.commands.utils import get_students_programme_ids_and_lms_version
 from ci_program.models import Program
 
@@ -381,7 +381,7 @@ class Command(BaseCommand):
             programme_components[programme.program_code] = harvest_programme(
                 programme)
             programme_challenges[programme.program_code
-                ] = extract_all_student_challenges(programme)
+                ] = extract_challenges_for_programme_from_mongodb(programme)
 
         fullstack_students = User.objects.filter(
             program__id__in=fullstack_programme_ids)
