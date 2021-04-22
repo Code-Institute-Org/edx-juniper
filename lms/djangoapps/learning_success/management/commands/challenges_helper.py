@@ -21,9 +21,23 @@ from lms.djangoapps.learning_success.management.commands.export_all_breadcrumbs 
 DEFAULT_CHALLENGE = {
     'passed': 0,
     'num_attempts': 0,
-    'attempted': 0,'passed': 0,
-    'num_attempts': 0,
-    'attempted': 0
+    'attempted': 0,
+    'unattempted': 0
+}
+DEFAULT_SKILL = {
+    'achieved': 0,
+    'total': 0,
+}
+CHALLENGE_PATTERN = r"[\/]challenges[\/]([a-zA-Z0-9]*)[\"|']"
+
+
+def increment_student_skill_tags(student_skills, skill_tags):
+    """ Increments the student's achieved skill tags based on the skill tags
+    of the challenge
+
+    Modifies dict inplace """
+    for skill in skill_tags:
+        student_skills[skill]['achieved'] += 1
 
 
 def generate_default_skills(skill_tags):
