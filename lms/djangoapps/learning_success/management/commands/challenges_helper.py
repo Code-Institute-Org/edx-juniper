@@ -9,7 +9,6 @@ Example data construct returned:
 }
 """
 from django.conf import settings
-from django.contrib.auth.models import User
 
 from challenges.models import Challenge
 
@@ -23,23 +22,9 @@ from lms.djangoapps.learning_success.management.commands.export_all_breadcrumbs 
 DEFAULT_CHALLENGE = {
     'passed': 0,
     'num_attempts': 0,
-    'attempted': 0,
-    'unattempted': 0
-}
-DEFAULT_SKILL = {
-    'achieved': 0,
-    'total': 0,
-}
-CHALLENGE_PATTERN = r"[\/]challenges[\/]([a-zA-Z0-9]*)[\"|']"
-
-
-def increment_student_skill_tags(student_skills, skill_tags):
-    """ Increments the student's achieved skill tags based on the skill tags
-    of the challenge
-
-    Modifies dict inplace """
-    for skill in skill_tags:
-        student_skills[skill]['achieved'] += 1
+    'attempted': 0,'passed': 0,
+    'num_attempts': 0,
+    'attempted': 0
 
 
 def generate_default_skills(skill_tags):
@@ -79,7 +64,6 @@ def extract_challenge_submissions():
 
 def get_all_published_blocks():
     """ Queries the mongo database for all published blocks and returns the
-
     results as a list of dicts"""
     query = [
         {
@@ -153,7 +137,6 @@ def get_all_published_blocks():
     return [block for block in all_blocks]
 
 
-
 def extract_all_challenges_from_blocks(programme):
     """ Retrieves all blocks, filters out any that are not a problem or if
     the content does not include a challenge_id (extracted based on regex)
@@ -163,8 +146,8 @@ def extract_all_challenges_from_blocks(programme):
     course_codes = [course_code.key
                     for course_code in programme.course_codes.all()]
     all_blocks = get_all_published_blocks()
-
     problems = {}
+
     for course in all_blocks:
         if course.get('course_id') not in course_codes:
             continue
@@ -207,18 +190,19 @@ def aggregate_challenge_results_per_student(enrolled_students,
         for module_level in
         set(programme_challenges.values())
     }
-
     challenge_results = {}
+
     for student_id, student_email in enrolled_students.items():
         student_challenges = deepcopy(default_challenges)
+
         for challenge_id, module_level in programme_challenges.items():
             submission = all_submissions.get((challenge_id,  student_id))
+
             if not submission:
                 student_challenges[module_level]['unattempted'] += 1
             else:
                 student_challenges[module_level][
                     'num_attempts'] += submission['attempts']
-
                 if submission.get('passed'):
                     student_challenges[module_level]['passed'] += 1
                 else:
@@ -228,9 +212,11 @@ def aggregate_challenge_results_per_student(enrolled_students,
             module_level: json.dumps(challenge_data)
             for module_level, challenge_data in student_challenges.items()
         }
+
         # TODO: Add skill tag calculation back in (currently not used in AMOS)
         challenge_results[student_email]['student_skills'] = json.dumps(
             DEFAULT_SKILL)
+
     return challenge_results
 
 
