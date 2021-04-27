@@ -1,5 +1,8 @@
 """ Module handles any challenge or challenge tag related logic
 
+TODO: Restructure the data by adding another field for the name, rather than
+keying the dictionary to it
+
 Example data construct returned:
 {
     'user@example.codeinstitute.net': {
