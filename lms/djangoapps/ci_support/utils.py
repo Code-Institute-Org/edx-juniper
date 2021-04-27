@@ -92,3 +92,21 @@ def send_email_from_zapier(email_dict):
     return requests.post(
             settings.ZAPIER_STUDENT_CARE_EMAIL_ENDPOINT,
             json=email_dict)
+
+
+def construct_tutoring_modules(modules):
+    """ Extracts modules and lessons from the module tree to be displayed
+    on the tutoring support page
+
+    Returns a dict with the module as key and the list of lessons within
+    that module as values """
+    tutoring_modules = {}
+    for module in modules:
+        module_name = module.get('fields', {}).get('display_name')
+        sections = module.get('sections', [])
+        tutoring_modules.setdefault(module_name, [])
+        units = [unit.get('fields', {}).get('display_name')
+                 for section in sections
+                 for unit in section.get('units')]
+        tutoring_modules[module_name] = units
+    return tutoring_modules
