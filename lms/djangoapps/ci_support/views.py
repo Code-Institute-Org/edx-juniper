@@ -12,6 +12,8 @@ from courseware.courses import get_course_with_access
 from edxmako.shortcuts import render_to_response
 from lms.djangoapps.ci_support.utils import get_mentor_details
 from lms.djangoapps.ci_support.utils import send_email_from_zapier
+from lms.djangoapps.ci_support.utils import construct_tutoring_modules
+from ci_program.models import Program
 
 
 @transaction.non_atomic_requests
@@ -22,7 +24,7 @@ def support(request, program_slug, student_id=None):
 
     return render_to_response(
         'ci_support/support.html',
-        {"program_slug": program_slug, 'student': request.user})
+        {'program_slug': program_slug, 'student': request.user})
 
 
 @transaction.non_atomic_requests
@@ -30,10 +32,16 @@ def support(request, program_slug, student_id=None):
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def tutor(request, program_slug, student_id=None):
     """ Display the tutor page. """
-
+    programme = Program.objects.get(marketing_slug=program_slug)
+    modules = programme.get_program_descriptor(request).get('modules')
+    tutoring_modules = construct_tutoring_modules(modules)
     return render_to_response(
         'ci_support/support/tutor_page.html',
-        {"program_slug": program_slug, 'student': request.user})
+        {
+            'program_slug': program_slug,
+            'student': request.user,
+            'tutoring_modules': tutoring_modules,
+        })
 
 
 @transaction.non_atomic_requests
@@ -45,11 +53,11 @@ def mentor(request, program_slug, student_id=None):
     mentor = get_mentor_details(request.user.email)
 
     return render_to_response(
-        "ci_support/support/mentor.html",
+        'ci_support/support/mentor.html',
         {
-            "program_slug": program_slug,
-            "student": request.user,
-            "mentor": mentor
+            'program_slug': program_slug,
+            'student': request.user,
+            'mentor': mentor
         })
 
 
@@ -61,7 +69,7 @@ def slack(request, program_slug, student_id=None):
 
     return render_to_response(
         'ci_support/support/slack.html',
-        {"program_slug": program_slug, 'student': request.user})
+        {'program_slug': program_slug, 'student': request.user})
 
 
 @transaction.non_atomic_requests
@@ -72,7 +80,7 @@ def troubleshooting(request, program_slug, student_id=None):
 
     return render_to_response(
         'ci_support/support/troubleshooting.html',
-        {"program_slug": program_slug, 'student': request.user})
+        {'program_slug': program_slug, 'student': request.user})
 
 
 @transaction.non_atomic_requests
@@ -83,8 +91,8 @@ def studentcare(request, program_slug, student_id=None):
 
     if request.method == 'POST':
         student_email = request.user.email
-        email_subject = request.POST["email-subject"]
-        email_body = request.POST["email-body"]
+        email_subject = request.POST['email-subject']
+        email_body = request.POST['email-body']
 
         resp = send_email_from_zapier({
             'student_email': student_email,
@@ -96,9 +104,9 @@ def studentcare(request, program_slug, student_id=None):
 
 
     return render_to_response(
-        "ci_support/support/student_care.html",
+        'ci_support/support/student_care.html',
         {
-            "program_slug": program_slug,
-            "student": request.user,
-            "csrftoken": csrf(request)["csrf_token"]
+            'program_slug': program_slug,
+            'student': request.user,
+            'csrftoken': csrf(request)['csrf_token']
         })
