@@ -206,7 +206,6 @@ pillow==7.2.0             # via -r requirements/edx/base.txt, edx-enterprise, ed
 pluggy==0.13.1            # via -r requirements/edx/coverage.txt, diff-cover, pytest, tox
 polib==1.1.0              # via -r requirements/edx/base.txt, -r requirements/edx/testing.in, edx-i18n-tools
 psutil==1.2.1             # via -r requirements/edx/base.txt, edx-django-utils
-py2neo==3.1.2             # via -r requirements/edx/base.txt
 py==1.9.0                 # via pytest, tox
 pycodestyle==2.6.0        # via -r requirements/edx/testing.in, flake8
 pycontracts==1.8.12       # via -r requirements/edx/base.txt, edx-user-state-client
