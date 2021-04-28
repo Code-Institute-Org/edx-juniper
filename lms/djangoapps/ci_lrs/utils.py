@@ -27,7 +27,7 @@ def attempt_to_store_lrs_record(self, data):
     """
     try:
         res = requests.post(settings.LRS_ENDPOINT, data=json.dumps(data),
-                            headers={'x-api-key': API_KEY},
+                            headers={'x-api-key': settings.LRS_API_KEY},
                             timeout=1)
         return res.status_code == 200
     except TimeoutError:
