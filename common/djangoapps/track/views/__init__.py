@@ -103,7 +103,8 @@ def user_track(request):
             'activity_object': page,
             'extra_data': json.dumps(data, default=str),
         }
-        attempt_to_store_lrs_record.apply_async(args=[lrs_data])
+        attempt_to_store_lrs_record.apply_async(
+            args=[lrs_data], queue=settings.LRS_QUEUE)
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
         eventtracker.emit(name=name, data=data)
