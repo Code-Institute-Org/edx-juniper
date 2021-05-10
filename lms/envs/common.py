@@ -3941,3 +3941,4 @@ MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
 #### LRS ENDPOINT ####
 LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
 LRS_API_KEY = os.environ.get('LRS_API_KEY')
+LRS_QUEUE = 'edx.lms.core.default'
