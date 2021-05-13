@@ -14,7 +14,7 @@ Ciara containing the following information -
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from student.models import CourseEnrollment
-from ci_program.api import get_courses_locators_for_program
+from ci_program.api import get_course_locators_for_program
 
 
 class EnrollmentStats:
@@ -75,8 +75,8 @@ class EnrollmentStats:
 
     def generate(self):
         # 5DCC only has one module associated with it so we only care
-        # about a single item for the `get_courses_locators_for_program`
-        module_locator = get_courses_locators_for_program("5DCC")
+        # about a single item for the `get_course_locators_for_program`
+        module_locator = get_course_locators_for_program("5DCC")
 
         self.get_statistics(module_locator[0])
 
