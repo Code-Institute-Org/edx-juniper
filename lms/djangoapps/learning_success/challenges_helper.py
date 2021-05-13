@@ -5,7 +5,7 @@ from copy import deepcopy
 from collections import Counter, defaultdict
 import json
 
-from lms.djangoapps.learning_success.management.commands.export_all_breadcrumbs import get_safely  # noqa: E501
+from learning_success.export_all_breadcrumbs import get_safely
 
 DEFAULT_SKILL = {
     'achieved': 0,

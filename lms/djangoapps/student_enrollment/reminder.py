@@ -11,18 +11,18 @@ students that are enrolled in that run of the 5DCC and their email
 address will be sent to Zapier, where HubSpot will take over the handling
 of sending the emails to the students.
 """
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
+from student.models import CourseEnrollment
+from student_enrollment.utils import post_to_zapier
+from ci_program.api import get_course_locators_for_program
 
-import logging
-log = logging.getLogger(__name__)
 
-from student_enrollment.tasks import reminder
+class Reminder(BaseCommand):
+    ''' Send a reminder to students that have yet to log in
+    '''
 
-
-class Command(BaseCommand):
-    help = "Send a reminder to students that have yet to log in"
-
-    def handle(self):
+    def send_reminder(self):
         """
         Send a reminder to each student that has yet to log in the
         platform.
@@ -32,7 +32,10 @@ class Command(BaseCommand):
 
         TODO: Implement this same functionality for FS
         """
-        log.info("Running task reminder...")
-
-        result = reminder.apply()
-        log.info("Result: %s" % result)
+        for locator in get_course_locators_for_program("5DCC"):
+            course_enrollments = CourseEnrollment.objects.filter(
+                course_id=locator)
+            for enrollment in course_enrollments:
+                if enrollment.user.last_login is None:
+                    post_to_zapier(settings.ZAPIER_LOGIN_REMINDER,
+                        {"email": enrollment.user.email})

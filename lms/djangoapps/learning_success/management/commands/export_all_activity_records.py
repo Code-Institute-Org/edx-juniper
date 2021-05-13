@@ -2,6 +2,9 @@ from django.core.management.base import BaseCommand, CommandError
 
 from learning_success.tasks import export_all_activity_records
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     help = 'Extract student data from the open-edX server for use in Strackr'
@@ -32,10 +35,7 @@ class Command(BaseCommand):
         lose any information.
         """
 
-        print("Running task export_all_activity_records...")
+        log.info("Running task export_all_activity_records...")
 
-        try:
-            result = export_all_activity_records.apply(args=[source_platform, pathway, programme_ids])
-            print("Result: %s" % result)
-        except Exception as e:
-            print("Unknown exception running task: %s", str(e))
+        result = export_all_activity_records.apply(args=[source_platform, pathway, programme_ids])
+        log.info("Result: %s" % result)
