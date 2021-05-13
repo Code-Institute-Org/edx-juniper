@@ -46,7 +46,7 @@ class StudentCareerEnrollment:
                                 {
                                     'email': student['Email'],
                                     'crm_field': 'Email',
-                                    'unexpected_value': 'student['Email']',
+                                    'unexpected_value': student['Email'],
                                     'attempted_action': 'enroll in careers module',
                                     'message': 'Email on Student\'s CRM profile not found on LMS'
                                 })
