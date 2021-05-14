@@ -21,7 +21,7 @@ initial student onboarding/enrollment process like the Careers module.
 class Command(BaseCommand):
     help = 'Enroll students in their relevant programs'
 
-    def handle(self):
+    def handle(self, *args, **kwargs):
         """
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and

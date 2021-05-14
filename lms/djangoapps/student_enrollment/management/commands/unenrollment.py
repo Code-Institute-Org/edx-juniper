@@ -10,7 +10,7 @@ from student_enrollment.tasks import unenrollment
 class Command(BaseCommand):
     help = 'Unenroll students from their relevant programs'
 
-    def handle(self):
+    def handle(self, *args, **kwargs):
         """
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and

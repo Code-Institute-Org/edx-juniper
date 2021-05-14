@@ -16,7 +16,7 @@ on their CRM profile.
 class Command(BaseCommand):
     help = 'Enroll students in the careers module'
 
-    def handle(self):
+    def handle(self, *args, **kwargs):
         """
         This will retrieve all of the users from the Zoho CRM API and
         with an 'Access to Careers Module' status of 'Enroll' and

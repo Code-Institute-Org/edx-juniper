@@ -22,7 +22,7 @@ from student_enrollment.tasks import reminder
 class Command(BaseCommand):
     help = "Send a reminder to students that have yet to log in"
 
-    def handle(self):
+    def handle(self, *args, **kwargs):
         """
         Send a reminder to each student that has yet to log in the
         platform.
