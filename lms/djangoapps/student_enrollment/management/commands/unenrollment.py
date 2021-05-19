@@ -1,5 +1,6 @@
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 import logging
 log = logging.getLogger(__name__)
@@ -10,7 +11,11 @@ from student_enrollment.tasks import unenrollment
 class Command(BaseCommand):
     help = 'Unenroll students from their relevant programs'
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument('--queue', type=str,
+                            default=settings.DEFAULT_LMS_QUEUE)
+
+    def handle(self, queue, **kwargs):
         """
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
@@ -30,7 +35,7 @@ class Command(BaseCommand):
         4. If the student does not pass all the checks in point 2, trigger a zap which
         emails the SC team with a description of the issue encountered
         """
-        log.info("Running task unenrollment...")
+        log.info("Running task unenrollment on queue %s", queue)
 
-        result = unenrollment.apply()
+        result = unenrollment.apply_async(queue=queue)
         log.info("Result: %s" % result)

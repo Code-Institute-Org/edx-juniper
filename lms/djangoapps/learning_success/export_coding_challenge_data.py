@@ -49,7 +49,9 @@ class CodeChallengeExporter:
         for a given coding challenge program
     '''
 
-    def export(self, program_code, dbname='challenges'):
+    def export(self, program_code, dbname=None):
+        # Odd behaviour from Celery Beat - an unset kwarg is passed as "None"
+        dbname = dbname or 'challenges'
         self.db = settings.MONGO_CLIENT[dbname]
         self.collection = self.db["challenges"]
         self.program_code = program_code
