@@ -1,5 +1,6 @@
 
 from django.core.management.base import BaseCommand
+from django.conf import settings
 
 import logging
 log = logging.getLogger(__name__)
@@ -21,7 +22,11 @@ initial student onboarding/enrollment process like the Careers module.
 class Command(BaseCommand):
     help = 'Enroll students in their relevant programs'
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument('--queue', type=str,
+                            default=settings.DEFAULT_LMS_QUEUE)
+
+    def handle(self, queue, **kwargs):
         """
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
@@ -31,7 +36,7 @@ class Command(BaseCommand):
         If a student doesn't exist in the system, then we will first register them
         and then enroll them in the relevant programme (specified by Programme_ID)
         """
-        log.info("Running task enrollment...")
+        log.info("Running task enrollment on queue %s", queue)
 
-        result = enrollment.apply()
+        result = enrollment.apply_async(queue=queue)
         log.info("Result: %s" % result)

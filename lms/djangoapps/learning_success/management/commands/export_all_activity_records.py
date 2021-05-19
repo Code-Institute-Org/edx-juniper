@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 
 from learning_success.tasks import export_all_activity_records
 
@@ -13,8 +14,11 @@ class Command(BaseCommand):
         parser.add_argument('source_platform', type=str)
         parser.add_argument('pathway', type=str)
         parser.add_argument('programme_ids', type=str, nargs='+')
+        parser.add_argument('--queue', type=str,
+                            default=settings.DEFAULT_LMS_QUEUE)
 
-    def handle(self, source_platform, pathway, programme_ids, **kwargs):
+    def handle(self, source_platform, pathway, programme_ids, queue,
+               **kwargs):
         """ POST the collected data to the api endpoint from the settings
             Arguments:
                 source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
@@ -35,7 +39,8 @@ class Command(BaseCommand):
         lose any information.
         """
 
-        log.info("Running task export_all_activity_records...")
+        log.info("Running task export_all_activity_records on queue %s", queue)
 
-        result = export_all_activity_records.apply(args=[source_platform, pathway, programme_ids])
+        result = export_all_activity_records.apply(
+            args=[source_platform, pathway, programme_ids], queue=queue)
         log.info("Result: %s" % result)
