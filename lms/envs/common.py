@@ -3942,8 +3942,5 @@ MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
 LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
 LRS_API_KEY = os.environ.get('LRS_API_KEY')
 LRS_QUEUE = 'edx.lms.core.default'
-<<<<<<< HEAD
 DEFAULT_LMS_QUEUE = 'edx.lms.core.default'
-=======
 LRS_TIMEOUT = int(os.environ.get('LRS_TIMEOUT', 2))
->>>>>>> Adding timeout value to settings
