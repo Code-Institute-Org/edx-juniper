@@ -1,13 +1,10 @@
 import json
-import logging
 import requests
 
 from celery import task
 from celery.utils.log import get_task_logger
 from celery_utils.logged_task import LoggedTask
 from django.conf import settings
-from django.conf import settings
-from django.utils import timezone
 
 logger = get_task_logger(__name__)
 
@@ -28,7 +25,7 @@ def attempt_to_store_lrs_record(self, data):
     try:
         res = requests.post(settings.LRS_ENDPOINT, data=json.dumps(data),
                             headers={'x-api-key': settings.LRS_API_KEY},
-                            timeout=1)
+                            timeout=settings.LRS_TIMEOUT)
         return res.status_code == 200
     except TimeoutError:
         logger.exception("LRS Timeout")
