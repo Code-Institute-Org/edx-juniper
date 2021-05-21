@@ -3943,4 +3943,4 @@ LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
 LRS_API_KEY = os.environ.get('LRS_API_KEY')
 LRS_QUEUE = 'edx.lms.core.default'
 DEFAULT_LMS_QUEUE = 'edx.lms.core.default'
-LRS_TIMEOUT = int(os.environ.get('LRS_TIMEOUT', 2))
+LRS_TIMEOUT = float(os.environ.get('LRS_TIMEOUT', 2))
