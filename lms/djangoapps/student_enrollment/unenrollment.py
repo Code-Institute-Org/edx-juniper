@@ -17,6 +17,8 @@ log = getLogger(__name__)
 class Unenrollment:
     ''' Unenroll students from their relevant programs
     '''
+    def __init__(self, dryrun=False):
+        self.dryrun = dryrun
 
     def unenroll(self):
         """
@@ -41,6 +43,11 @@ class Unenrollment:
         self.students = get_students_to_be_unenrolled()
 
         for student in self.students:
+            if self.dryrun:
+                log.info("** dryrun attempting unenrollment of student: %s",
+                         student.get('Email'))
+                continue
+
             # Retrieve the user by searching for the given email
             try:
                 user = User.objects.get(email=student['Email'])

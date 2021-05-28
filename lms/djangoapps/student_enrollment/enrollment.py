@@ -33,6 +33,8 @@ EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
 class Enrollment:
     ''' Enroll students in their relevant programs
     '''
+    def __init__(self, dryrun=False):
+        self.dryrun = dryrun
 
     def enroll(self):
         """
@@ -49,6 +51,10 @@ class Enrollment:
         for student in zoho_students:
             if not student['Email']:
                 continue
+            if self.dryrun:
+                log.info("** dryrun attempting enrollment of student: %s",
+                         student['Email'])
+                continue
 
             # Get the user, the user's password, and their enrollment type
             user, password, enrollment_type = get_or_register_student(
@@ -63,7 +69,7 @@ class Enrollment:
                 program = Program.objects.get(
                     program_code=program_to_enroll_in)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception(str(does_not_exist_exception))
+                log.exception("Could not find program: %s")
                 post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                                 {
                                     'email': student['Email'],

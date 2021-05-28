@@ -16,8 +16,9 @@ class Command(BaseCommand):
         parser.add_argument('programme_ids', type=str, nargs='+')
         parser.add_argument('--queue', type=str,
                             default=settings.DEFAULT_LMS_QUEUE)
+        parser.add_argument('--dryrun', action='store_true')
 
-    def handle(self, source_platform, pathway, programme_ids, queue,
+    def handle(self, source_platform, pathway, programme_ids, queue, dryrun,
                **kwargs):
         """ POST the collected data to the api endpoint from the settings
             Arguments:
@@ -41,6 +42,7 @@ class Command(BaseCommand):
 
         log.info("Running task export_all_activity_records on queue %s", queue)
 
-        result = export_all_activity_records.apply(
-            args=[source_platform, pathway, programme_ids], queue=queue)
+        result = export_all_activity_records.apply_async(
+            args=[source_platform, pathway, programme_ids, dryrun],
+            queue=queue)
         log.info("Result: %s" % result)

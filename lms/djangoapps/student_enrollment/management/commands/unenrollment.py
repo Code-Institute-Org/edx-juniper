@@ -14,8 +14,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--queue', type=str,
                             default=settings.DEFAULT_LMS_QUEUE)
+        parser.add_argument('--dryrun', action='store_true')
 
-    def handle(self, queue, **kwargs):
+    def handle(self, queue, dryrun, **kwargs):
         """
         The main handler for the program enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
@@ -37,5 +38,5 @@ class Command(BaseCommand):
         """
         log.info("Running task unenrollment on queue %s", queue)
 
-        result = unenrollment.apply_async(queue=queue)
+        result = unenrollment.apply_async(args=[dryrun], queue=queue)
         log.info("Result: %s" % result)
