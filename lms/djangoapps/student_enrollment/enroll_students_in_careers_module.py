@@ -23,6 +23,8 @@ on their CRM profile.
 class StudentCareerEnrollment:
     ''' Enroll students in the careers module
     '''
+    def __init__(self, dryrun=False):
+        self.dryrun = dryrun
 
     def enroll_in_careers(self):
         """
@@ -35,6 +37,10 @@ class StudentCareerEnrollment:
 
         for student in students:
             if not student['Email']:
+                continue
+            if self.dryrun:
+                log.info("** dryrun careers enrollment of student: %s",
+                         student['Email'])
                 continue
 
             try:

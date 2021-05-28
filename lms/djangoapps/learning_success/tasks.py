@@ -8,7 +8,8 @@ from learning_success.export_coding_challenge_data import (
 
 
 @task(base=LoggedTask)
-def export_all_activity_records(source_platform, pathway, programme_ids):
+def export_all_activity_records(source_platform, pathway, programme_ids,
+                                dryrun=False):
     """ POST the collected data to the api endpoint from the settings
         Arguments:
             source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
@@ -25,11 +26,11 @@ def export_all_activity_records(source_platform, pathway, programme_ids):
     make sure that one does not happen without the other as to not
     lose any information.
     """
-    perform_activity_export(source_platform, pathway, programme_ids)
+    perform_activity_export(source_platform, pathway, programme_ids, dryrun)
 
 
 @task(base=LoggedTask)
-def export_coding_challenge_data(program_code, dbname=None):
+def export_coding_challenge_data(program_code, dryrun=False, dbname=None):
     ''' Post the results of challenge submissions submitted in the last day
         for a given coding challenge program
 
@@ -37,7 +38,7 @@ def export_coding_challenge_data(program_code, dbname=None):
             program_code: 'disd' etc
             dbname: mongo db name - defaults to 'challenges' is not specified
     '''
-    CodeChallengeExporter().export(program_code, dbname)
+    CodeChallengeExporter().export(program_code, dryrun, dbname)
 
 
 @task(base=LoggedTask)

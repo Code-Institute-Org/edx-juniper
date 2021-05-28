@@ -12,24 +12,24 @@ from student_enrollment.reminder import Reminder
 
 
 @task(base=LoggedTask)
-def enrollment():
+def enrollment(dryrun=False):
     ''' Enroll students in their relevant programs
     '''
-    Enrollment().enroll()
+    Enrollment(dryrun).enroll()
 
 
 @task(base=LoggedTask)
-def unenrollment():
+def unenrollment(dryrun=False):
     ''' Unenroll students from their relevant programs
     '''
-    Unenrollment().unenroll()
+    Unenrollment(dryrun).unenroll()
 
 
 @task(base=LoggedTask)
-def enroll_students_in_careers_module():
+def enroll_students_in_careers_module(dryrun=False):
     ''' Enroll students in the careers module
     '''
-    StudentCareerEnrollment().enroll_in_careers()
+    StudentCareerEnrollment(dryrun).enroll_in_careers()
 
 
 @task(base=LoggedTask)
