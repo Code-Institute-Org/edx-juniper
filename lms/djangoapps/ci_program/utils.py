@@ -18,7 +18,7 @@ def is_overdue(data):
 
     now = datetime.now()
     project_deadline = datetime.strptime(submission_deadline, '%Y-%m-%d')
-    prodject_deadline = project_deadline + timedelta(hours=12)
+    project_deadline = project_deadline + timedelta(hours=12)
     return now > project_deadline and not data['latest_submission']
 
 
