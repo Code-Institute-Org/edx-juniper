@@ -50,14 +50,11 @@ def tutor(request, program_slug, student_id=None):
 def mentor(request, program_slug, student_id=None):
     """ Display the mentor page. """
 
-    mentor = get_mentor_details(request.user.email)
-
     return render_to_response(
         'ci_support/support/mentor.html',
         {
             'program_slug': program_slug,
             'student': request.user,
-            'mentor': mentor
         })
 
 
