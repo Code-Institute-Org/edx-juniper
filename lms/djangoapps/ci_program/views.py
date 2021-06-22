@@ -14,20 +14,18 @@ def show_programs(request, program_name):
     """
     Display the programs page
     """
-    student_email=request.user.email
+    student_email = request.user.email
     cache_key = '%s_program_name' % student_email
-    
+
     program = Program.objects.get(marketing_slug=program_name)
     cache.set(cache_key, program_name)
     program_descriptor = program.get_program_descriptor(request)
-    project_deadlines = get_student_deadlines(student_email=student_email)
     context = {
         'program': program_descriptor,
         'disable_courseware_js': True,
         'uses_bootstrap': True,
         'on_course_outline_page': True,
         'program_slug': program_name,
-        'project_deadlines': project_deadlines,
     }
     return render_to_response('programs/programs.html', context)
 

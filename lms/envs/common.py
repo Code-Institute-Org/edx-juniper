@@ -3944,3 +3944,9 @@ LRS_API_KEY = os.environ.get('LRS_API_KEY')
 LRS_QUEUE = 'edx.lms.core.default'
 DEFAULT_LMS_QUEUE = 'edx.lms.core.default'
 LRS_TIMEOUT = float(os.environ.get('LRS_TIMEOUT', 2))
+### LRS DATABASE ###
+LRS_USER = os.environ.get('LRS_USER')
+LRS_PASSWORD = os.environ.get('LRS_PASSWORD')
+LRS_HOST = os.environ.get('LRS_HOST')
+LRS_PORT = int(os.environ.get('LRS_PORT', 3306))
+LRS_DB = os.environ.get('LRS_DB')
