@@ -125,6 +125,7 @@ future==0.18.2            # via django-ses, edx-celeryutils, edx-enterprise, pyc
 geoip2==3.0.0             # via -r requirements/edx/base.in
 glob2==0.7                # via -r requirements/edx/base.in
 gunicorn==20.0.4          # via -r requirements/edx/base.in
+uwsgi==2.0.19.1
 help-tokens==1.1.2        # via -r requirements/edx/base.in
 html5lib==1.1             # via -r requirements/edx/base.in, ora2
 icalendar==4.0.6          # via -r requirements/edx/base.in
