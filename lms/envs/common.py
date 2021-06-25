@@ -3941,8 +3941,8 @@ MAX_BLOCKS_PER_CONTENT_LIBRARY = 1000
 #### LRS ENDPOINT ####
 LRS_ENDPOINT = os.environ.get('LRS_ENDPOINT')
 LRS_API_KEY = os.environ.get('LRS_API_KEY')
-LRS_QUEUE = 'edx.lms.core.default'
-DEFAULT_LMS_QUEUE = 'edx.lms.core.default'
+LRS_QUEUE = os.environ.get('LRS_QUEUE', 'edx.lms.core.default')
+DEFAULT_LMS_QUEUE = os.environ.get('DEFAULT_LMS_QUEUE', 'edx.lms.core.default')
 LRS_TIMEOUT = float(os.environ.get('LRS_TIMEOUT', 2))
 ### LRS DATABASE ###
 LRS_USER = os.environ.get('LRS_USER')

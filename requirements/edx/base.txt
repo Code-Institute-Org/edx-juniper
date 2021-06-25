@@ -32,7 +32,7 @@ boto3==1.4.8              # via -r requirements/edx/base.in, fs-s3fs
 boto==2.39.0              # via -r requirements/edx/base.in, django-ses, edxval, ora2
 botocore==1.8.17          # via -r requirements/edx/base.in, boto3, s3transfer
 bridgekeeper==0.9         # via -r requirements/edx/base.in
-celery==3.1.26.post2      # via -c requirements/edx/../constraints.txt, -r requirements/edx/base.in, django-celery, django-user-tasks, edx-celeryutils, edx-enterprise
+celery==4.4.7      # via -c requirements/edx/../constraints.txt, -r requirements/edx/base.in, django-celery, django-user-tasks, edx-celeryutils, edx-enterprise
 certifi==2020.6.20        # via -r requirements/edx/paver.txt, requests
 cffi==1.14.0              # via -r requirements/edx/../edx-sandbox/shared.txt, cryptography
 chardet==3.0.4            # via -r requirements/edx/paver.txt, pdfminer.six, pysrt, requests
@@ -125,6 +125,7 @@ future==0.18.2            # via django-ses, edx-celeryutils, edx-enterprise, pyc
 geoip2==3.0.0             # via -r requirements/edx/base.in
 glob2==0.7                # via -r requirements/edx/base.in
 gunicorn==20.0.4          # via -r requirements/edx/base.in
+uwsgi==2.0.19.1
 help-tokens==1.1.2        # via -r requirements/edx/base.in
 html5lib==1.1             # via -r requirements/edx/base.in, ora2
 icalendar==4.0.6          # via -r requirements/edx/base.in

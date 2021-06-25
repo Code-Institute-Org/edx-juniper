@@ -166,5 +166,8 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Run server
 COPY gunicorn_conf.py /openedx/gunicorn_conf.py
+COPY lms/uwsgi.ini /openedx/edx-platform
+COPY cms/uwsgi.ini /openedx/edx-platform
+
 EXPOSE 8000
 CMD gunicorn -c /openedx/gunicorn_conf.py --name ${SERVICE_VARIANT} --bind=0.0.0.0:8000 --max-requests=1000 --access-logfile - ${SERVICE_VARIANT}.wsgi:application

@@ -18,6 +18,9 @@ import pytz
 import requests
 from sqlalchemy import create_engine, types
 
+import logging
+log = logging.getLogger(__name__)
+
 KEYS = ['module','section','lesson']
 utc=pytz.UTC
 
@@ -334,7 +337,8 @@ def format_lms_version(lms_version):
     return lms_version.split(' ')[0].lower()
 
 
-def export_all_activity_records(source_platform, pathway, programme_ids):
+def export_all_activity_records(source_platform, pathway, programme_ids,
+                                dryrun):
     """ POST the collected data to the api endpoint from the settings
         Arguments:
             source_platform: Platform import as, i.e. 'juniper' or 'ginkgo'
@@ -351,6 +355,8 @@ def export_all_activity_records(source_platform, pathway, programme_ids):
     make sure that one does not happen without the other as to not
     lose any information.
     """
+    log.info("Started export_all_activity_records for %s, %s, %s, %s",
+             source_platform, pathway, programme_ids, dryrun)
     student_data = {}
     programme_components = {}
     programme_challenges = {}
@@ -386,21 +392,29 @@ def export_all_activity_records(source_platform, pathway, programme_ids):
                     programme_challenges[programme.program_code]))
 
     engine = create_engine(CONNECTION_STRING, echo=False)
-    with engine.begin() as conn:
-        conn.execute(
-            ("DELETE FROM lms_records WHERE source_platform = %s "
-                "AND pathway = %s "
-                "AND DATE(date) = %s;"), (
-                source_platform, pathway,
-                datetime.now().strftime(r'%Y-%m-%d')))
+    zoho_data = get_students_programme_ids_and_lms_version()
+    df = convert_student_data_to_dataframe(student_data,
+                                           source_platform,
+                                           pathway,
+                                           zoho_data)
 
-        zoho_data = get_students_programme_ids_and_lms_version()
-        df = convert_student_data_to_dataframe(student_data,
-                                                source_platform,
-                                                pathway,
-                                                zoho_data)
-        df.to_sql(name=LMS_ACTIVITY_TABLE,
-                    con=conn,
-                    if_exists='append',
-                    chunksize=1000,
-                    index=False)
+    if dryrun:
+        log.info("** dryrun: updating student data: %s", student_data)
+        log.info("** dryrun: updating zoho data: %s", zoho_data)
+    else:
+        with engine.begin() as conn:
+            conn.execute(
+                ("DELETE FROM lms_records WHERE source_platform = %s "
+                    "AND pathway = %s "
+                    "AND DATE(date) = %s;"), (
+                    source_platform, pathway,
+                    datetime.now().strftime(r'%Y-%m-%d')))
+
+            df.to_sql(name=LMS_ACTIVITY_TABLE,
+                        con=conn,
+                        if_exists='append',
+                        chunksize=1000,
+                        index=False)
+
+    log.info("Completed export_all_activity_records for %s, %s, %s, %s",
+             source_platform, pathway, programme_ids, dryrun)

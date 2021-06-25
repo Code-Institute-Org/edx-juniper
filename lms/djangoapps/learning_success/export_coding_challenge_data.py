@@ -49,9 +49,10 @@ class CodeChallengeExporter:
         for a given coding challenge program
     '''
 
-    def export(self, program_code, dbname=None):
+    def export(self, program_code, dryrun=False, dbname=None):
         # Odd behaviour from Celery Beat - an unset kwarg is passed as "None"
         dbname = dbname or 'challenges'
+        self.dryrun = dryrun
         self.db = settings.MONGO_CLIENT[dbname]
         self.collection = self.db["challenges"]
         self.program_code = program_code
@@ -193,6 +194,9 @@ class CodeChallengeExporter:
         that can be posted to Zoho if student is on an Learning People program,
         else HubSpot profiles for all other students
         """
+        log.info(("Started export_coding_challenge_data for %s, with %s "
+                  "students and %s chalenges"),
+                 self.program_code, len(self.students), len(self.challenges))
         results_for_all_students = self.get_results_for_all_students()
         if self.program_code == "lpcc":
             auth_headers_for_zoho = self.get_auth_headers()
@@ -204,12 +208,16 @@ class CodeChallengeExporter:
                 for challenge_name, result in results.items():
                     json_for_zoho["data"][0][challenge_name] = result
 
-                self.post_to_learningpeople(
-                    CHALLENGE_ENDPOINT,
-                    auth_headers_for_zoho,
-                    json_for_zoho,
-                    student
-                )
+                if not self.dryrun:
+                    self.post_to_learningpeople(
+                        CHALLENGE_ENDPOINT,
+                        auth_headers_for_zoho,
+                        json_for_zoho,
+                        student
+                    )
+                else:
+                    log.info("** dryrun sending challenges to lp: %s",
+                             len(json_for_zoho))
         else:
             for student, results in results_for_all_students.items():
                 properties = [{
@@ -221,4 +229,8 @@ class CodeChallengeExporter:
                         "property": challenge_name,
                         "value": result
                     })
-                self.post_to_hubspot(HUBSPOT_CONTACTS_ENDPOINT, student, properties)
+                if not self.dryrun:
+                    self.post_to_hubspot(HUBSPOT_CONTACTS_ENDPOINT, student, properties)
+                else:
+                    log.info("** dryrun sending challenges to hs: %s",
+                             len(properties))

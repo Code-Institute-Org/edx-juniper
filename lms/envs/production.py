@@ -532,18 +532,13 @@ ZENDESK_API_KEY = AUTH_TOKENS.get("ZENDESK_API_KEY")
 EDX_API_KEY = AUTH_TOKENS.get("EDX_API_KEY")
 
 # Celery Broker
-CELERY_BROKER_TRANSPORT = ENV_TOKENS.get("CELERY_BROKER_TRANSPORT", "")
-CELERY_BROKER_HOSTNAME = ENV_TOKENS.get("CELERY_BROKER_HOSTNAME", "")
-CELERY_BROKER_VHOST = ENV_TOKENS.get("CELERY_BROKER_VHOST", "")
-CELERY_BROKER_USER = AUTH_TOKENS.get("CELERY_BROKER_USER", "")
-CELERY_BROKER_PASSWORD = AUTH_TOKENS.get("CELERY_BROKER_PASSWORD", "")
 
-BROKER_URL = "{0}://{1}:{2}@{3}/{4}".format(CELERY_BROKER_TRANSPORT,
-                                            CELERY_BROKER_USER,
-                                            CELERY_BROKER_PASSWORD,
-                                            CELERY_BROKER_HOSTNAME,
-                                            CELERY_BROKER_VHOST)
-BROKER_USE_SSL = ENV_TOKENS.get('CELERY_BROKER_USE_SSL', False)
+BROKER_TRANSPORT = 'sqs'
+BROKER_TRANSPORT_OPTIONS = {
+    'region': 'eu-west-1',
+}
+BROKER_USER = AUTH_TOKENS.get('CELERY_BROKER_USER')
+BROKER_PASSWORD = AUTH_TOKENS.get('CELERY_BROKER_PASSWORD')
 
 # Block Structures
 
@@ -1074,3 +1069,5 @@ authSource = CONTENTSTORE['DOC_STORE_CONFIG'].get('authSource', db)
 MONGO_CLIENT = pymongo.MongoClient(host=host, port=port, username=username,
                                    password=password, authSource=authSource)
 MONGO_DB = MONGO_CLIENT[db]
+
+CELERY_DEFAULT_QUEUE = AUTH_TOKENS.get("CELERY_DEFAULT_QUEUE")

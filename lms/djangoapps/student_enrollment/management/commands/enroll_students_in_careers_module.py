@@ -16,7 +16,12 @@ on their CRM profile.
 class Command(BaseCommand):
     help = 'Enroll students in the careers module'
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        parser.add_argument('--queue', type=str,
+                            default=settings.DEFAULT_LMS_QUEUE)
+        parser.add_argument('--dryrun', action='store_true')
+
+    def handle(self, queue, dryrun, *args, **kwargs):
         """
         This will retrieve all of the users from the Zoho CRM API and
         with an 'Access to Careers Module' status of 'Enroll' and
@@ -25,5 +30,6 @@ class Command(BaseCommand):
 
         log.info("Running task enroll_students_in_careers_module...")
 
-        result = enroll_students_in_careers_module.apply()
+        result = enroll_students_in_careers_module.apply_async(args=[dryrun],
+                                                               queue=queue)
         log.info("Result: %s" % result)

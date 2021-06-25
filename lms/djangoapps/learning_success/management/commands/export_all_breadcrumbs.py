@@ -15,5 +15,5 @@ class Command(BaseCommand):
     def handle(self, programme_id):
         log.info("Running task export_all_breadcrumbs...")
 
-        result = export_all_breadcrumbs.apply(args=[programme_id])
+        result = export_all_breadcrumbs.apply_async(args=[programme_id])
         log.info("Result: %s" % result)
