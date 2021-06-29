@@ -71,6 +71,15 @@ class MarketingSiteViewTests(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp['Content-Type'], 'text/html')
+    
+    def test_403(self):
+        """
+        Test the 403 view.
+        """
+        url = reverse('static_template_view.views.render_403')
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp['Content-Type'], 'text/html')
 
     def test_500(self):
         """

@@ -62,6 +62,7 @@ def get_student_deadlines_from_zoho_data(zoho_record):
         student_data.values(),
         key=lambda k: (k.get('submission_deadline') or ''))
 
+    print(sorted_student_data)
     for index, data in enumerate(sorted_student_data, start=1):
         data['name'] = "Milestone Project %s" % index
         data['overdue'] = is_overdue(data)
