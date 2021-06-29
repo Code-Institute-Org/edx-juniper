@@ -52,5 +52,5 @@ def render_500(request):
 
 @fix_crum_request
 @jsonable_error(403, "You do not have permission to access this page")
-def render_403(request):
+def render_403(request, exception):
     return HttpResponseServerError(render_to_string('403.html', {}, request=request))
