@@ -30,6 +30,7 @@ if password_policy_compliance.should_enforce_compliance_on_login():
 # Custom error pages
 # These are used by Django to render these error codes. Do not remove.
 # pylint: disable=invalid-name
+handler403 = contentstore.views.render_403
 handler404 = contentstore.views.render_404
 handler500 = contentstore.views.render_500
 
@@ -286,6 +287,7 @@ urlpatterns.append(
 
 # display error page templates, for testing purposes
 urlpatterns += [
+    url(r'^403$', handler403),
     url(r'^404$', handler404),
     url(r'^500$', handler500),
 ]

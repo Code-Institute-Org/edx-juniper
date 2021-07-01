@@ -10,6 +10,7 @@ import calc
 import crum
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseServerError
 from django.views.decorators.csrf import ensure_csrf_cookie, requires_csrf_token
 from django.views.defaults import server_error
@@ -77,11 +78,7 @@ def require_global_staff(func):
         if GlobalStaff().has_user(request.user):
             return func(request, *args, **kwargs)
         else:
-            return HttpResponseForbidden(
-                u"Must be {platform_name} staff to perform this action.".format(
-                    platform_name=settings.PLATFORM_NAME
-                )
-            )
+            raise PermissionDenied
     return login_required(wrapped)
 
 

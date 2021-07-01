@@ -10,6 +10,7 @@ import mimetypes
 
 from django.conf import settings
 from django.http import Http404, HttpResponseNotFound, HttpResponseServerError
+from django.http.response import HttpResponseForbidden
 from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist
 from django.utils.safestring import mark_safe
@@ -101,3 +102,9 @@ def render_404(request, exception):
 @fix_crum_request
 def render_500(request):
     return HttpResponseServerError(render_to_string('static_templates/server-error.html', {}, request=request))
+
+
+@fix_crum_request
+def render_403(request, exception):
+    request.view_name = '403'
+    return HttpResponseForbidden(render_to_string('static_templates/403.html', {}, request=request))

@@ -44,6 +44,7 @@ from student.roles import CourseInstructorRole, CourseStaffRole
 from xmodule.modulestore.django import modulestore
 from ci_program.models import Program
 from student_enrollment.utils import get_or_register_student
+from util.views import require_global_staff
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +67,7 @@ class SysadminDashboardView(TemplateView):
 
     @method_decorator(ensure_csrf_cookie)
     @method_decorator(login_required)
+    @method_decorator(require_global_staff)
     @method_decorator(cache_control(no_cache=True, no_store=True,
                                     must_revalidate=True))
     @method_decorator(condition(etag_func=None))
