@@ -67,7 +67,7 @@ def harvest_course_tree(tree, output_list, prefix=()):
     children = tree.get_children()
     for subtree in children:
         harvest_course_tree(subtree, output_list, prefix=block_breadcrumbs)
-    
+
 
 def harvest_programme(programme):
     """Harvest the breadcrumbs from all components in the programme

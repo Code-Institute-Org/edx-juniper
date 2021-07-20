@@ -5,6 +5,7 @@ from celery_utils.logged_task import LoggedTask
 from learning_success.export_all_activity_records import export_all_activity_records as perform_activity_export  # noqa
 from learning_success.export_coding_challenge_data import (
     CodeChallengeExporter)
+from learning_success.export_all_breadcrumbs import BreadcrumbExporter
 
 
 @task(base=LoggedTask)
