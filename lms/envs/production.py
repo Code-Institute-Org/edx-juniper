@@ -1065,10 +1065,10 @@ port = CONTENTSTORE['DOC_STORE_CONFIG']['port']
 username = CONTENTSTORE['DOC_STORE_CONFIG'].get('user')
 password = CONTENTSTORE['DOC_STORE_CONFIG'].get('password')
 db = CONTENTSTORE['DOC_STORE_CONFIG']['db']
-authSource = CONTENTSTORE['DOC_STORE_CONFIG'].get('authSource', db)
+authsource = CONTENTSTORE['DOC_STORE_CONFIG'].get('authsource', db)
 
 MONGO_CLIENT = pymongo.MongoClient(host=host, port=port, username=username,
-                                   password=password, authSource=authSource)
+                                   password=password, authsource=authsource)
 MONGO_DB = MONGO_CLIENT[db]
 
 CELERY_DEFAULT_QUEUE = AUTH_TOKENS.get("CELERY_DEFAULT_QUEUE")
