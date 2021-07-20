@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('programme_id', type=str)
 
-    def handle(self, programme_id):
+    def handle(self, programme_id, **kwargs):
         log.info("Running task export_all_breadcrumbs...")
 
         result = export_all_breadcrumbs.apply_async(args=[programme_id])
