@@ -27,19 +27,19 @@ class ProjectDeadlinesUnitTest(TestCase):
         result = get_student_deadlines_from_zoho_data(self.api_data)
 
         self.assertEqual([
-            {'name': 'Milestone Project 1',
+            {'name': 'Project 1',
              'submission_deadline': '2020-09-01',
              'latest_submission': '{}',
              'overdue': False,
              'next_project': False},
 
-            {'name': 'Milestone Project 2',
+            {'name': 'Project 2',
              'submission_deadline': '2020-10-01',
              'latest_submission': None,
              'overdue': True,
              'next_project': False},
 
-            {'name': 'Milestone Project 3',
+            {'name': 'Project 3',
              'submission_deadline': '2020-11-01',
              'latest_submission': None,
              'overdue': False,
@@ -59,19 +59,19 @@ class ProjectDeadlinesUnitTest(TestCase):
         result = get_student_deadlines_from_zoho_data(self.api_data)
 
         self.assertEqual([
-            {'name': 'Milestone Project 1',
+            {'name': 'Project 1',
              'submission_deadline': '2020-09-01',
              'latest_submission': '{}',
              'overdue': False,
              'next_project': False},
 
-            {'name': 'Milestone Project 2',
+            {'name': 'Project 2',
              'submission_deadline': '2020-10-01',
              'latest_submission': '{}',
              'overdue': False,
              'next_project': False},
 
-            {'name': 'Milestone Project 3',
+            {'name': 'Project 3',
              'submission_deadline': '2020-11-01',
              'latest_submission': None,
              'overdue': False,
