@@ -23,25 +23,46 @@ CHALLENGE_ENDPOINT = settings.LP_ZOHO_CHALLENGE_ENDPOINT
 REFRESH_RETRIES = settings.ZOHO_REFRESH_RETRIES
 REFRESH_SLEEP_SECS = settings.ZOHO_REFRESH_SLEEP_SECS
 
-# Agreed list of names for coding challenges
-# Can remove this dict when we associate challenges with programme
-CODING_CHALLENGES = [
-    "lesson_1_challenge_1",
-    "lesson_1_challenge_2",
-    "lesson_2_challenge_1",
-    "lesson_2_challenge_2",
-    "lesson_2_challenge_3",
-    "lesson_2_challenge_4",
-    "lesson_3_challenge_1",
-    "lesson_3_challenge_2",
-    "lesson_3_challenge_3",
-    "lesson_4_challenge_1",
-    "lesson_4_challenge_2",
-    "lesson_4_challenge_3",
-    "lesson_5_challenge_1",
-    "lesson_5_challenge_2",
-    "lesson_5_challenge_3"
-]
+
+# CODING_CHALLENGES dict in format {"challenge name on lms": "challenge name in HubSpot/CRM"}
+# Can be removed when we associate challenges with programme in syllabus
+# Using dict format to allow us to reuse existing HubSpot fields (as per marketing request)
+
+CODING_CHALLENGES_MAP = {
+    # {key: value} is {"coding_challenge_name_on_lms": "coding_challenge_results_field_required_for_reporting"}
+    # original challenges
+    "lesson_1_challenge_1": "lesson_1_challenge_1",
+    "lesson_1_challenge_2": "lesson_1_challenge_2",
+    "lesson_2_challenge_1": "lesson_2_challenge_1",
+    "lesson_2_challenge_2": "lesson_2_challenge_2",
+    "lesson_2_challenge_3": "lesson_2_challenge_3",
+    "lesson_2_challenge_4": "lesson_2_challenge_4",
+    "lesson_3_challenge_1": "lesson_3_challenge_1",
+    "lesson_3_challenge_2": "lesson_3_challenge_2",
+    "lesson_3_challenge_3": "lesson_3_challenge_3",
+    "lesson_4_challenge_1": "lesson_4_challenge_1",
+    "lesson_4_challenge_2": "lesson_4_challenge_2",
+    "lesson_4_challenge_3": "lesson_4_challenge_3",
+    "lesson_5_challenge_1": "lesson_5_challenge_1",
+    "lesson_5_challenge_2": "lesson_5_challenge_2",
+    "lesson_5_challenge_3": "lesson_5_challenge_3",
+    # new challenges added in line with experiment w/c 2021-11-15
+    # if successful, the challenges below will replace original challenges above
+    "Challenge 1": "lesson_1_challenge_1",
+    "Challenge 2": "lesson_1_challenge_2",
+    "Challenge 3": "lesson_2_challenge_1",
+    "Challenge 4": "lesson_2_challenge_2",
+    "Challenge 5": "lesson_2_challenge_3",
+    "Challenge 6": "lesson_3_challenge_1",
+    "Challenge 7": "lesson_3_challenge_2",
+    "Challenge 8": "lesson_3_challenge_3",
+    "Challenge 9": "lesson_4_challenge_1",
+    "Challenge 10": "lesson_4_challenge_2",
+    "Challenge 11": "lesson_4_challenge_3",
+    "Challenge 12": "lesson_5_challenge_1",
+    "Challenge 13": "lesson_5_challenge_2",
+    "Challenge 14": "lesson_5_challenge_3"
+}
 
 
 class CodeChallengeExporter:
@@ -71,7 +92,7 @@ class CodeChallengeExporter:
 
     def get_challenges(self):
         """Return dict of challenges in following format {id: name}"""
-        challenges_query = self.collection.find({"name": {"$in": CODING_CHALLENGES}})
+        challenges_query = self.collection.find({"name": {"$in": list(CODING_CHALLENGES_MAP.keys())}})
         challenges = {challenge.get("_id"): challenge.get("name") for challenge in challenges_query}
         return challenges
 
@@ -176,6 +197,7 @@ class CodeChallengeExporter:
         return {"Authorization": "Zoho-oauthtoken " + access_token}
 
     def post_to_learningpeople(self, CHALLENGE_ENDPOINT, auth_headers, json, student):
+        """Post results for LP leads to LP ZOHO CRM"""
         response = requests.post(
             CHALLENGE_ENDPOINT,
             headers=auth_headers,
@@ -206,7 +228,8 @@ class CodeChallengeExporter:
                     "duplicate_check_fields": ["Email"],
                 }
                 for challenge_name, result in results.items():
-                    json_for_zoho["data"][0][challenge_name] = result
+                    challenge_result_field = CODING_CHALLENGES_MAP[challenge_name]
+                    json_for_zoho["data"][0][challenge_result_field] = result
 
                 if not self.dryrun:
                     self.post_to_learningpeople(
@@ -224,9 +247,18 @@ class CodeChallengeExporter:
                     "property": "email",
                     "value": student
                 }]
+                # challenge results are added as new items in the properties dict in the following format
+                # {'property': 'lesson_2_challenge_1', 'value': 'Fail'}
                 for challenge_name, result in results.items():
+                    challenge_result_field = CODING_CHALLENGES_MAP[challenge_name]
+                    # Temp check to avoid case where a lead may have submitted an old and new challenge that
+                    # maps to the same result field in HubSpot or Zoho. In this case, the result of the latest submitted
+                    # challenge will be accepted.
+                    challenge_results_already_recorded = [property['property'] for property in properties]
+                    if challenge_result_field in challenge_results_already_recorded:
+                        continue
                     properties.append({
-                        "property": challenge_name,
+                        "property": challenge_result_field,
                         "value": result
                     })
                 if not self.dryrun:
