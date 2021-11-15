@@ -50,9 +50,9 @@ CODING_CHALLENGES_MAP = {
     # if successful, the challenges below will replace original challenges above
     "Challenge 1": "lesson_1_challenge_1",
     "Challenge 2": "lesson_1_challenge_2",
-    "Challenge 3": "lesson_2_challenge_1",
-    "Challenge 4": "lesson_2_challenge_2",
-    "Challenge 5": "lesson_2_challenge_3",
+    "Challenge 3": "lesson_2_challenge_2",
+    "Challenge 4": "lesson_2_challenge_3",
+    "Challenge 5": "lesson_2_challenge_4",
     "Challenge 6": "lesson_3_challenge_1",
     "Challenge 7": "lesson_3_challenge_2",
     "Challenge 8": "lesson_3_challenge_3",
