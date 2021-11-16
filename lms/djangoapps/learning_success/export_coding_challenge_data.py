@@ -217,7 +217,7 @@ class CodeChallengeExporter:
         else HubSpot profiles for all other students
         """
         log.info(("Started export_coding_challenge_data for %s, with %s "
-                  "students and %s chalenges"),
+                  "students and %s challenges"),
                  self.program_code, len(self.students), len(self.challenges))
         results_for_all_students = self.get_results_for_all_students()
         if self.program_code == "lpcc":
