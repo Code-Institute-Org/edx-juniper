@@ -50,16 +50,12 @@ def get_logger_config(log_dir,
             'require_debug_false': {
                 '()': 'django.utils.log.RequireDebugFalse',
             },
-            'userid_context': {
-                '()': 'openedx.core.djangoapps.util.log_utils.UserIdFilter',
-            }
         },
         'handlers': {
             'console': {
                 'level': 'INFO',
                 'class': 'logging.StreamHandler',
                 'formatter': 'standard',
-                'filters': ['userid_context'],
                 'stream': sys.stderr,
             },
             'mail_admins': {
