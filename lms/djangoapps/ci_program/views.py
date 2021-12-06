@@ -1,6 +1,7 @@
 
 import math
 
+from django.shortcuts import redirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from edxmako.shortcuts import render_to_response
@@ -18,6 +19,9 @@ def show_programs(request, program_name):
     cache_key = '%s_program_name' % student_email
 
     program = Program.objects.get(marketing_slug=program_name)
+    if request.user not in program.enrolled_students.all():
+        return redirect(reverse('dashboard'))
+
     cache.set(cache_key, program_name)
     program_descriptor = program.get_program_descriptor(request)
     context = {
