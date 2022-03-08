@@ -63,6 +63,8 @@ class Enrollment:
             # Get the code for the course the student is enrolling in
             # This will always be disd, based on current coql query
             program_to_enroll_in = student['Programme_ID']
+            if program_to_enroll_in == "disdcc":
+                spec_sample_content = Program.objects.get(program_code="spsc")
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -70,30 +72,40 @@ class Enrollment:
                     program_code=program_to_enroll_in)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("Could not find program: %s")
-                post_to_zapier(settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                                {
-                                    'email': student['Email'],
-                                    'crm_field': 'Programme_ID',
-                                    'unexpected_value': student['Programme_ID'],
-                                    'attempted_action': 'enroll',
-                                    'message': 'Programme ID does not exist on LMS'
-                                })
+                post_to_zapier(
+                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                    {
+                        'email': student['Email'],
+                        'crm_field': 'Programme_ID',
+                        'unexpected_value': student['Programme_ID'],
+                        'attempted_action': 'enroll',
+                        'message': 'Programme ID does not exist on LMS'
+                    }
+                )
                 continue
 
             # Enroll the student in the program
             program_enrollment_status = program.enroll_student_in_program(
                 user.email,
-                exclude_courses=EXCLUDED_FROM_ONBOARDING)
+                exclude_courses=EXCLUDED_FROM_ONBOARDING
+            )
+
+            # If DISDCC enrollment successful, enroll the student into
+            # specialisation sample content module
+            if spec_sample_content and program_enrollment_status:
+                spec_sample_content.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(
-                user, enrollment_type, password)
+                user, enrollment_type, password
+            )
 
             # Set the students access level (i.e. determine whether or
             # not a student is allowed to access to the LMS.
             # Deprecated...
             access, created = ProgramAccessStatus.objects.get_or_create(
-                user=user, program_access=True)
+                user=user, program_access=True
+            )
 
             if not created:
                 access.allowed_access = True
@@ -101,8 +113,10 @@ class Enrollment:
 
             # Used to update the status from 'Enroll' to 'Online'
             # in the CRM
-            post_to_zapier(settings.ZAPIER_ENROLLMENT_URL,
-                            {'email': user.email})
+            post_to_zapier(
+                settings.ZAPIER_ENROLLMENT_URL,
+                {'email': user.email}
+            )
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
@@ -110,5 +124,6 @@ class Enrollment:
                 registered=bool(user),
                 enrollment_type=enrollment_type,
                 enrolled=bool(program_enrollment_status),
-                email_sent=email_sent_status)
+                email_sent=email_sent_status
+            )
             enrollment_status.save()

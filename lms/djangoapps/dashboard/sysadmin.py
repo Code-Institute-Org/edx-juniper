@@ -587,6 +587,9 @@ class Enrollment(SysadminDashboardView):
         manual_override = input_data['manual_override']
         full_name = input_data['full_name']
 
+        # get the specialisation sample module if applicable (DISDCC only)
+        if program_code == "disdcc":
+            spec_sample_content = Program.objects.get(program_code="spsc")
         # Get the program using the code
         program = get_object_or_404(Program, program_code=program_code)
 
@@ -612,6 +615,9 @@ class Enrollment(SysadminDashboardView):
         # otherwise issue a 500 response
         if program_enrollment_status:
             log.info("%s successfully enrolled in %s", email, program.name)
+            # if DISDCC, enroll student into specialisation sample content too
+            if spec_sample_content:
+                spec_sample_content.enroll_student_in_program(email)
         else:
             log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
