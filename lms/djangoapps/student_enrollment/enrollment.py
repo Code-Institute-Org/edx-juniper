@@ -1,5 +1,5 @@
 from logging import getLogger
-
+from datetime import date
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
@@ -29,7 +29,7 @@ This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
-
+today = date.today().isoformat()
 
 class Enrollment:
     ''' Enroll students in their relevant programs
@@ -56,7 +56,7 @@ class Enrollment:
                 log.info("** dryrun attempting enrollment of student: %s",
                          student['Email'])
                 continue
-
+    
             # Get the user, the user's password, and their enrollment type
             user, password, enrollment_type = get_or_register_student(
                 student['Email'], student['Email'])
@@ -73,16 +73,16 @@ class Enrollment:
                     program_code=program_to_enroll_in)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("Could not find program: %s")
-                post_to_zapier(
-                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                    {
-                        'email': student['Email'],
-                        'crm_field': 'Programme_ID',
-                        'unexpected_value': student['Programme_ID'],
-                        'attempted_action': 'enroll',
-                        'message': 'Programme ID does not exist on LMS'
-                    }
-                )
+                # post_to_zapier(
+                #     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                #     {
+                #         'email': student['Email'],
+                #         'crm_field': 'Programme_ID',
+                #         'unexpected_value': student['Programme_ID'],
+                #         'attempted_action': 'enroll',
+                #         'message': 'Programme ID does not exist on LMS'
+                #     }
+                # )
                 continue
 
             # Enroll the student in the program
@@ -114,10 +114,10 @@ class Enrollment:
 
             # Used to update the status from 'Enroll' to 'Online'
             # in the CRM
-            post_to_zapier(
-                settings.ZAPIER_ENROLLMENT_URL,
-                {'email': user.email}
-            )
+            # post_to_zapier(
+            #     settings.ZAPIER_ENROLLMENT_URL,
+            #     {'email': user.email}
+            # )
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
@@ -151,8 +151,21 @@ class SpecialisationEnrollment:
             if not student['Email']:
                 continue
             if self.dryrun:
-                log.info("** dryrun attempting enrollment of student: %s",
-                         student['Email'])
+                log.info(
+                    "** dryrun attempting enrollment of student: %s",
+                    student['Email']
+                )
+                continue
+
+            # only process students whose specialisation enrollment date
+            # exists and is today or in the past
+            if student["Specialisation_Enrollment_Date"] is None:
+                log.info(
+                    "** Student %s has no specialisation enrollment date, skipping. **",
+                    student["Email"]
+                )
+                continue
+            if student["Specialisation_Enrollment_Date"] > today:
                 continue
 
             # Get the user, the user's password, and their enrollment type
@@ -169,7 +182,7 @@ class SpecialisationEnrollment:
                 specialisation = Program.objects.get(
                     program_code=specialisation_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception("Could not find specialisation: %s")
+                log.exception("** Could not find specialisation: %s**")
                 # post_to_zapier(
                 #     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                 #     {
@@ -192,9 +205,19 @@ class SpecialisationEnrollment:
             # student from the previous (CC) programme
             if specialisation_enrollment_status:
                 program_to_unenroll = Program.objects.get(
-                    program_code=specialisation_to_enroll
+                    program_code=current_program
                 )
-                program_to_unenroll.unenroll_student_from_program(user.email)
+                try:
+                    program_to_unenroll.enrolled_students.remove(user)
+                    log.info(
+                        "student %s successfully removed from previous programme: %s",
+                        student['Email'], program_to_unenroll.name
+                    )
+                except Exception as e:
+                    log.info(
+                        "** Unable to remove student %s from previous programme %s : %s**",
+                        student['Email'], program_to_unenroll, e
+                    )
 
                 # send the enrollment email
                 email_sent_status = specialisation.send_email(
