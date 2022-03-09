@@ -2,7 +2,7 @@
 from celery import task
 from celery_utils.logged_task import LoggedTask
 
-from student_enrollment.enrollment import Enrollment
+from student_enrollment.enrollment import Enrollment, SpecialisationEnrollment
 from student_enrollment.unenrollment import Unenrollment
 from student_enrollment.enroll_students_in_careers_module import (
     StudentCareerEnrollment)
@@ -31,6 +31,11 @@ def enroll_students_in_careers_module(dryrun=False):
     '''
     StudentCareerEnrollment(dryrun).enroll_in_careers()
 
+@task(base=LoggedTask)
+def specialisation_enrollment(dryrun=False):
+    ''' Enroll students in their selected specialisation
+    '''
+    SpecialisationEnrollment(dryrun).enroll()
 
 @task(base=LoggedTask)
 def enrollment_stats():
