@@ -170,16 +170,16 @@ class SpecialisationEnrollment:
                     program_code=specialisation_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("Could not find specialisation: %s")
-                post_to_zapier(
-                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                    {
-                        'email': student['Email'],
-                        'crm_field': 'Specialisation_programme_id',
-                        'unexpected_value': student['Specialisation_programme_id'],
-                        'attempted_action': 'enroll specialisation',
-                        'message': 'Specialisation programme ID does not exist on LMS'
-                    }
-                )
+                # post_to_zapier(
+                #     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                #     {
+                #         'email': student['Email'],
+                #         'crm_field': 'Specialisation_programme_id',
+                #         'unexpected_value': student['Specialisation_programme_id'],
+                #         'attempted_action': 'enroll specialisation',
+                #         'message': 'Specialisation programme ID does not exist on LMS'
+                #     }
+                # )
                 continue
 
             # Enroll the student in the specialisation
@@ -201,22 +201,7 @@ class SpecialisationEnrollment:
                     user, enrollment_type, password
                 )
 
-            # TODO: check if this is necessary for specialisations
-            # # Set the students access level (i.e. determine whether or
-            # # not a student is allowed to access to the LMS.
-            # # Deprecated...
-            # access, created = ProgramAccessStatus.objects.get_or_create(
-            #     user=user, program_access=True
-            # )
-
-            # if not created:
-            #     access.allowed_access = True
-            #     access.save()
-
-            # TODO: check if the existing Zap can be adjusted
-            # TODO: or a different Zap needs to be created
-            # # Used to update the status from 'Enroll' to 'Online'
-            # # in the CRM
+            # TODO: set Zap to update Specialisation Enrollment Status in CRM
             # post_to_zapier(
             #     settings.ZAPIER_ENROLLMENT_URL,
             #     {'email': user.email}

@@ -1,3 +1,4 @@
+from datetime import date
 from itertools import count
 import re
 import requests
@@ -8,6 +9,8 @@ CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
+
+today = date.today() 
 
 # COQL Queries
 # LMS_Version can be removed from where clause when Ginkgo is decommissioned 
@@ -45,7 +48,7 @@ WHERE ((
         (Specialisation_Enrollment_Status = 'Approved') AND (Specialisation_programme_id is not null)
     )
     AND (
-        (LMS_Version = 'Upgrade to Juniper') OR (LMS_Version = 'Juniper (learn.codeinstitute.net)')
+        Specialisation_Enrollment_Date <= {today}
     )
 )
 LIMIT {page},{per_page}
@@ -97,11 +100,14 @@ def get_students_to_be_enrolled_into_specialisation():
     """
     students = []
     auth_headers = get_auth_headers()
+    today = date.today().isoformat()
 
     for page in count():
         query = ENROLL_SPECIALISATION_QUERY.format(
-                    page=page*RECORDS_PER_PAGE,
-                    per_page=RECORDS_PER_PAGE)
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE,
+            today=today
+        )
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
