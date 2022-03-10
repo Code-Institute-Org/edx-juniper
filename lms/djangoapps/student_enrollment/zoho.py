@@ -109,6 +109,7 @@ def get_students_to_be_enrolled_into_specialisation():
         if not students_resp.json()['info']['more_records']:
             return students
 
+
 def get_students_to_be_unenrolled():
     """Fetch from Zoho all students
     with an LMS_Access_Status of 'To be removed'

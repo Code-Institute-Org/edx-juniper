@@ -63,8 +63,9 @@ class Enrollment:
                 student['Email'], student['Email'])
 
             # Get the code for the course the student is enrolling in
-            # This will always be disd, based on current coql query
             program_to_enroll_in = student['Programme_ID']
+            spec_sample_content = None
+
             if program_to_enroll_in == "disdcc":
                 spec_sample_content = Program.objects.get(program_code="spsc")
 
@@ -74,16 +75,16 @@ class Enrollment:
                     program_code=program_to_enroll_in)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("Could not find program: %s")
-                # post_to_zapier(
-                #     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                #     {
-                #         'email': student['Email'],
-                #         'crm_field': 'Programme_ID',
-                #         'unexpected_value': student['Programme_ID'],
-                #         'attempted_action': 'enroll',
-                #         'message': 'Programme ID does not exist on LMS'
-                #     }
-                # )
+                post_to_zapier(
+                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                    {
+                        'email': student['Email'],
+                        'crm_field': 'Programme_ID',
+                        'unexpected_value': student['Programme_ID'],
+                        'attempted_action': 'enroll',
+                        'message': 'Programme ID does not exist on LMS'
+                    }
+                )
                 continue
 
             # Enroll the student in the program
@@ -115,10 +116,10 @@ class Enrollment:
 
             # Used to update the status from 'Enroll' to 'Online'
             # in the CRM
-            # post_to_zapier(
-            #     settings.ZAPIER_ENROLLMENT_URL,
-            #     {'email': user.email}
-            # )
+            post_to_zapier(
+                settings.ZAPIER_ENROLLMENT_URL,
+                {'email': user.email}
+            )
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
@@ -194,16 +195,16 @@ class SpecialisationEnrollment:
                     program_code=specialisation_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("** Could not find specialisation: %s**")
-                # post_to_zapier(
-                #     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
-                #     {
-                #         'email': student['Email'],
-                #         'crm_field': 'Specialisation_programme_id',
-                #         'unexpected_value': student['Specialisation_programme_id'],
-                #         'attempted_action': 'enroll specialisation',
-                #         'message': 'Specialisation programme ID does not exist on LMS'
-                #     }
-                # )
+                post_to_zapier(
+                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                    {
+                        'email': student['Email'],
+                        'crm_field': 'Specialisation_programme_id',
+                        'unexpected_value': student['Specialisation_programme_id'],
+                        'attempted_action': 'enroll specialisation',
+                        'message': 'Specialisation programme ID does not exist on LMS'
+                    }
+                )
                 continue
 
             # Enroll the student in the specialisation
@@ -235,11 +236,11 @@ class SpecialisationEnrollment:
                     user, enrollment_type, password
                 )
 
-            # TODO: set Zap to update Specialisation Enrollment Status in CRM
-            # post_to_zapier(
-            #     settings.ZAPIER_ENROLLMENT_URL,
-            #     {'email': user.email}
-            # )
+            # send Zap to update Specialisation Enrollment Status in CRM
+            post_to_zapier(
+                settings.ZAPIER_SPECIALISATION_ENROLLMENT_URL,
+                {'email': user.email}
+            )
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
