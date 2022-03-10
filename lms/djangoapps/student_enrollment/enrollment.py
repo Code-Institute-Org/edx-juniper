@@ -31,6 +31,7 @@ initial student onboarding/enrollment process like the Careers module.
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
 today = date.today().isoformat()
 
+
 class Enrollment:
     ''' Enroll students in their relevant programs
     '''
@@ -56,7 +57,7 @@ class Enrollment:
                 log.info("** dryrun attempting enrollment of student: %s",
                          student['Email'])
                 continue
-    
+
             # Get the user, the user's password, and their enrollment type
             user, password, enrollment_type = get_or_register_student(
                 student['Email'], student['Email'])
@@ -131,7 +132,7 @@ class Enrollment:
 
 
 class SpecialisationEnrollment:
-    ''' 
+    '''
     Enroll students in their relevant specialisation; simultaneously
     unenroll them from the Common Curriculum programme
     '''
@@ -142,10 +143,18 @@ class SpecialisationEnrollment:
         """
         The main handler for the specialisation enrollment management command.
         This will retrieve all of the users from the Zoho CRM API and
-        will enroll all of the students that have a specialisation enrollment 
+        will enroll all of the students that have a specialisation enrollment
         status of `Approved`.
         """
+
+        today = date.today().isoformat()
         zoho_students = get_students_to_be_enrolled_into_specialisation()
+
+        if not zoho_students:
+            log.info(
+                "** Specialisation enrollment run %s: no students found. ",
+                today
+            )
 
         for student in zoho_students:
             if not student['Email']:
@@ -158,14 +167,16 @@ class SpecialisationEnrollment:
                 continue
 
             # only process students whose specialisation enrollment date
-            # exists and is today or in the past
-            if student["Specialisation_Enrollment_Date"] is None:
+            # is populated and is today or in the past
+            enrollment_date = student["Specialisation_Enrollment_Date"]
+
+            if enrollment_date is None:
                 log.info(
                     "** Student %s has no specialisation enrollment date, skipping. **",
                     student["Email"]
                 )
                 continue
-            if student["Specialisation_Enrollment_Date"] > today:
+            if enrollment_date > today:
                 continue
 
             # Get the user, the user's password, and their enrollment type
@@ -201,7 +212,7 @@ class SpecialisationEnrollment:
                 exclude_courses=EXCLUDED_FROM_ONBOARDING
             )
 
-            # if specialisation enrollment successful, unenroll the 
+            # if specialisation enrollment successful, unenroll the
             # student from the previous (CC) programme
             if specialisation_enrollment_status:
                 program_to_unenroll = Program.objects.get(
