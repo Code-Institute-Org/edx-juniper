@@ -18,7 +18,6 @@ from student_enrollment.models import ProgramAccessStatus
 
 log = getLogger(__name__)
 
-
 """
 Students starting the Full Stack Developer course should initially not be
 enrolled into the Careers module. It should be made available after the submission
@@ -74,7 +73,7 @@ class Enrollment:
                 program = Program.objects.get(
                     program_code=program_to_enroll_in)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception("Could not find program: %s")
+                log.exception("**Could not find program: %s**", program_to_enroll_in)
                 post_to_zapier(
                     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                     {
@@ -194,7 +193,7 @@ class SpecialisationEnrollment:
                 specialisation = Program.objects.get(
                     program_code=specialisation_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception("** Could not find specialisation: %s**")
+                log.exception("**Could not find specialisation: %s**", specialisation_to_enroll)
                 post_to_zapier(
                     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                     {
