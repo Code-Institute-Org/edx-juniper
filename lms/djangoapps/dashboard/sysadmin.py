@@ -588,6 +588,7 @@ class Enrollment(SysadminDashboardView):
         full_name = input_data['full_name']
 
         # get the specialisation sample module if applicable (DISDCC only)
+        spec_sample_content = None
         if program_code == "disdcc":
             spec_sample_content = Program.objects.get(program_code="spsc")
         # Get the program using the code
