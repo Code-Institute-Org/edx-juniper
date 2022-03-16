@@ -7,7 +7,7 @@ CLIENT_ID = settings.ZOHO_CLIENT_ID
 CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
-COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
+COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT 
 
 # COQL Queries
 # LMS_Version can be removed from where clause when Ginkgo is decommissioned 
@@ -25,6 +25,7 @@ WHERE ((
 )
 LIMIT {page},{per_page}
 """
+
 UNENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
@@ -37,6 +38,14 @@ WHERE ((
 )
 LIMIT {page},{per_page}
 """
+
+ENROLL_SPECIALISATION_QUERY = """
+SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialisation_Enrollment_Date
+FROM Contacts
+WHERE (Specialisation_Enrollment_Status = 'Approved') AND (Specialisation_programme_id is not null)
+LIMIT {page},{per_page}
+"""
+
 ENROLL_IN_CAREERS_MODULE_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
@@ -63,6 +72,32 @@ def get_students_to_be_enrolled():
         query = ENROLL_QUERY.format(
                     page=page*RECORDS_PER_PAGE,
                     per_page=RECORDS_PER_PAGE)
+        students_resp = requests.post(
+            COQL_ENDPOINT,
+            headers=auth_headers,
+            json={"select_query":query})
+        if students_resp.status_code != 200:
+            return students
+
+        students.extend(students_resp.json()['data'])
+        if not students_resp.json()['info']['more_records']:
+            return students
+
+
+def get_students_to_be_enrolled_into_specialisation():
+    """Fetch from Zoho all students
+    with a Specialisation Enrollment Status of 'Approved'
+    API documentation for this endpoint:
+    https://www.zohoapis.com/crm/v2/coql
+    """
+    students = []
+    auth_headers = get_auth_headers()
+
+    for page in count():
+        query = ENROLL_SPECIALISATION_QUERY.format(
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE,
+        )
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
