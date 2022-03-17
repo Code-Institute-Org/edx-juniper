@@ -151,10 +151,7 @@ class SpecialisationEnrollment:
         zoho_students = get_students_to_be_enrolled_into_specialisation()
 
         if not zoho_students:
-            log.info(
-                "** Specialisation enrollment run %s: no students found. ",
-                today
-            )
+            log.info("** Specialisation enrollment run: no eligible students found. **")
 
         for student in zoho_students:
             if not student['Email']:
@@ -168,7 +165,7 @@ class SpecialisationEnrollment:
 
             # only process students whose specialisation enrollment date
             # is populated and is today or in the past
-            enrollment_date = student["Specialisation_Enrollment_Date"]
+            enrollment_date = student["Specialization_Enrollment_Date"]
 
             if enrollment_date is None:
                 log.info(
@@ -177,6 +174,10 @@ class SpecialisationEnrollment:
                 )
                 continue
             if enrollment_date > today:
+                log.info(
+                    "** Student %s specialisation enrollment date is in the future, skipping. **",
+                    student["Email"]
+                )
                 continue
 
             # Get the user, the user's password, and their enrollment type
