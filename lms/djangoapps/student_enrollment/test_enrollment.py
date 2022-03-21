@@ -163,7 +163,7 @@ class EnrollmentTestCase(TestCase):
                         "Email": self.user.email,
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialisation_Enrollment_Date": self.today
+                        "Specialization_Enrollment_Date": self.today
                     },
                 ],
                 "info": {"more_records": False}
@@ -195,7 +195,7 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialisation_Enrollment_Date": "2100-01-01"
+                        "Specialization_Enrollment_Date": "2100-01-01"
                     },
                 ],
                 "info": {"more_records": False}
@@ -226,7 +226,7 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialisation_Enrollment_Date": "1900-01-01"
+                        "Specialization_Enrollment_Date": "1900-01-01"
                     },
                 ],
                 "info": {"more_records": False}
@@ -259,7 +259,7 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "xxxxxxx",
-                        "Specialisation_Enrollment_Date": self.today
+                        "Specialization_Enrollment_Date": self.today
                     },
                 ],
                 "info": {"more_records": False}

@@ -40,7 +40,7 @@ LIMIT {page},{per_page}
 """
 
 ENROLL_SPECIALISATION_QUERY = """
-SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialisation_Enrollment_Date
+SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialization_Enrollment_Date
 FROM Contacts
 WHERE (Specialisation_Enrollment_Status = 'Approved') AND (Specialisation_programme_id is not null)
 LIMIT {page},{per_page}
