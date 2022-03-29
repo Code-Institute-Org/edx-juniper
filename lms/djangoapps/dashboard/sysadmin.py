@@ -682,6 +682,114 @@ class Enrollment(SysadminDashboardView):
         return render_to_response(self.template_name, context)
 
 
+class Unenrollment(SysadminDashboardView):
+    """
+    Unenrollment functionality, parallelling that of Enrollment
+    """
+
+    # @classmethod
+    # def enroll_in_program(cls, input_data):
+    #     email = input_data['email']
+    #     program_code = input_data['program_code']
+    #     username = email
+    #     manual_override = input_data['manual_override']
+    #     full_name = input_data['full_name']
+
+    #     # get the specialisation sample module if applicable (DISDCC only)
+    #     spec_sample_content = None
+    #     if program_code == "disdcc":
+    #         spec_sample_content = Program.objects.get(program_code="spsc")
+    #     # Get the program using the code
+    #     program = get_object_or_404(Program, program_code=program_code)
+
+    #     # Create the user and get their password so they can be
+    #     # emailed to the student later
+    #     log.info("Creating user for %s" % email)
+    #     user, password, _ = get_or_register_student(email, full_name)
+
+    #     # If `None` was returned instead of a user instance then
+    #     # respond with a 500 error and the corresponding failure
+    #     # reason
+    #     if user:
+    #         log.info("User created successfully for %s" % email)
+    #     else:
+    #         log.error("User creation failed for %s" % email)
+    #         return HttpResponse(b'Unknown error creating student', content_type=500)
+
+    #     # Enroll the new student into the chosen program
+    #     log.info("Enrolling %s into %s" % (email, program.name))
+    #     program_enrollment_status = program.enroll_student_in_program(email)
+
+    #     # If the enrollment was successful then continue as usual,
+    #     # otherwise issue a 500 response
+    #     if program_enrollment_status:
+    #         log.info("%s successfully enrolled in %s", email, program.name)
+    #         # if DISDCC, enroll student into specialisation sample content too
+    #         if spec_sample_content:
+    #             spec_sample_content.enroll_student_in_program(email)
+    #     else:
+    #         log.error("Unable to enroll %s in %s", email, program.name)
+    #         return HttpResponse(b'Unknown error enrolling student', content_type=500)
+
+    #     # Send the email to the student
+    #     log.info("Sending login credentials to %s", email)
+    #     email_sent_status = program.send_email(user, 0, password)
+
+    #     # Check to see if the email was sent and if theyn't then
+    #     # respond with a 500 error
+    #     if not email_sent_status:
+    #         log.error("Unknown error sending enrollment email to %s", email)
+
+    #     return HttpResponse(b'Ok')
+
+    @method_decorator(login_required)
+    def get(self, request):
+        """
+        This page will contain a form so we just need to provide
+        the name of the template that the view will require, as
+        well as a list of programs programs to populate a
+        dropdown list
+        """
+        programs = Program.objects.all()
+
+        context = {
+            'programs': programs,
+            'djangopid': os.getpid(),
+            'modeflag': {'unenrollment': 'active-section'},
+            'edx_platform_version': getattr(
+                settings, 'EDX_PLATFORM_VERSION_STRING', ''),
+        }
+        return render_to_response(self.template_name, context)
+
+    # @method_decorator(login_required)
+    # def post(self, request):
+    #     email = request.POST.get("student_email", "")
+    #     program_code = request.POST.get("program_code", "")
+    #     full_name = request.POST.get("full_name", "")
+    #     manual_override = True
+
+    #     enrollment_dict = {
+    #         "email": email,
+    #         "program_code": program_code,
+    #         "manual_override": manual_override,
+    #         "full_name": full_name
+    #     }
+
+    #     response = self.enroll_in_program(enrollment_dict)
+    #     print(response.status_code)
+
+    #     programs = Program.objects.all()
+
+    #     context = {
+    #         'programs': programs,
+    #         'djangopid': os.getpid(),
+    #         'modeflag': {'enrollment': 'active-section'},
+    #         'edx_platform_version': getattr(
+    #             settings, 'EDX_PLATFORM_VERSION_STRING', ''),
+    #     }
+    #     return render_to_response(self.template_name, context)
+
+
 class FiveDay(SysadminDashboardView):
 
     @method_decorator(login_required)
