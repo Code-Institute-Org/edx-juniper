@@ -803,10 +803,10 @@ def search_by_email(request):
         programs = None
 
         email = request.POST["email"]
-        student = User.objects.get(email=email)
 
-        if student:
-            programs = student.program_set.all()
-            return JsonResponse({'success': 'Student found', 'student': student, 'programs': programs})
-        else:
+        try:
+            student = User.objects.get(email=email)
+        except:
             return JsonResponse({'error': 'No matching students found'})
+        programs = [program.name for program in student.program_set.all()]
+        return JsonResponse({'success': 'Student found', 'student': student.username, 'programs': programs})
