@@ -691,34 +691,13 @@ class Unenrollment(SysadminDashboardView):
     # def enroll_in_program(cls, input_data):
     #     email = input_data['email']
     #     program_code = input_data['program_code']
-    #     username = email
-    #     manual_override = input_data['manual_override']
-    #     full_name = input_data['full_name']
 
-    #     # get the specialisation sample module if applicable (DISDCC only)
-    #     spec_sample_content = None
-    #     if program_code == "disdcc":
-    #         spec_sample_content = Program.objects.get(program_code="spsc")
-    #     # Get the program using the code
+    #     student = User.objects.get(email=email)
     #     program = get_object_or_404(Program, program_code=program_code)
 
-    #     # Create the user and get their password so they can be
-    #     # emailed to the student later
-    #     log.info("Creating user for %s" % email)
-    #     user, password, _ = get_or_register_student(email, full_name)
-
-    #     # If `None` was returned instead of a user instance then
-    #     # respond with a 500 error and the corresponding failure
-    #     # reason
-    #     if user:
-    #         log.info("User created successfully for %s" % email)
-    #     else:
-    #         log.error("User creation failed for %s" % email)
-    #         return HttpResponse(b'Unknown error creating student', content_type=500)
-
-    #     # Enroll the new student into the chosen program
-    #     log.info("Enrolling %s into %s" % (email, program.name))
-    #     program_enrollment_status = program.enroll_student_in_program(email)
+    #     # Unenroll the student from the selected program
+    #     log.info("Unenrolling %s from %s" % (email, program.name))
+    #     program.enrolled_students.remove(student)
 
     #     # If the enrollment was successful then continue as usual,
     #     # otherwise issue a 500 response
@@ -813,3 +792,21 @@ class FiveDay(SysadminDashboardView):
             'edx_platform_version': getattr(settings, 'EDX_PLATFORM_VERSION_STRING', ''),
         }
         return render_to_response(self.template_name, context)
+
+
+# experimental
+from django.http import JsonResponse
+
+def search_by_email(request):
+    if request.method == "POST":
+        student = None
+        programs = None
+
+        email = request.POST["email"]
+        student = User.objects.get(email=email)
+
+        if student:
+            programs = student.program_set.all()
+            return JsonResponse({'success': 'Student found', 'student': student, 'programs': programs})
+        else:
+            return JsonResponse({'error': 'No matching students found'})
