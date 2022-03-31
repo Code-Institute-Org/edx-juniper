@@ -684,55 +684,37 @@ class Enrollment(SysadminDashboardView):
 
 class Unenrollment(SysadminDashboardView):
     """
-    Unenrollment functionality, parallelling that of Enrollment
+    Unenrollment functionality, parallelling that of Enrollment.
+    NOTE: this will only unenroll the student from the selected 
+    programme (e.g. if a student has been erroneously enrolled into 
+    a programme), it will NOT remove LMS access for the student.
     """
 
-    # @classmethod
-    # def enroll_in_program(cls, input_data):
-    #     email = input_data['email']
-    #     program_code = input_data['program_code']
+    @classmethod
+    def unenroll_from_program(cls, input_data):
+        email = input_data['email']
+        program_name = input_data['program_name']
 
-    #     student = User.objects.get(email=email)
-    #     program = get_object_or_404(Program, program_code=program_code)
+        student = User.objects.get(email=email)
+        program = get_object_or_404(Program, name=program_name)
 
-    #     # Unenroll the student from the selected program
-    #     log.info("Unenrolling %s from %s" % (email, program.name))
-    #     program.enrolled_students.remove(student)
+        # Unenroll the student from the selected program
+        log.info("Unenrolling %s from %s" % (email, program.name))
+        program.enrolled_students.remove(student)
 
-    #     # If the enrollment was successful then continue as usual,
-    #     # otherwise issue a 500 response
-    #     if program_enrollment_status:
-    #         log.info("%s successfully enrolled in %s", email, program.name)
-    #         # if DISDCC, enroll student into specialisation sample content too
-    #         if spec_sample_content:
-    #             spec_sample_content.enroll_student_in_program(email)
-    #     else:
-    #         log.error("Unable to enroll %s in %s", email, program.name)
-    #         return HttpResponse(b'Unknown error enrolling student', content_type=500)
-
-    #     # Send the email to the student
-    #     log.info("Sending login credentials to %s", email)
-    #     email_sent_status = program.send_email(user, 0, password)
-
-    #     # Check to see if the email was sent and if theyn't then
-    #     # respond with a 500 error
-    #     if not email_sent_status:
-    #         log.error("Unknown error sending enrollment email to %s", email)
-
-    #     return HttpResponse(b'Ok')
+        return HttpResponse(b'Ok')
 
     @method_decorator(login_required)
     def get(self, request):
         """
         This page will contain a form so we just need to provide
-        the name of the template that the view will require, as
-        well as a list of programs programs to populate a
-        dropdown list
+        the name of the template that the view will require. The list of programs 
+        for the dropdown will be populated dynamically by JS if/when the student
+        is found by their email.
         """
-        programs = Program.objects.all()
 
         context = {
-            'programs': programs,
+            'message': None,
             'djangopid': os.getpid(),
             'modeflag': {'unenrollment': 'active-section'},
             'edx_platform_version': getattr(
@@ -740,33 +722,34 @@ class Unenrollment(SysadminDashboardView):
         }
         return render_to_response(self.template_name, context)
 
-    # @method_decorator(login_required)
-    # def post(self, request):
-    #     email = request.POST.get("student_email", "")
-    #     program_code = request.POST.get("program_code", "")
-    #     full_name = request.POST.get("full_name", "")
-    #     manual_override = True
+    @method_decorator(login_required)
+    def post(self, request):
+        email = request.POST.get("student_email", "")
+        program_name = request.POST.get("program_name", "")
 
-    #     enrollment_dict = {
-    #         "email": email,
-    #         "program_code": program_code,
-    #         "manual_override": manual_override,
-    #         "full_name": full_name
-    #     }
+        unenrollment_dict = {
+            'email': email,
+            'program_name': program_name,
+        }
 
-    #     response = self.enroll_in_program(enrollment_dict)
-    #     print(response.status_code)
+        message = None
 
-    #     programs = Program.objects.all()
+        response = self.unenroll_from_program(unenrollment_dict)
+        print(response.status_code)
 
-    #     context = {
-    #         'programs': programs,
-    #         'djangopid': os.getpid(),
-    #         'modeflag': {'enrollment': 'active-section'},
-    #         'edx_platform_version': getattr(
-    #             settings, 'EDX_PLATFORM_VERSION_STRING', ''),
-    #     }
-    #     return render_to_response(self.template_name, context)
+        if response.status_code == 200:
+            message = 'Student ' + email + ' successfully unenrolled from ' + program_name
+        else:
+            message = 'Error unenrolling student. Please try again or contact support.'
+
+        context = {
+            'message': message,
+            'djangopid': os.getpid(),
+            'modeflag': {'unenrollment': 'active-section'},
+            'edx_platform_version': getattr(
+                settings, 'EDX_PLATFORM_VERSION_STRING', ''),
+        }
+        return render_to_response(self.template_name, context)
 
 
 class FiveDay(SysadminDashboardView):
