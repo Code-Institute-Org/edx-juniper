@@ -180,6 +180,10 @@ class SpecialisationEnrollment:
                 )
                 continue
 
+            # check if the enrollment is a change of the originally
+            # enrolled specialisation
+            specialization_change = student["Specialisation_Change_Requested_Within_7_Days"]
+
             # Get the user, the user's password, and their enrollment type
             user, password, enrollment_type = get_or_register_student(
                 student['Email'], student['Email'])
@@ -187,14 +191,14 @@ class SpecialisationEnrollment:
             # Get the code of the specialisation to be enrolled in, as well
             # as the current programme to be susequently unenrolled from
             current_program = student["Programme_ID"]
-            specialisation_to_enroll = student['Specialisation_programme_id']
+            specialization_to_enroll = student['Specialisation_programme_id']
 
             try:
                 # Get the Program that contains the Zoho specialisation program code
-                specialisation = Program.objects.get(
+                specialization = Program.objects.get(
                     program_code=specialisation_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception("**Could not find specialisation: %s**", specialisation_to_enroll)
+                log.exception("**Could not find specialisation: %s**", specialization_to_enroll)
                 post_to_zapier(
                     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                     {
@@ -207,15 +211,24 @@ class SpecialisationEnrollment:
                 )
                 continue
 
-            # Enroll the student in the specialisation
-            specialisation_enrollment_status = specialisation.enroll_student_in_program(
+            # If specialisation change, get the previous enrolled specialisation
+            # and unenroll the student from it
+            # TODO: check if this is redundant 
+            if specialization_change:
+                for program in student.program_set.all():
+                    if program.specialization_for:
+                        program.enrolled_students.remove(student)
+
+
+            # Enroll the student in the (new) specialisation
+            specialization_enrollment_status = specialization.enroll_student_in_program(
                 user.email,
                 exclude_courses=EXCLUDED_FROM_ONBOARDING
             )
 
             # if specialisation enrollment successful, unenroll the
-            # student from the previous (CC) programme
-            if specialisation_enrollment_status:
+            # student from the previous programme
+            if specialization_enrollment_status:
                 program_to_unenroll = Program.objects.get(
                     program_code=current_program
                 )
@@ -232,7 +245,7 @@ class SpecialisationEnrollment:
                     )
 
                 # send the enrollment email
-                email_sent_status = specialisation.send_email(
+                email_sent_status = specialization.send_email(
                     user, enrollment_type, password
                 )
 
@@ -244,10 +257,10 @@ class SpecialisationEnrollment:
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
-                program=specialisation,
+                program=specialization,
                 registered=bool(user),
                 enrollment_type=enrollment_type,
-                enrolled=bool(specialisation_enrollment_status),
+                enrolled=bool(specialization_enrollment_status),
                 email_sent=email_sent_status
             )
             enrollment_status.save()

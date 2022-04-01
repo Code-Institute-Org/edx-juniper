@@ -22,22 +22,32 @@ class EnrollmentTestCase(TestCase):
 
         self.common_curriculum = Program.objects.create(
             name="Common Curriculum",
-            program_code="disdcc"
+            program_code="disdcc",
+            specialization_for=""
         )
 
         self.sample_content = Program.objects.create(
             name="Sample Content",
-            program_code="spsc"
+            program_code="spsc",
+            specialization_for=""
         )
 
         self.disd = Program.objects.create(
             name="Diploma in Software Development",
-            program_code="disd"
+            program_code="disd",
+            specialization_for=""
         )
 
         self.specialisation = Program.objects.create(
             name="Advanced Frontend",
-            program_code="spadvfe"
+            program_code="spadvfe",
+            specialization_for="disdcc"
+        )
+
+        self.changed_specialisation = Program.objects.create(
+            name="Predictive Analytics",
+            program_code="sppredan",
+            specialization_for="disdcc"
         )
 
         responses.add(
@@ -280,3 +290,42 @@ class EnrollmentTestCase(TestCase):
         # verify that CC is still enrolled, as well as SPSC
         self.assertTrue(self.common_curriculum in list(self.user.program_set.all()))
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_changed_specialisation_enrollment_crm_correct(self):
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "spadvfe",
+                        "Specialisation_programme_id": "sppredan",
+                        "Specialisation_Change_Requested_Within_7_Days": True,
+                        "Specialization_Enrollment_Date": self.today
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # enroll student into SPADVFE and SPSC first
+        fred = User.objects.get(email=self.user.email)
+
+        self.specialisation.enrolled_students.add(fred)
+        self.sample_content.enrolled_sdudents.add(fred)
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+
+        # then, run enrollment to enroll into new specialisation
+        SpecialisationEnrollment(dryrun=False).enroll()
+
+        # verify that previous specialisation is unenrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        # verify that SPCC is still enrolled
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        # verify that the new specialisation is enrolled
+        self.assertTrue(self.changed_specialisation in list(self.user.program_set.all()))
