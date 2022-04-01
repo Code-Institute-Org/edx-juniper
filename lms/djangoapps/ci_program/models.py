@@ -59,6 +59,7 @@ class Program(TimeStampedModel):
     image = models.URLField(null=True, blank=True)
     video = models.URLField(null=True, blank=True)
     program_code = models.CharField(max_length=50, null=True, blank=True)
+    specialization_for = models.CharField(max_length=50, null=True, blank=True)
     enrolled_students = models.ManyToManyField(
         User, blank=True)
     # This is used for getting the path to the enrollment email files
