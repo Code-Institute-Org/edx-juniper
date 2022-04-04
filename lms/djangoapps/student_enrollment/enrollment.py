@@ -218,7 +218,26 @@ class SpecialisationEnrollment:
             if specialization_change:
                 for program in user.program_set.all():
                     if program.specialization_for:
-                        program.enrolled_students.remove(user)
+                        # raise enrollment excaption email if student is already
+                        # enrolled into the selected specialisation
+                        if program == specialization:
+                            log.exception(
+                                "**Student %s already enrolled in this specialization: %s**",
+                                student['Email'], specialization_to_enroll
+                            )
+                            post_to_zapier(
+                                settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Specialisation_programme_id',
+                                    'unexpected_value': student['Specialisation_programme_id'],
+                                    'attempted_action': 'enroll specialisation',
+                                    'message': ('Specialisation change field checked, but student'
+                                                + 'is already enrolled into the same specialisation')
+                                }
+                            )
+                        else:
+                            program.enrolled_students.remove(user)
 
             # Enroll the student in the (new) specialisation
             specialization_enrollment_status = specialization.enroll_student_in_program(
