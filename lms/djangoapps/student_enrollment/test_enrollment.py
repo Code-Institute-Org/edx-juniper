@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
-from unittest.mock import patch 
+from unittest.mock import patch
 from datetime import date
 import responses
 
@@ -173,7 +173,8 @@ class EnrollmentTestCase(TestCase):
                         "Email": self.user.email,
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialization_Enrollment_Date": self.today
+                        "Specialization_Enrollment_Date": self.today,
+                        "Specialisation_Change_Requested_Within_7_Days": False
                     },
                 ],
                 "info": {"more_records": False}
@@ -205,7 +206,8 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialization_Enrollment_Date": "2100-01-01"
+                        "Specialization_Enrollment_Date": "2100-01-01",
+                        "Specialisation_Change_Requested_Within_7_Days": False,
                     },
                 ],
                 "info": {"more_records": False}
@@ -236,7 +238,8 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
-                        "Specialization_Enrollment_Date": "1900-01-01"
+                        "Specialization_Enrollment_Date": "1900-01-01",
+                        "Specialisation_Change_Requested_Within_7_Days": False,
                     },
                 ],
                 "info": {"more_records": False}
@@ -257,7 +260,7 @@ class EnrollmentTestCase(TestCase):
         self.assertTrue(self.specialisation in list(self.user.program_set.all()))
 
     @responses.activate
-    def test_specialisation_enrollment_non_existent_specialisation(self):    
+    def test_specialisation_enrollment_non_existent_specialisation(self):
         # set student non-existent Specialisation_programme_id
         responses.add(
             responses.POST, settings.ZOHO_COQL_ENDPOINT,
@@ -269,7 +272,8 @@ class EnrollmentTestCase(TestCase):
                         "Lead_Status": "Enroll",
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "xxxxxxx",
-                        "Specialization_Enrollment_Date": self.today
+                        "Specialization_Enrollment_Date": self.today,
+                        "Specialisation_Change_Requested_Within_7_Days": False,
                     },
                 ],
                 "info": {"more_records": False}
@@ -313,10 +317,9 @@ class EnrollmentTestCase(TestCase):
             status=200)
 
         # enroll student into SPADVFE and SPSC first
-        fred = User.objects.get(email=self.user.email)
+        self.specialisation.enroll_student_in_program(self.user.email)
+        self.sample_content.enroll_student_in_program(self.user.email)
 
-        self.specialisation.enrolled_students.add(fred)
-        self.sample_content.enrolled_sdudents.add(fred)
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
         self.assertTrue(self.specialisation in list(self.user.program_set.all()))
 

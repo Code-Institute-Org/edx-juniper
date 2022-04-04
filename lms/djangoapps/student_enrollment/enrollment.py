@@ -196,7 +196,7 @@ class SpecialisationEnrollment:
             try:
                 # Get the Program that contains the Zoho specialisation program code
                 specialization = Program.objects.get(
-                    program_code=specialisation_to_enroll)
+                    program_code=specialization_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("**Could not find specialisation: %s**", specialization_to_enroll)
                 post_to_zapier(
@@ -213,12 +213,11 @@ class SpecialisationEnrollment:
 
             # If specialisation change, get the previous enrolled specialisation
             # and unenroll the student from it
-            # TODO: check if this is redundant 
+            # TODO: check if this is redundant
             if specialization_change:
-                for program in student.program_set.all():
+                for program in user.program_set.all():
                     if program.specialization_for:
-                        program.enrolled_students.remove(student)
-
+                        program.enrolled_students.remove(user)
 
             # Enroll the student in the (new) specialisation
             specialization_enrollment_status = specialization.enroll_student_in_program(
