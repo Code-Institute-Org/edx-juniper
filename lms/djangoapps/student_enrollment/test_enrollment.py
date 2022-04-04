@@ -332,3 +332,42 @@ class EnrollmentTestCase(TestCase):
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
         # verify that the new specialisation is enrolled
         self.assertTrue(self.changed_specialisation in list(self.user.program_set.all()))
+
+
+    @responses.activate
+    def test_changed_specialisation_enrollment_crm_programme_id_has_disdcc(self):
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "disdcc",
+                        "Specialisation_programme_id": "sppredan",
+                        "Specialisation_Change_Requested_Within_7_Days": True,
+                        "Specialization_Enrollment_Date": self.today
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # enroll student into SPADVFE and SPSC first
+        self.specialisation.enroll_student_in_program(self.user.email)
+        self.sample_content.enroll_student_in_program(self.user.email)
+
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+
+        # then, run enrollment to enroll into new specialisation
+        SpecialisationEnrollment(dryrun=False).enroll()
+
+        # verify that previous specialisation is unenrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        # verify that SPCC is still enrolled
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        # verify that the new specialisation is enrolled
+        self.assertTrue(self.changed_specialisation in list(self.user.program_set.all()))

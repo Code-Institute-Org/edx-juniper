@@ -213,7 +213,8 @@ class SpecialisationEnrollment:
 
             # If specialisation change, get the previous enrolled specialisation
             # and unenroll the student from it
-            # TODO: check if this is redundant
+            # NOTE: this is a fail-safe process in case the CRM
+            # Programme_ID still contains CC program code
             if specialization_change:
                 for program in user.program_set.all():
                     if program.specialization_for:
