@@ -238,7 +238,6 @@ class SpecialisationEnrollment:
             #    the new specialisation code hasn't been updated
             #
             # If specialisation change, get the previous enrolled specialisation
-            # and unenroll the student from it
             if specialization_change:
                 for program in user.program_set.all():
                     if program.specialization_for:
@@ -257,13 +256,14 @@ class SpecialisationEnrollment:
                                     'unexpected_value': student['Specialisation_programme_id'],
                                     'attempted_action': 'enroll specialisation',
                                     'message': ('Specialisation change field checked, but student'
-                                                + 'is already enrolled into the same specialisation')
+                                                + ' is already enrolled into the same specialisation')
                                 }
                             )
                             # return in order to prevent reenrollment
                             return
+                        # otherwise, set current specialisation as current program (to unenroll)
                         else:
-                            program.enrolled_students.remove(user)
+                            current_program = program.program_code
 
             # Enroll the student in the (new) specialisation
             specialization_enrollment_status = specialization.enroll_student_in_program(
