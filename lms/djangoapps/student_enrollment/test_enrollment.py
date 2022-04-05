@@ -23,19 +23,16 @@ class EnrollmentTestCase(TestCase):
         self.common_curriculum = Program.objects.create(
             name="Common Curriculum",
             program_code="disdcc",
-            specialization_for=""
         )
 
         self.sample_content = Program.objects.create(
             name="Sample Content",
             program_code="spsc",
-            specialization_for=""
         )
 
         self.disd = Program.objects.create(
             name="Diploma in Software Development",
             program_code="disd",
-            specialization_for=""
         )
 
         self.specialisation = Program.objects.create(
@@ -84,7 +81,7 @@ class EnrollmentTestCase(TestCase):
             },
             status=200)
 
-        # check that enrolled programmelist is empty initially
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         # run enrollment task
@@ -115,7 +112,7 @@ class EnrollmentTestCase(TestCase):
             },
             status=200)
 
-        # check that enrolled programmelist is empty initially
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         # run enrollment task
@@ -146,7 +143,7 @@ class EnrollmentTestCase(TestCase):
             },
             status=200)
 
-        # check that enrolled programmelist is empty initially
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         # verify that running Enrollment will raise an error message
@@ -162,6 +159,7 @@ class EnrollmentTestCase(TestCase):
 
     @responses.activate
     def test_specialisation_enrollment(self):
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         responses.add(
@@ -261,7 +259,7 @@ class EnrollmentTestCase(TestCase):
 
     @responses.activate
     def test_specialisation_enrollment_non_existent_specialisation(self):
-        # set student non-existent Specialisation_programme_id
+        # set student non-existent Specialisation_programme_id (xxxxxxx)
         responses.add(
             responses.POST, settings.ZOHO_COQL_ENDPOINT,
             json={
@@ -297,6 +295,7 @@ class EnrollmentTestCase(TestCase):
 
     @responses.activate
     def test_changed_specialisation_enrollment_crm_correct(self):
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         responses.add(
@@ -333,9 +332,9 @@ class EnrollmentTestCase(TestCase):
         # verify that the new specialisation is enrolled
         self.assertTrue(self.changed_specialisation in list(self.user.program_set.all()))
 
-
     @responses.activate
     def test_changed_specialisation_enrollment_crm_programme_id_has_disdcc(self):
+        # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
 
         responses.add(
@@ -371,3 +370,91 @@ class EnrollmentTestCase(TestCase):
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
         # verify that the new specialisation is enrolled
         self.assertTrue(self.changed_specialisation in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_changed_specialisation_enrollment_if_same_specialisation(self):
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "spadvfe",
+                        "Specialisation_programme_id": "spadvfe",
+                        "Specialisation_Change_Requested_Within_7_Days": True,
+                        "Specialization_Enrollment_Date": self.today
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # enroll student into SPADVFE and SPSC
+        self.specialisation.enroll_student_in_program(self.user.email)
+        self.sample_content.enroll_student_in_program(self.user.email)
+
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+
+        # verify that running SpecialisationEnrollment raises an error message
+        # as we are attempting to re-enroll the same specialisation
+        with self.assertLogs('student_enrollment.enrollment', level="INFO") as cm:
+            SpecialisationEnrollment(dryrun=False).enroll()
+        print(cm.output)
+
+        error_text = "**Student fred@fred.com already enrolled in this specialization: spadvfe**"
+
+        self.assertTrue(any(error_text in msg for msg in cm.output))
+
+        # verify that previous specialisation is still enrolled
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+        # verify that SPSC is still enrolled
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_changed_specialisation_enrollment_if_same_specialisation_and_crm_programme_id_has_disdcc(self):
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "disdcc",
+                        "Specialisation_programme_id": "spadvfe",
+                        "Specialisation_Change_Requested_Within_7_Days": True,
+                        "Specialization_Enrollment_Date": self.today
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # enroll student into SPADVFE and SPSC
+        self.specialisation.enroll_student_in_program(self.user.email)
+        self.sample_content.enroll_student_in_program(self.user.email)
+
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+
+        # verify that running SpecialisationEnrollment raises an error message
+        # as we are attempting to re-enroll the same specialisation
+        with self.assertLogs('student_enrollment.enrollment', level="INFO") as cm:
+            SpecialisationEnrollment(dryrun=False).enroll()
+        print(cm.output)
+
+        error_text = "**Student fred@fred.com already enrolled in this specialization: spadvfe**"
+
+        self.assertTrue(any(error_text in msg for msg in cm.output))
+
+        # verify that previous specialisation is still enrolled
+        self.assertTrue(self.specialisation in list(self.user.program_set.all()))
+        # verify that SPSC is still enrolled
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))

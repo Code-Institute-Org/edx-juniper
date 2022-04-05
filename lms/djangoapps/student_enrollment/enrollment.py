@@ -189,14 +189,35 @@ class SpecialisationEnrollment:
                 student['Email'], student['Email'])
 
             # Get the code of the specialisation to be enrolled in, as well
-            # as the current programme to be susequently unenrolled from
+            # as the current programme to be subsequently unenrolled from
             current_program = student["Programme_ID"]
             specialization_to_enroll = student['Specialisation_programme_id']
 
+            # if new specialisation code matches the current specialisation,
+            # trigger exception email and stop further process
+            if current_program == specialization_to_enroll:
+                log.exception(
+                    "**Student %s already enrolled in this specialization: %s**",
+                    student['Email'], specialization_to_enroll
+                )
+                post_to_zapier(
+                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                    {
+                        'email': student['Email'],
+                        'crm_field': 'Specialisation_programme_id',
+                        'unexpected_value': student['Specialisation_programme_id'],
+                        'attempted_action': 'enroll specialisation',
+                        'message': ('Specialisation change field checked, but student'
+                                    + 'is already enrolled into the same specialisation')
+                    }
+                )
+                # return in order to prevent reenrollment
+                return
+
+            # otherwise continue with enrollment
             try:
                 # Get the Program that contains the Zoho specialisation program code
-                specialization = Program.objects.get(
-                    program_code=specialization_to_enroll)
+                specialization = Program.objects.get(program_code=specialization_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception("**Could not find specialisation: %s**", specialization_to_enroll)
                 post_to_zapier(
@@ -211,15 +232,18 @@ class SpecialisationEnrollment:
                 )
                 continue
 
+            # NOTE: this is a defensive feature in case:
+            # a) Programme_ID still contains CC program code, or
+            # b) the specialistion change checkbox was checked but
+            #    the new specialisation code hasn't been updated
+            #
             # If specialisation change, get the previous enrolled specialisation
             # and unenroll the student from it
-            # NOTE: this is a fail-safe process in case the CRM
-            # Programme_ID still contains CC program code
             if specialization_change:
                 for program in user.program_set.all():
                     if program.specialization_for:
-                        # raise enrollment excaption email if student is already
-                        # enrolled into the selected specialisation
+                        # if already enrolled into same specialisation,
+                        # trigger exception email and stop further process
                         if program == specialization:
                             log.exception(
                                 "**Student %s already enrolled in this specialization: %s**",
@@ -236,6 +260,8 @@ class SpecialisationEnrollment:
                                                 + 'is already enrolled into the same specialisation')
                                 }
                             )
+                            # return in order to prevent reenrollment
+                            return
                         else:
                             program.enrolled_students.remove(user)
 
