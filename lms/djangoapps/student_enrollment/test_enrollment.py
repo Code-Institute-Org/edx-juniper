@@ -22,17 +22,17 @@ class EnrollmentTestCase(TestCase):
 
         self.common_curriculum = Program.objects.create(
             name="Common Curriculum",
-            program_code="disdcc",
+            program_code="disdcc"
         )
 
         self.sample_content = Program.objects.create(
             name="Sample Content",
-            program_code="spsc",
+            program_code="spsc"
         )
 
         self.disd = Program.objects.create(
             name="Diploma in Software Development",
-            program_code="disd",
+            program_code="disd"
         )
 
         self.specialisation = Program.objects.create(
@@ -74,7 +74,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "disdcc",
+                        "Programme_ID": "disdcc"
                     },
                 ],
                 "info": {"more_records": False}
@@ -105,7 +105,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "disd",
+                        "Programme_ID": "disd"
                     },
                 ],
                 "info": {"more_records": False}
@@ -136,7 +136,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "dddd",
+                        "Programme_ID": "dddd"
                     },
                 ],
                 "info": {"more_records": False}
@@ -207,7 +207,7 @@ class EnrollmentTestCase(TestCase):
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
                         "Specialization_Enrollment_Date": "2100-01-01",
-                        "Specialisation_Change_Requested_Within_7_Days": False,
+                        "Specialisation_Change_Requested_Within_7_Days": False
                     },
                 ],
                 "info": {"more_records": False}
@@ -241,7 +241,7 @@ class EnrollmentTestCase(TestCase):
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "spadvfe",
                         "Specialization_Enrollment_Date": "1900-01-01",
-                        "Specialisation_Change_Requested_Within_7_Days": False,
+                        "Specialisation_Change_Requested_Within_7_Days": False
                     },
                 ],
                 "info": {"more_records": False}
@@ -277,7 +277,7 @@ class EnrollmentTestCase(TestCase):
                         "Programme_ID": "disdcc",
                         "Specialisation_programme_id": "xxxxxxx",
                         "Specialization_Enrollment_Date": self.today,
-                        "Specialisation_Change_Requested_Within_7_Days": False,
+                        "Specialisation_Change_Requested_Within_7_Days": False
                     },
                 ],
                 "info": {"more_records": False}
@@ -410,7 +410,6 @@ class EnrollmentTestCase(TestCase):
         # as we are attempting to re-enroll the same specialisation
         with self.assertLogs('student_enrollment.enrollment', level="INFO") as cm:
             SpecialisationEnrollment(dryrun=False).enroll()
-        print(cm.output)
 
         error_text = "**Student fred@fred.com already enrolled in this specialization: spadvfe**"
 
@@ -454,7 +453,6 @@ class EnrollmentTestCase(TestCase):
         # as we are attempting to re-enroll the same specialisation
         with self.assertLogs('student_enrollment.enrollment', level="INFO") as cm:
             SpecialisationEnrollment(dryrun=False).enroll()
-        print(cm.output)
 
         error_text = "**Student fred@fred.com already enrolled in this specialization: spadvfe**"
 

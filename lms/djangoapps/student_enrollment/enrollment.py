@@ -208,7 +208,7 @@ class SpecialisationEnrollment:
                         'unexpected_value': student['Specialisation_programme_id'],
                         'attempted_action': 'enroll specialisation',
                         'message': ('Specialisation change field checked, but student'
-                                    + 'is already enrolled into the same specialisation')
+                                    + ' is already enrolled into the same specialisation')
                     }
                 )
                 # return in order to prevent reenrollment
