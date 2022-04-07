@@ -102,5 +102,9 @@ class Unenrollment:
             )
             enrollments.update(is_active=False)
 
+            # remove the student from the program completely -
+            # this to remove the empty program displayed in the LMS
+            program.enrolled_students.remove(user)
+
             # update the student record on the CRM
             update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
