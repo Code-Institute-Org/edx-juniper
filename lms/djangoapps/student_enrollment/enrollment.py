@@ -180,21 +180,46 @@ class SpecialisationEnrollment:
                 )
                 continue
 
+            # check if the enrollment is a change of the originally
+            # enrolled specialisation
+            specialization_change = student["Specialisation_Change_Requested_Within_7_Days"]
+
             # Get the user, the user's password, and their enrollment type
             user, password, enrollment_type = get_or_register_student(
                 student['Email'], student['Email'])
 
             # Get the code of the specialisation to be enrolled in, as well
-            # as the current programme to be susequently unenrolled from
+            # as the current programme to be subsequently unenrolled from
             current_program = student["Programme_ID"]
-            specialisation_to_enroll = student['Specialisation_programme_id']
+            specialization_to_enroll = student['Specialisation_programme_id']
 
+            # if new specialisation code matches the current specialisation,
+            # trigger exception email and stop further process
+            if current_program == specialization_to_enroll:
+                log.exception(
+                    "**Student %s already enrolled in this specialization: %s**",
+                    student['Email'], specialization_to_enroll
+                )
+                post_to_zapier(
+                    settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                    {
+                        'email': student['Email'],
+                        'crm_field': 'Specialisation_programme_id',
+                        'unexpected_value': student['Specialisation_programme_id'],
+                        'attempted_action': 'enroll specialisation',
+                        'message': ('Specialisation change field checked, but student'
+                                    + ' is already enrolled into the same specialisation')
+                    }
+                )
+                # return in order to prevent reenrollment
+                return
+
+            # otherwise continue with enrollment
             try:
                 # Get the Program that contains the Zoho specialisation program code
-                specialisation = Program.objects.get(
-                    program_code=specialisation_to_enroll)
+                specialization = Program.objects.get(program_code=specialization_to_enroll)
             except ObjectDoesNotExist as does_not_exist_exception:
-                log.exception("**Could not find specialisation: %s**", specialisation_to_enroll)
+                log.exception("**Could not find specialisation: %s**", specialization_to_enroll)
                 post_to_zapier(
                     settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
                     {
@@ -207,15 +232,48 @@ class SpecialisationEnrollment:
                 )
                 continue
 
-            # Enroll the student in the specialisation
-            specialisation_enrollment_status = specialisation.enroll_student_in_program(
+            # NOTE: this is a defensive feature in case:
+            # a) Programme_ID still contains CC program code, or
+            # b) the specialistion change checkbox was checked but
+            #    the new specialisation code hasn't been updated
+            #
+            # If specialisation change, get the previous enrolled specialisation
+            if specialization_change:
+                for program in user.program_set.all():
+                    if program.specialization_for:
+                        # if already enrolled into same specialisation,
+                        # trigger exception email and stop further process
+                        if program == specialization:
+                            log.exception(
+                                "**Student %s already enrolled in this specialization: %s**",
+                                student['Email'], specialization_to_enroll
+                            )
+                            post_to_zapier(
+                                settings.ZAPIER_ENROLLMENT_EXCEPTION_URL,
+                                {
+                                    'email': student['Email'],
+                                    'crm_field': 'Specialisation_programme_id',
+                                    'unexpected_value': student['Specialisation_programme_id'],
+                                    'attempted_action': 'enroll specialisation',
+                                    'message': ('Specialisation change field checked, but student'
+                                                + ' is already enrolled into the same specialisation')
+                                }
+                            )
+                            # return in order to prevent reenrollment
+                            return
+                        # otherwise, set current specialisation as current program (to unenroll)
+                        else:
+                            current_program = program.program_code
+
+            # Enroll the student in the (new) specialisation
+            specialization_enrollment_status = specialization.enroll_student_in_program(
                 user.email,
                 exclude_courses=EXCLUDED_FROM_ONBOARDING
             )
 
             # if specialisation enrollment successful, unenroll the
-            # student from the previous (CC) programme
-            if specialisation_enrollment_status:
+            # student from the previous programme
+            if specialization_enrollment_status:
                 program_to_unenroll = Program.objects.get(
                     program_code=current_program
                 )
@@ -232,7 +290,7 @@ class SpecialisationEnrollment:
                     )
 
                 # send the enrollment email
-                email_sent_status = specialisation.send_email(
+                email_sent_status = specialization.send_email(
                     user, enrollment_type, password
                 )
 
@@ -244,10 +302,10 @@ class SpecialisationEnrollment:
 
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
-                program=specialisation,
+                program=specialization,
                 registered=bool(user),
                 enrollment_type=enrollment_type,
-                enrolled=bool(specialisation_enrollment_status),
+                enrolled=bool(specialization_enrollment_status),
                 email_sent=email_sent_status
             )
             enrollment_status.save()
