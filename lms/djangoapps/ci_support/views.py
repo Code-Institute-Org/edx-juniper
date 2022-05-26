@@ -65,7 +65,7 @@ def slack(request, program_slug, student_id=None):
     """ Display the slack page. """
     
     template_names = {
-        'fivedaycodingchallenge': 'slack_fivedaycodingchallenge',
+        'fiveday': 'slack_fivedaycodingchallenge',
         'default': 'slack'
     }
 
