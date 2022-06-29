@@ -36,16 +36,16 @@ def get_student_deadlines(student_email):
 
     student_record = get_student_record_from_zoho(student_email)
     if student_record:
-        student_deadlines = get_student_deadlines_from_zoho_data(student_record)
+        student_deadlines = get_student_deadlines_from_dataproduct(student_record)
         cache.set(cache_key, student_deadlines)
     else:
         student_deadlines = []
     return student_deadlines
 
 
-def get_student_deadlines_from_zoho_data(zoho_record):
+def get_student_deadlines_from_zoho(student_projects):
     student_data = {}
-    for key, record in zoho_record.items():
+    for key, record in student_projects.items():
         project_key, record_id = endswith(key)
         if not project_key:
             continue
@@ -60,6 +60,34 @@ def get_student_deadlines_from_zoho_data(zoho_record):
 
     sorted_student_data = sorted(
         student_data.values(),
+        key=lambda k: (k.get('submission_deadline') or ''))
+
+    for index, data in enumerate(sorted_student_data, start=1):
+        data['name'] = "Project %s" % index
+        data['overdue'] = is_overdue(data)
+        data['next_project'] = False
+
+    for data in sorted_student_data:
+        if not data.get('submission_deadline'):
+            continue
+
+        project_deadline = datetime.strptime(data['submission_deadline'], '%Y-%m-%d')
+        if project_deadline > datetime.now() and not data['latest_submission']:
+            data['next_project'] = True
+            break
+
+    return sorted_student_data
+
+
+# New function to read project data from dataproduct
+def get_student_deadlines_from_dataproduct(student_projects):
+    # Filtering projects that need completion with a submission deadline
+    student_data = [
+        project for project in student_projects if project['needs_completion'] and project['submission_deadline']
+        ]
+    # Filter Blank submission deadlines
+    sorted_student_data = sorted(
+        student_data,
         key=lambda k: (k.get('submission_deadline') or ''))
 
     for index, data in enumerate(sorted_student_data, start=1):

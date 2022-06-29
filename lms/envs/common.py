@@ -56,6 +56,8 @@ from xmodule.modulestore.modulestore_settings import update_module_store_setting
 from xmodule.modulestore.edit_info import EditInfoMixin
 from lms.djangoapps.lms_xblock.mixin import LmsBlockMixin
 
+from pymongo import MongoClient
+
 ################################### FEATURES ###################################
 # The display name of the platform to be used in templates/emails/etc.
 PLATFORM_NAME = _('Your Platform Name Here')
@@ -3956,3 +3958,7 @@ AMOS_PASSWORD = os.environ.get('AMOS_PASSWORD')
 AMOS_HOST = os.environ.get('AMOS_HOST')
 AMOS_PORT = int(os.environ.get('AMOS_PORT', 3306))
 AMOS_DB = os.environ.get('AMOS_DB')
+### MONGO DATABASE
+LRS_MONGO_HOST = os.environ.get('LRS_MONGO_HOST', 'mongodb://localhost:27017')
+LRS_MONGO_CLIENT = MongoClient(host=LRS_MONGO_HOST, readPreference='secondaryPreferred')
+LRS_MONGO_DB = LRS_MONGO_CLIENT[os.environ.get('LRS_MONGO_DB', 'dataproduct')]
