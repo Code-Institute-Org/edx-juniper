@@ -19,7 +19,7 @@ def is_overdue(data):
     now = datetime.now()
     project_deadline = datetime.strptime(submission_deadline, '%Y-%m-%d')
     project_deadline = project_deadline + timedelta(hours=12)
-    return now > project_deadline and not data['latest_submission']
+    return now > project_deadline and not data['submission']
 
 
 def endswith(key):
@@ -88,20 +88,18 @@ def get_student_deadlines_from_dataproduct(student_projects):
     # Filter Blank submission deadlines
     sorted_student_data = sorted(
         student_data,
-        key=lambda k: (k.get('submission_deadline') or ''))
+        key=lambda k: (k['submission_deadline']))
 
-    for index, data in enumerate(sorted_student_data, start=1):
-        data['name'] = "Project %s" % index
-        data['overdue'] = is_overdue(data)
-        data['next_project'] = False
-
-    for data in sorted_student_data:
-        if not data.get('submission_deadline'):
-            continue
-
-        project_deadline = datetime.strptime(data['submission_deadline'], '%Y-%m-%d')
-        if project_deadline > datetime.now() and not data['latest_submission']:
-            data['next_project'] = True
+    for project in sorted_student_data:
+        keys_to_remove = ['needs_completion', 'submitted_14d', 'submitted_28d']
+        [project.pop(key) for key in keys_to_remove]
+        project["overdue"] = is_overdue(project)
+        project_deadline = datetime.strptime(project['submission_deadline'], '%Y-%m-%d')
+        if project_deadline > datetime.now() and not project['submission']:
+            project['next_project'] = True
+            project.pop("submission")
             break
+
+        project.pop("submission")
 
     return sorted_student_data
