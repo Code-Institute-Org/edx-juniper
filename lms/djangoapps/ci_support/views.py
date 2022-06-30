@@ -64,13 +64,6 @@ def mentor(request, program_slug, student_id=None):
 def slack(request, program_slug, student_id=None):
     """ Display the slack page. """
     
-    template_names = {
-        'fivedaycodingchallenge': 'slack_fivedaycodingchallenge',
-        'default': 'slack'
-    }
-
-    template_name = template_names.get(program_slug, template_names['default'])
-    
     return render_to_response(
         'ci_support/support/slack.html',
         {'program_slug': program_slug, 'student': request.user})
