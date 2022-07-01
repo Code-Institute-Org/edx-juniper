@@ -1072,3 +1072,9 @@ MONGO_CLIENT = pymongo.MongoClient(host=host, port=port, username=username,
 MONGO_DB = MONGO_CLIENT[db]
 
 CELERY_DEFAULT_QUEUE = AUTH_TOKENS.get("CELERY_DEFAULT_QUEUE")
+
+### MONGO DATABASE
+LRS_MONGO_HOST = AUTH_TOKENS.get('LRS_MONGO_HOST', 'mongodb://localhost:27017')
+LRS_MONGO_CLIENT = MongoClient(host=LRS_MONGO_HOST, readPreference='secondaryPreferred')
+LRS_MONGO_DB = LRS_MONGO_CLIENT[AUTH_TOKENS.get('LRS_MONGO_DB', 'dataproduct')]
+LMS_STUDENT_PROJECT_AND_PROGRESS_DATA = AUTH_TOKENS.get('LMS_STUDENT_PROJECT_AND_PROGRESS_DATA', 'lms_student_project_and_progress_data')
