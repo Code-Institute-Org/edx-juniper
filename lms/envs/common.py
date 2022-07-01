@@ -3962,3 +3962,4 @@ AMOS_DB = os.environ.get('AMOS_DB')
 LRS_MONGO_HOST = os.environ.get('LRS_MONGO_HOST', 'mongodb://localhost:27017')
 LRS_MONGO_CLIENT = MongoClient(host=LRS_MONGO_HOST, readPreference='secondaryPreferred')
 LRS_MONGO_DB = LRS_MONGO_CLIENT[os.environ.get('LRS_MONGO_DB', 'dataproduct')]
+LMS_STUDENT_PROJECT_AND_PROGRESS_DATA = os.environ.get('LMS_STUDENT_PROJECT_AND_PROGRESS_DATA', 'lms_student_project_and_progress_data')
