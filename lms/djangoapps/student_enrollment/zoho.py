@@ -7,14 +7,14 @@ CLIENT_ID = settings.ZOHO_CLIENT_ID
 CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
-COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT 
+COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 
 # COQL Queries
-# LMS_Version can be removed from where clause when Ginkgo is decommissioned 
+# LMS_Version can be removed from where clause when Ginkgo is decommissioned
 # Target decommission date: End of Q1 2020
 
 ENROLL_QUERY = """
-SELECT Email, Full_Name, Programme_ID
+SELECT Email, Full_Name, Programme_ID, Student_Source
 FROM Contacts
 WHERE ((
         (Lead_Status = 'Enroll') AND (Programme_ID is not null)
