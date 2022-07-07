@@ -28,6 +28,7 @@ This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
+PROGRAMS_WITH_LEARNING_SUPPORTS = settings.LEARNING_SUPPORTS_PROGRAMME_ELIGIBLE
 today = date.today().isoformat()
 
 
@@ -64,9 +65,18 @@ class Enrollment:
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
             spec_sample_content = None
+            learning_supports_program = None
 
             if program_to_enroll_in == "disdcc":
                 spec_sample_content = Program.objects.get(program_code="spsc")
+
+            # check if student source is eligible for Learning Supports programme
+            if program_to_enroll_in in PROGRAMS_WITH_LEARNING_SUPPORTS.keys():
+                student_source = student["Student_Source"]
+                if student_source in PROGRAMS_WITH_LEARNING_SUPPORTS[program_to_enroll_in]["eligible_student_sources"]:
+                    learning_supports_program = Program.objects.get(
+                        program_code=PROGRAMS_WITH_LEARNING_SUPPORTS[program_to_enroll_in]["supports_program_code"]
+                    )
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -92,10 +102,13 @@ class Enrollment:
                 exclude_courses=EXCLUDED_FROM_ONBOARDING
             )
 
-            # If DISDCC enrollment successful, enroll the student into
-            # specialisation sample content module
-            if spec_sample_content and program_enrollment_status:
-                spec_sample_content.enroll_student_in_program(user.email)
+            # If main enrollment successful, enroll the student into
+            # additional program (if eligible)
+            if program_enrollment_status:
+                if spec_sample_content:
+                    spec_sample_content.enroll_student_in_program(user.email)
+                if learning_supports_program:
+                    learning_supports_program.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(
