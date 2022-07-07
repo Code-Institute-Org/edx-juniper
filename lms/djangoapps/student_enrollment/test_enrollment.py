@@ -509,3 +509,35 @@ class EnrollmentTestCase(TestCase):
         # verify that no specialisation, or another program (DISD), has been enrolled
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_enrollment_diwad220407_and_not_eligible_for_learning_supports(self):
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",
+                        "Student_Source": "Ineligible College 5" # not eligible for DIWADLS
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWAD220407 has been enrolled, but DIWADLS has not
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, or another program (DISD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
