@@ -38,7 +38,7 @@
     "jquery.scrollto": "2.1.2",
     "js-cookie": "2.2.0",
     "lodash": "4.17.19",
-    "moment": "2.19.3",
+    "moment": "2.29.4",
     "moment-timezone": "0.5.14",
     "node-sass": "^5.0.0",
     "picturefill": "3.0.2",
@@ -68,7 +68,10 @@
     "webpack-cli": "3.3.10",
     "whatwg-fetch": "2.0.3",
     "which-country": "1.0.0",
-    "minimist": ">=1.2.6"
+    "minimist": ">=1.2.6",
+    "handleebars": ">=4.7.7",
+    "drf-jwt": ">=1.15.1",
+    "lodash.template": ">=4.5.0"
   },
   "devDependencies": {
     "@edx/mockprock": "^1.0.1",
