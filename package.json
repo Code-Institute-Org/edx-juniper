@@ -67,7 +67,8 @@
     "webpack-merge": "4.1.1",
     "webpack-cli": "3.3.10",
     "whatwg-fetch": "2.0.3",
-    "which-country": "1.0.0"
+    "which-country": "1.0.0",
+    "minimist": ">=1.2.6"
   },
   "devDependencies": {
     "@edx/mockprock": "^1.0.1",
