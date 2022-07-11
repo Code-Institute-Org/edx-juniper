@@ -69,7 +69,7 @@
     "whatwg-fetch": "2.0.3",
     "which-country": "1.0.0",
     "minimist": ">=1.2.6",
-    "handleebars": ">=4.7.7",
+    "handlebars": ">=4.7.7",
     "drf-jwt": ">=1.15.1",
     "lodash.template": ">=4.5.0"
   },
