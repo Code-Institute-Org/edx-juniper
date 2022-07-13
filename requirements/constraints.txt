@@ -11,7 +11,7 @@
 # We're not ready for Celery 4 yet, but 3.1.25+ are forward-compatible with it.
 # As of this writing, there's a 3.1.26.post2 with a very important bugfix
 # (although it is advertised in the changelog as 3.1.26.)
-celery>=3.1.25,<4.0.0
+celery-3==3.1.26-4
 
 # Stay on the latest LTS release of Django
 Django<2.3
@@ -71,7 +71,7 @@ kiwisolver<1.2.0
 
 # 4.5.1 introduced a bug when used together with xmlsec: https://bugs.launchpad.net/lxml/+bug/1880251
 # Tests passed, but hit a problem in stage
-lxml<4.5.1
+lxml>=4.9.1
 
 # Convert text markup to HTML; used in capa problems, forums, and course wikis; pin Markdown version as tests failed for its upgrade to the latest release
 Markdown==2.6.11
