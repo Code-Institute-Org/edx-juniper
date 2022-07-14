@@ -37,7 +37,7 @@
     "jquery-migrate": "1.4.1",
     "jquery.scrollto": "2.1.2",
     "js-cookie": "2.2.0",
-    "lodash": "4.17.19",
+    "lodash": ">=4.17.21",
     "moment": "2.29.4",
     "moment-timezone": "0.5.14",
     "node-sass": "^5.0.0",
@@ -81,7 +81,6 @@
     "glob-parent": ">=5.1.2",
     "trim-newlines": ">=3.0.1",
     "trim": ">=0.0.3",
-    "lodash": ">=4.17.21",
     "ua-parser-js": ">=0.7.24",
     "diff": ">=3.5.0"
   },
