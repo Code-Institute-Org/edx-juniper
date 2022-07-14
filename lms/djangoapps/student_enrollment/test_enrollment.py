@@ -27,7 +27,8 @@ class EnrollmentTestCase(TestCase):
 
         self.sample_content = Program.objects.create(
             name="Sample Content",
-            program_code="spsc"
+            program_code="spsc",
+            sample_content_for="disdcc"
         )
 
         self.disd = Program.objects.create(
@@ -45,6 +46,23 @@ class EnrollmentTestCase(TestCase):
             name="Predictive Analytics",
             program_code="sppredan",
             specialization_for="disdcc"
+        )
+
+        self.diwad_old = Program.objects.create(
+            name="Diploma in Web Application Development",
+            program_code="diwad"
+        )
+
+        self.diwad_new = Program.objects.create(
+            name="Diploma in Web App Development",
+            program_code="diwad220407"
+        )
+
+        self.diwad_learning_supports = Program.objects.create(
+            name="Diploma in Web App Development Learning Supports",
+            program_code="diwadls",
+            support_program_for="diwad220407",
+            support_program_sources="Eligible College 1, Eligible College 2"
         )
 
         responses.add(
