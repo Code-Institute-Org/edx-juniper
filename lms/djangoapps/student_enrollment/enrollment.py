@@ -63,12 +63,15 @@ class Enrollment:
 
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
-            
+
             # Get the sample content programme, if any
             try:
                 sample_content = Program.objects.get(sample_content_for=program_to_enroll_in)
             except ObjectDoesNotExist:
                 sample_content = None
+
+            # Get the learning supports programme(s), if any
+            learning_supports = Program.objects.filter(support_program_for=program_to_enroll_in)
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -94,11 +97,18 @@ class Enrollment:
                 exclude_courses=EXCLUDED_FROM_ONBOARDING
             )
 
-            # If DISDCC enrollment successful, enroll the student into
-            # specialisation sample content module
+            # If main programme enrollment successful, enroll the
+            # student into auxiliary programme(s) if any
             if program_enrollment_status:
                 if sample_content:
                     sample_content.enroll_student_in_program(user.email)
+                if learning_supports:
+                    student_source = student["Student_Source"]
+                    for prog in learning_supports:
+                        eligible_sources = list(map(lambda x: x.strip(),
+                                                    prog.support_program_sources.split(",")))
+                        if student_source in eligible_sources:
+                            prog.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(
