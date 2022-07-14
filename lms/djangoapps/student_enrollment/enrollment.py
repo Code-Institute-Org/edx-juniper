@@ -63,10 +63,12 @@ class Enrollment:
 
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
-            spec_sample_content = None
-
-            if program_to_enroll_in == "disdcc":
-                spec_sample_content = Program.objects.get(program_code="spsc")
+            
+            # Get the sample content programme, if any
+            try:
+                sample_content = Program.objects.get(sample_content_for=program_to_enroll_in)
+            except ObjectDoesNotExist:
+                sample_content = None
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -94,8 +96,9 @@ class Enrollment:
 
             # If DISDCC enrollment successful, enroll the student into
             # specialisation sample content module
-            if spec_sample_content and program_enrollment_status:
-                spec_sample_content.enroll_student_in_program(user.email)
+            if program_enrollment_status:
+                if sample_content:
+                    sample_content.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(
