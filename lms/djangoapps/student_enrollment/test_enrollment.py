@@ -239,7 +239,7 @@ class EnrollmentTestCase(TestCase):
     def test_specialisation_enrollment_date_in_the_future(self):
         # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
-        
+
         responses.add(
             responses.POST, settings.ZOHO_COQL_ENDPOINT,
             json={
@@ -614,7 +614,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwad220407",  
+                        "Programme_ID": "diwad220407",
                         "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
                     },
                 ],
@@ -651,7 +651,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwad220407",  
+                        "Programme_ID": "diwad220407",
                         "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
                     },
                 ],
