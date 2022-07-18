@@ -105,7 +105,7 @@ class Enrollment:
                 if learning_supports:
                     student_source = student["Student_Source"].strip(" \"\'")
                     for prog in learning_supports:
-                        eligible_sources = list(map(lambda x: x.strip(" \'\"\n"),
+                        eligible_sources = list(map(lambda x: x.strip(" \'\"\r\n"),
                                                     prog.support_program_sources.split(",")))
                         if student_source in eligible_sources:
                             prog.enroll_student_in_program(user.email)

@@ -71,7 +71,7 @@ class EnrollmentTestCase(TestCase):
             program_code="diwadls2",
             support_program_for="diwad220407",
             # intentional whitespaces, double quotes and newline for testing!
-            support_program_sources="Eligible College 3  , \n\"Eligible College 1 \""
+            support_program_sources="Eligible College 3  , \r\n\"Eligible College 1 \""
         )
 
         # eligible colleges different than for diwadls and diwadls2
