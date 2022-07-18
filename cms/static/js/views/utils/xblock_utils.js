@@ -135,7 +135,7 @@ define(['jquery', 'underscore', 'gettext', 'common/js/components/utils/view_util
                             return $.ajax({
                                 type: 'DELETE',
                                 url: url
-                            }).success(function() {
+                            }).done(function() {
                                 deletion.resolve();
                             });
                         }
