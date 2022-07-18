@@ -62,16 +62,16 @@ class EnrollmentTestCase(TestCase):
             name="Diploma in Web App Development Learning Supports 1",
             program_code="diwadls",
             support_program_for="diwad220407",
-            # intentional whitespaces for testing!
-            support_program_sources="   Eligible College 1, Eligible College 2  "
+            # intentional whitespaces and single quotes for testing!
+            support_program_sources="   ' Eligible College 1', Eligible College 2  "
         )
 
         self.diwad_second_learning_supports = Program.objects.create(
             name="Diploma in Web App Development Learning Supports 2",
             program_code="diwadls2",
             support_program_for="diwad220407",
-            # intentional whitespaces for testing!
-            support_program_sources="Eligible College 1  , Eligible College 3 "
+            # intentional whitespaces, double quotes and newline for testing!
+            support_program_sources="Eligible College 3  , \n\"Eligible College 1 \""
         )
 
         # eligible colleges different than for diwadls and diwadls2
@@ -199,6 +199,8 @@ class EnrollmentTestCase(TestCase):
 
         # verify that no program has been enrolled
         self.assertEqual(list(self.user.program_set.all()), [])
+
+    # specialisation enrolment tests
 
     @responses.activate
     def test_specialisation_enrollment(self):
@@ -506,6 +508,8 @@ class EnrollmentTestCase(TestCase):
         # verify that SPSC is still enrolled
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
 
+    # Learning supports enrolment tests (and combined with sample content)
+
     @responses.activate
     def test_enrollment_diwad220407_and_eligible_for_learning_supports(self):
 
@@ -517,7 +521,8 @@ class EnrollmentTestCase(TestCase):
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
                         "Programme_ID": "diwad220407",
-                        "Student_Source": "Eligible College 1"  # eligible for DIWADLS
+                        # intentional whitespace and single quotes for testing!
+                        "Student_Source": "'Eligible College 1 '"  # eligible for DIWADLS
                     },
                 ],
                 "info": {"more_records": False}
@@ -652,7 +657,8 @@ class EnrollmentTestCase(TestCase):
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
                         "Programme_ID": "diwad220407",
-                        "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
+                        # intentional whitespace and double quotes for testing!
+                        "Student_Source": " \"Eligible College 1 \""  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
                     },
                 ],
                 "info": {"more_records": False}
@@ -676,7 +682,7 @@ class EnrollmentTestCase(TestCase):
         # verify that DIWADSPSC (sample content) has been enrolled
         self.assertTrue(self.diwad_sample_content in list(self.user.program_set.all()))
 
-        # verify that the sample content ofr another program (SPSC) has not been enrolled
+        # verify that the sample content for another program (SPSC) has not been enrolled
         self.assertFalse(self.sample_content in list(self.user.program_set.all()))
 
         # verify that no specialisation, nor another program (DISD or DIWAD), has been enrolled

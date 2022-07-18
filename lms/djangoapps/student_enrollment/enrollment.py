@@ -66,12 +66,12 @@ class Enrollment:
 
             # Get the sample content programme, if any
             try:
-                sample_content = Program.objects.get(sample_content_for=program_to_enroll_in)
+                sample_content = Program.objects.get(sample_content_for__iexact=program_to_enroll_in)
             except ObjectDoesNotExist:
                 sample_content = None
 
             # Get the learning supports programme(s), if any
-            learning_supports = Program.objects.filter(support_program_for=program_to_enroll_in)
+            learning_supports = Program.objects.filter(support_program_for__iexact=program_to_enroll_in)
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -100,12 +100,12 @@ class Enrollment:
             # If main programme enrollment successful, enroll the
             # student into auxiliary programme(s) if any
             if program_enrollment_status:
-                if sample_content:
+                if sample_content is not None:
                     sample_content.enroll_student_in_program(user.email)
                 if learning_supports:
-                    student_source = student["Student_Source"]
+                    student_source = student["Student_Source"].strip(" \"\'")
                     for prog in learning_supports:
-                        eligible_sources = list(map(lambda x: x.strip(),
+                        eligible_sources = list(map(lambda x: x.strip(" \'\"\n"),
                                                     prog.support_program_sources.split(",")))
                         if student_source in eligible_sources:
                             prog.enroll_student_in_program(user.email)
