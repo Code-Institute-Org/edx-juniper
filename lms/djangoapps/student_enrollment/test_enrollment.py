@@ -27,7 +27,8 @@ class EnrollmentTestCase(TestCase):
 
         self.sample_content = Program.objects.create(
             name="Sample Content",
-            program_code="spsc"
+            program_code="spsc",
+            sample_content_for="disdcc"
         )
 
         self.disd = Program.objects.create(
@@ -45,6 +46,48 @@ class EnrollmentTestCase(TestCase):
             name="Predictive Analytics",
             program_code="sppredan",
             specialization_for="disdcc"
+        )
+
+        self.diwad_old = Program.objects.create(
+            name="Diploma in Web Application Development",
+            program_code="diwad"
+        )
+
+        self.diwad_new = Program.objects.create(
+            name="Diploma in Web App Development",
+            program_code="diwad220407"
+        )
+
+        self.diwad_learning_supports = Program.objects.create(
+            name="Diploma in Web App Development Learning Supports 1",
+            program_code="diwadls",
+            support_program_for="diwad220407",
+            # intentional whitespaces and single quotes for testing!
+            support_program_sources="   ' Eligible College 1', Eligible College 2  "
+        )
+
+        self.diwad_second_learning_supports = Program.objects.create(
+            name="Diploma in Web App Development Learning Supports 2",
+            program_code="diwadls2",
+            support_program_for="diwad220407",
+            # intentional whitespaces, double quotes and newline for testing!
+            support_program_sources="Eligible College 3  , \r\n\"Eligible College 1 \""
+        )
+
+        # eligible colleges different than for diwadls and diwadls2
+        self.diwad_different_learning_supports = Program.objects.create(
+            name="Diploma in Web App Development Learning Supports 3",
+            program_code="diwadls3",
+            support_program_for="diwad220407",
+            # intentional whitespaces for testing!
+            support_program_sources="  Eligible College 3   "
+        )
+
+        # sample content for diwad_new (diwad220407)
+        self.diwad_sample_content = Program.objects.create(
+            name="Sample Content Diwad",
+            program_code="diwadspsc",
+            sample_content_for="diwad220407"
         )
 
         responses.add(
@@ -157,6 +200,8 @@ class EnrollmentTestCase(TestCase):
         # verify that no program has been enrolled
         self.assertEqual(list(self.user.program_set.all()), [])
 
+    # specialisation enrolment tests
+
     @responses.activate
     def test_specialisation_enrollment(self):
         # check that enrolled programme list is empty initially
@@ -196,7 +241,7 @@ class EnrollmentTestCase(TestCase):
     def test_specialisation_enrollment_date_in_the_future(self):
         # check that enrolled programme list is empty initially
         self.assertEqual(list(self.user.program_set.all()), [])
-        
+
         responses.add(
             responses.POST, settings.ZOHO_COQL_ENDPOINT,
             json={
@@ -462,3 +507,185 @@ class EnrollmentTestCase(TestCase):
         self.assertTrue(self.specialisation in list(self.user.program_set.all()))
         # verify that SPSC is still enrolled
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+
+    # Learning supports enrolment tests (and combined with sample content)
+
+    @responses.activate
+    def test_enrollment_diwad220407_and_eligible_for_learning_supports(self):
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",
+                        # intentional whitespace and single quotes for testing!
+                        "Student_Source": "'Eligible College 1 '"  # eligible for DIWADLS
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that both DIWAD220407 and DIWADLS have been enrolled
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+        self.assertTrue(self.diwad_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, or another program (DISD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_enrollment_diwad220407_and_not_eligible_for_learning_supports(self):
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",
+                        "Student_Source": "Ineligible College 1"  # not eligible for DIWADLS
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWAD220407 has been enrolled, but DIWADLS has not
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, nor another program (DISD or DIWAD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_enrollment_program_without_supports_although_source_eligible(self):
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad",  # program does not have learning supports
+                        "Student_Source": "Eligible College 1"  # eligible for DIWADLS, but not with this program
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that "old" DIWAD has been enrolled, but DIWADLS has not
+        self.assertTrue(self.diwad_old in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, nor another program (DISD or DIWAD220407), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_new in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_enrollment_program_with_multiple_supports(self):
+        # set user whose student source is eligible for 2 out of 3 available supports
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",
+                        "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWAD220407 has been enrolled
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+
+        # verify that DIWADLS and DIWADLS2 have been enrolled, but DIWADLS3 has not
+        self.assertTrue(self.diwad_learning_supports in list(self.user.program_set.all()))
+        self.assertTrue(self.diwad_second_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, nor another program (DISD or DIWAD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+    @responses.activate
+    def test_enrollment_in_program_with_multiple_supports_and_sample_content(self):
+        # set user whose student source is eligible for 2 out of 3 available supports
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",
+                        # intentional whitespace and double quotes for testing!
+                        "Student_Source": " \"Eligible College 1 \""  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWAD220407 has been enrolled
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+
+        # verify that DIWADLS and DIWADLS2 (learning supports) have been enrolled, but DIWADLS3 has not
+        self.assertTrue(self.diwad_learning_supports in list(self.user.program_set.all()))
+        self.assertTrue(self.diwad_second_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
+
+        # verify that DIWADSPSC (sample content) has been enrolled
+        self.assertTrue(self.diwad_sample_content in list(self.user.program_set.all()))
+
+        # verify that the sample content for another program (SPSC) has not been enrolled
+        self.assertFalse(self.sample_content in list(self.user.program_set.all()))
+
+        # verify that no specialisation, nor another program (DISD or DIWAD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_old in list(self.user.program_set.all()))

@@ -60,6 +60,13 @@ class Program(TimeStampedModel):
     video = models.URLField(null=True, blank=True)
     program_code = models.CharField(max_length=50, null=True, blank=True)
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
+    sample_content_for = models.CharField(max_length=50, null=True, blank=True)
+    support_program_for = models.CharField(max_length=50, null=True, blank=True)
+    support_program_sources = models.TextField(
+        help_text=_('Comma-separated list of student sources (colleges) eligible for the support Program'),
+        null=True, 
+        blank=True
+    )
     enrolled_students = models.ManyToManyField(
         User, blank=True)
     # This is used for getting the path to the enrollment email files
