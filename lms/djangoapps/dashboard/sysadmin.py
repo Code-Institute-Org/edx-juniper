@@ -18,6 +18,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import IntegrityError
 from django.http import Http404, HttpResponse
@@ -587,12 +588,14 @@ class Enrollment(SysadminDashboardView):
         manual_override = input_data['manual_override']
         full_name = input_data['full_name']
 
-        # get the specialisation sample module if applicable (DISDCC only)
-        spec_sample_content = None
-        if program_code == "disdcc":
-            spec_sample_content = Program.objects.get(program_code="spsc")
         # Get the program using the code
         program = get_object_or_404(Program, program_code=program_code)
+
+        # Get the sample content programme, if any
+        try:
+            sample_content = Program.objects.get(sample_content_for__iexact=program_code)
+        except ObjectDoesNotExist:
+            sample_content = None
 
         # Create the user and get their password so they can be
         # emailed to the student later
@@ -616,9 +619,10 @@ class Enrollment(SysadminDashboardView):
         # otherwise issue a 500 response
         if program_enrollment_status:
             log.info("%s successfully enrolled in %s", email, program.name)
-            # if DISDCC, enroll student into specialisation sample content too
-            if spec_sample_content:
-                spec_sample_content.enroll_student_in_program(email)
+            # enrol into specialisation sample content if applicable
+            if sample_content:
+                sample_content.enroll_student_in_program(email)
+                log.info("%s successfully enrolled in %s", email, sample_content.name)
         else:
             log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
