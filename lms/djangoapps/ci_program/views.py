@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from edxmako.shortcuts import render_to_response
 from ci_program.models import Program
-from ci_program.utils import get_student_deadlines
 from openedx.core.djangoapps.bookmarks.models import Bookmark
 
 
