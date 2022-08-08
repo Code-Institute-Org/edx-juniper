@@ -6,7 +6,7 @@
         'common/js/spec_helpers/view_helpers', 'sinon', 'jquery.simulate'],
     function($, SystemFeedback, NotificationView, AlertView, PromptView, ViewHelpers, sinon) {
         var tpl;
-        tpl = readFixtures('common/templates/components/system-feedback.underscore');
+        tpl = readFixtures('/common/templates/components/system-feedback.underscore');
 
         var isFocused = function(actual) {
             return $(actual)[0] === $(actual)[0].ownerDocument.activeElement;

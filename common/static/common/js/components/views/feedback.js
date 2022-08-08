@@ -6,7 +6,7 @@
         'underscore.string',
         'backbone',
         'edx-ui-toolkit/js/utils/html-utils',
-        'text!../../../../common/templates/components/system-feedback.underscore'
+        'text!/common/templates/components/system-feedback.underscore'
     ],
         function($, _, str, Backbone, HtmlUtils, systemFeedbackTemplate) {
             var tabbableElements = [
