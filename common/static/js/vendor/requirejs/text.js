@@ -139,6 +139,11 @@ var requirejs_text_function = function (module) {
             uPort = uHostName[1];
             uHostName = uHostName[0];
 
+            const allowed_hosts = ['lms-juniper-staticfiles-codeinstitute.s3.eu-west-1.amazonaws.com']
+            if (allowed_hosts.includes(uHostName)){
+                return true
+            }
+
             return (!uProtocol || uProtocol === protocol) &&
                    (!uHostName || uHostName.toLowerCase() === hostname.toLowerCase()) &&
                    ((!uPort && !uHostName) || uPort === port);
