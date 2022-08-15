@@ -9,7 +9,6 @@ click==7.1.2              # via nltk
 cryptography==2.9.2       # via -r requirements/edx-sandbox/shared.in
 joblib==0.14.1            # via -c requirements/edx-sandbox/../constraints.txt, nltk
 lxml==4.5.0               # via -c requirements/edx-sandbox/../constraints.txt, -r requirements/edx-sandbox/shared.in
-nltk==3.6.6                 # via -r requirements/edx-sandbox/shared.in
 pycparser==2.20           # via cffi
 regex==2020.7.14          # via nltk
 six==1.15.0               # via cryptography
