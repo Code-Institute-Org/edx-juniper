@@ -127,27 +127,7 @@ var requirejs_text_function = function (module) {
          * @returns Boolean
          */
         useXhr: function (url, protocol, hostname, port) {
-            var uProtocol, uHostName, uPort,
-                match = text.xdRegExp.exec(url);
-            if (!match) {
-                return true;
-            }
-            uProtocol = match[2];
-            uHostName = match[3];
-
-            uHostName = uHostName.split(':');
-            uPort = uHostName[1];
-            uHostName = uHostName[0];
-
-            // Allowing to load static files from our S3 share
-            const allowed_hosts = ['lms-juniper-staticfiles-codeinstitute.s3.eu-west-1.amazonaws.com']
-            if (allowed_hosts.includes(uHostName)){
-                return true
-            }
-
-            return (!uProtocol || uProtocol === protocol) &&
-                   (!uHostName || uHostName.toLowerCase() === hostname.toLowerCase()) &&
-                   ((!uPort && !uHostName) || uPort === port);
+            return true;
         },
 
         finishLoad: function (name, strip, content, onLoad) {
