@@ -26,7 +26,7 @@ COPY ./requirements/ /openedx/edx-platform/requirements
 COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
 ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
-RUN pip install setuptools==39.0.1 pip==9.0.3
+RUN pip install setuptools==39.0.1 pip==22.2.2
 
 # Install patched version of ora2
 RUN pip install https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
