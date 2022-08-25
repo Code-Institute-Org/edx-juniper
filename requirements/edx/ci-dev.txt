@@ -1,5 +1,5 @@
 ipdb==0.12.2
-ipython==5.8.0
+ipython==5.11
 pytest==4.1.1
 django-debug-toolbar==1.8
 git+https://github.com/hmarr/django-debug-toolbar-mongo.git@b0686a76f1ce3532088c4aee6e76b9abe61cc808#egg=django-debug-toolbar-mongo==0.1.10
