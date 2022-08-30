@@ -220,8 +220,7 @@ class SpecialisationEnrollment:
                         'crm_field': 'Specialisation_programme_id',
                         'unexpected_value': student['Specialisation_programme_id'],
                         'attempted_action': 'enroll specialisation',
-                        'message': ('Specialisation change field checked, but student'
-                                    + ' is already enrolled into the same specialisation')
+                        'message': ('Student is already enrolled into this specialisation')
                     }
                 )
                 # continue in order to prevent reenrollment
