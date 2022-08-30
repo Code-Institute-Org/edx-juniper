@@ -220,12 +220,11 @@ class SpecialisationEnrollment:
                         'crm_field': 'Specialisation_programme_id',
                         'unexpected_value': student['Specialisation_programme_id'],
                         'attempted_action': 'enroll specialisation',
-                        'message': ('Specialisation change field checked, but student'
-                                    + ' is already enrolled into the same specialisation')
+                        'message': ('Student is already enrolled into this specialisation')
                     }
                 )
-                # return in order to prevent reenrollment
-                return
+                # continue in order to prevent reenrollment
+                continue
 
             # otherwise continue with enrollment
             try:
@@ -252,11 +251,13 @@ class SpecialisationEnrollment:
             #
             # If specialisation change, get the previous enrolled specialisation
             if specialization_change:
+                error_flag = False
                 for program in user.program_set.all():
                     if program.specialization_for:
                         # if already enrolled into same specialisation,
                         # trigger exception email and stop further process
                         if program == specialization:
+                            error_flag = True
                             log.exception(
                                 "**Student %s already enrolled in this specialization: %s**",
                                 student['Email'], specialization_to_enroll
@@ -272,11 +273,13 @@ class SpecialisationEnrollment:
                                                 + ' is already enrolled into the same specialisation')
                                 }
                             )
-                            # return in order to prevent reenrollment
-                            return
+                            break
                         # otherwise, set current specialisation as current program (to unenroll)
                         else:
                             current_program = program.program_code
+                # continue to prevent reenrollment
+                if error_flag:
+                    continue
 
             # Enroll the student in the (new) specialisation
             specialization_enrollment_status = specialization.enroll_student_in_program(
