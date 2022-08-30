@@ -11,4 +11,3 @@
 
 cryptography                        # Implementations of assorted cryptography algorithms
 lxml                                # XML parser
-nltk                                # Natural language processing; used by the chem package
