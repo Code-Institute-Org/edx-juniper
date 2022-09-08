@@ -107,3 +107,14 @@ def studentcare(request, program_slug, student_id=None):
             'student': request.user,
             'csrftoken': csrf(request)['csrf_token']
         })
+
+
+@transaction.non_atomic_requests
+@login_required
+@cache_control(no_cache=True, no_store=True, must_revalidate=True)
+def careers(request, program_slug, student_id=None):
+    """ Display the careers support page. """
+
+    return render_to_response(
+        'ci_support/support/careers.html',
+        {'program_slug': program_slug, 'student': request.user})
