@@ -151,10 +151,11 @@ class CodeChallengeExporter:
 
     def post_to_hubspot(self, endpoint, student, properties):
         """Post results of challenge submissions to the student profiles on HubSpot"""
-        url = "%s/email/%s/profile?hapikey=%s" % (
-            endpoint, student, HUBSPOT_API_KEY)
+        url = "%s/email/%s/profile" % (
+            endpoint, student)
         headers = {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "authorization": "Bearer %s" % HUBSPOT_API_KEY
         }
         data = json.dumps({
             "properties": properties
