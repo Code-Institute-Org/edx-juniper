@@ -2570,7 +2570,6 @@ INSTALLED_APPS = [
     'challenges',
     'student_enrollment',
     'learning_success',
-    'module_importexport',
 ]
 
 ######################### CSRF #########################################
