@@ -34,10 +34,6 @@ RUN pip install https://github.com/overhangio/edx-ora2/archive/overhangio/boto2t
 # Install ironwood-compatible scorm xblock
 RUN pip install "openedx-scorm-xblock<11.0.0,>=10.0.0"
 
-# Install updated version of edxval
-COPY ./edx-val/ /openedx/edx-val/
-RUN cd /openedx/edx-val && python3 setup.py install
-
 # Install development libraries
 RUN pip install -r requirements/edx/ci-dev.txt
 
@@ -91,6 +87,11 @@ COPY ./config /openedx/config
 RUN pip install setuptools_scm==5.0.2
 RUN pip install -r requirements/edx/base.txt
 RUN pip install -r requirements/constraints.txt
+
+
+# Install updated version of edxval
+COPY ./edx-val/ /openedx/edx-val/
+RUN cd /openedx/edx-val && python3 setup.py install
 
 
 # Adding this to allow staticfile access from debug server
