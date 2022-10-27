@@ -91,6 +91,6 @@ setup(
         'Framework :: Django :: 3.2',
     ],
     packages=PACKAGES,
-    install_requires=load_requirements('requirements/base.in'),
+#    install_requires=load_requirements('requirements/base.in'),
     tests_require=load_requirements('requirements/test.in'),
 )
