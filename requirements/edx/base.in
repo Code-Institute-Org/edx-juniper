@@ -92,7 +92,7 @@ edx-sga
 edx-submissions
 edx-user-state-client
 edx-when
-edxval
+-e ../../edx-val
 event-tracking
 fs==2.0.18
 fs-s3fs==0.1.8
