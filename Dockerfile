@@ -25,9 +25,6 @@ RUN git clone https://github.com/pyenv/pyenv $PYENV_ROOT --branch v1.2.18 --dept
 COPY ./requirements/ /openedx/edx-platform/requirements
 COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
-# Install updated version of edxval
-COPY ./edx-val/ /openedx/edx-val/
-
 ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
 RUN pip install setuptools==39.0.1 pip==9.0.3
 
@@ -36,6 +33,10 @@ RUN pip install https://github.com/overhangio/edx-ora2/archive/overhangio/boto2t
 
 # Install ironwood-compatible scorm xblock
 RUN pip install "openedx-scorm-xblock<11.0.0,>=10.0.0"
+
+# Install updated version of edxval
+COPY ./edx-val/ /openedx/edx-val/
+RUN cd /openedx/edx-val && python3 setup.py install
 
 # Install development libraries
 RUN pip install -r requirements/edx/ci-dev.txt
