@@ -37,6 +37,9 @@ RUN pip install "openedx-scorm-xblock<11.0.0,>=10.0.0"
 # Install development libraries
 RUN pip install -r requirements/edx/ci-dev.txt
 
+# Install updated version of edxval
+COPY ./edx-val/ /openedx/edx-val/
+RUN cd /openedx/edx-val && python3 setup.py install
 
 # Using local version
 COPY ./lms/ /openedx/edx-platform/lms
