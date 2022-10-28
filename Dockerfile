@@ -37,7 +37,6 @@ RUN pip install "openedx-scorm-xblock<11.0.0,>=10.0.0"
 # Install development libraries
 RUN pip install -r requirements/edx/ci-dev.txt
 
-
 # Using local version
 COPY ./lms/ /openedx/edx-platform/lms
 COPY ./cms/ /openedx/edx-platform/cms
@@ -88,6 +87,11 @@ COPY ./config /openedx/config
 RUN pip install setuptools_scm==5.0.2
 RUN pip install -r requirements/edx/base.txt
 RUN pip install -r requirements/constraints.txt
+
+
+# Install updated version of edxval
+COPY ./edx-val/ /openedx/edx-val/
+RUN cd /openedx/edx-val && python3 setup.py install
 
 
 # Adding this to allow staticfile access from debug server

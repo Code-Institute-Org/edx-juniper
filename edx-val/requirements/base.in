@@ -1,0 +1,16 @@
+# Core requirements for using this application
+
+-c constraints.txt
+
+#boto==2.39.0
+#boto3==1.4.8
+#botocore==1.8.17
+#Django>=3.1.14
+#django-model-utils==4.0.0
+#django-storages==1.8
+#edx-drf-extensions==6.1.0
+#edx-django-release-util==0.4.4             # for reserved keywords linter
+#pillow==7.2.0                              # for reserved keywords linter
+edx-toggles>=2.0.0
+#lxml==4.5.0
+#pysrt==1.1.2
