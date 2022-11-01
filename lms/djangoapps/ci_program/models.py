@@ -24,6 +24,12 @@ class Program(TimeStampedModel):
     """
     Representation of a Program.
     """
+    STATUS_CHOICES = [
+        ('live', 'Live'),
+        ('in_development', 'In Development'),
+        ('end_of_sale', 'End of Sale'),
+        ('end_of_life', 'End of Life'),
+    ]
 
     class Meta:
         app_label = 'ci_program'
@@ -51,6 +57,12 @@ class Program(TimeStampedModel):
         help_text=_('Slug used to generate links to the marketing site'),
         blank=True,
         max_length=255
+    )
+
+    status = models.CharField(
+        max_length=16,
+        choices=STATUS_CHOICES,
+        default='in_development'
     )
 
     length_of_program = models.CharField(max_length=25, null=True, blank=True)
