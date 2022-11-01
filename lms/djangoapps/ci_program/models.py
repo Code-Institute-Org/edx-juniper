@@ -24,6 +24,7 @@ class Program(TimeStampedModel):
     """
     Representation of a Program.
     """
+
     STATUS_CHOICES = [
         ('live', 'Live'),
         ('in_development', 'In Development'),
