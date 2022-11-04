@@ -95,6 +95,3 @@ def _smoke_test_sentry():
 
 def _smoke_test_elasticsearch():
     pass
-
-
-_
