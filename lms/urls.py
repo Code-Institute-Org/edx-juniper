@@ -55,6 +55,8 @@ from student import views as student_views
 from util import views as util_views
 from student_enrollment.views import StudentEnrollment
 
+from .smoke_tests import run_smoke_tests
+
 RESET_COURSE_DEADLINES_NAME = 'reset_course_deadlines'
 RENDER_XBLOCK_NAME = 'render_xblock'
 COURSE_DATES_NAME = 'dates'
@@ -987,4 +989,5 @@ urlpatterns += [
     url(r'^ci_program/', include('lms.djangoapps.ci_program.urls')),
     url(r'^ci_support/', include('lms.djangoapps.ci_support.urls')),
     url(r'^challenges/', include('lms.djangoapps.challenges.urls')),
+    url(r'^smoke_tests/', run_smoke_tests),
 ]
