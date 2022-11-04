@@ -11,10 +11,9 @@ def run_smoke_tests():
     response = JsonResponse({
         "lrs": _smoke_test_lrs(),
         "zoho": _smoke_test_zoho(),
-        "hubspot": _smoke_test_hubspot(),
-        "zapier": _smoke_test_zapier(),
+        "AWS": _smoke_test_aws(),
         "redis": _smoke_test_redis(),
-        "sentry": _smoke_test_sentry(),
+        "JWT": _smoke_test_jwt(),
         "elasticsearch": _smoke_test_elasticsearch()
     })
 
@@ -77,21 +76,14 @@ def _smoke_test_zoho():
         return {"success": True}
 
 
-def _smoke_test_hubspot():
+def _smoke_test_aws():
     pass
-
-
-def _smoke_test_zapier():
-    pass
-
 
 def _smoke_test_redis():
     pass
 
-
-def _smoke_test_sentry():
+def _smoke_test_elasticsearch():
     pass
 
-
-def _smoke_test_elasticsearch():
+def _smoke_test_jwt():
     pass

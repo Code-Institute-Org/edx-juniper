@@ -989,5 +989,5 @@ urlpatterns += [
     url(r'^ci_program/', include('lms.djangoapps.ci_program.urls')),
     url(r'^ci_support/', include('lms.djangoapps.ci_support.urls')),
     url(r'^challenges/', include('lms.djangoapps.challenges.urls')),
-    url(r'^smoke_tests/', run_smoke_tests),
+    url(r'^smoke_tests/', run_smoke_tests()),
 ]
