@@ -6,8 +6,6 @@ import requests
 from django.http import JsonResponse
 from django.conf import settings
 
-from .djangoapps.student_enrollment.zoho import get_auth_headers, get_access_token
-
 
 def run_smoke_tests():
     response = JsonResponse({
