@@ -21,10 +21,10 @@ def run_smoke_tests():
 
 
 def _smoke_test_lrs():
-    lrs_db = settings.LRS_MONGO_DB
     try:
         lrs_client = settings.LRS_MONGO_CLIENT
         try:
+            lrs_db = settings.LRS_MONGO_DB
             lrs_client[lrs_db].command("ping")
             return {"success": True}
         except Exception as e:
