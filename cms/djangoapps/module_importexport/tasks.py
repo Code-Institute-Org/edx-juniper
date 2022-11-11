@@ -96,7 +96,7 @@ def s3_file_exists(client, object_name):
 def write_results_to_s3(client, course_id, timestamp, result):
     log.debug("Writing result %s %s %s", course_id, timestamp, result)
 
-    result_filename = "%s_%s.tar.gz" % (course_id, timestamp)
+    result_filename = "%s_%s.json" % (course_id, timestamp)
     result_key = os.path.join(settings.MODULE_EXPORTIMPORT_S3_FOLDER, result_filename)
     client.put_object(
         Body=json.dumps(result, indent=4),
