@@ -4,6 +4,7 @@ import tempfile
 import shutil
 import tarfile
 import time
+import json
 from datetime import datetime
 from datetime import timedelta
 
@@ -158,11 +159,16 @@ def import_from_s3(course_id, timestamp):
 
         shutil.rmtree(temp_dir)
 
-        write_results_to_s3(client, course_id, timestamp, {"status": "success"})
+        write_results_to_s3(client, course_id, timestamp, {
+            "status": "success",
+            "lms_base": settings.LMS_BASE})
 
         log.info("Finished import task")
     except Exception as e:
         log.exception("Unknown exception exporting module: %s %s",
                       course_id, timestamp)
-        write_results_to_s3(client, course_id, timestamp, {"status": "failed", "error": str(e)})
+        write_results_to_s3(client, course_id, timestamp, {
+            "status": "failed",
+            "error": str(e),
+            "lms_base": settings.LMS_BASE})
         raise
