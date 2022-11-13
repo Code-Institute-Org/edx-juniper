@@ -82,9 +82,10 @@ def export_to_s3(course_id, timestamp):
 
 
 def s3_file_exists(client, object_name):
+    bucket_name = settings.MODULE_EXPORTIMPORT_S3_BUCKET
     log.debug("Check S3 file exists: %s %s", bucket_name, object_name)
     try:
-        client.get_object(Bucket=settings.MODULE_EXPORTIMPORT_S3_BUCKET, Key=object_name)
+        client.get_object(Bucket=bucket_name, Key=object_name)
         return True
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
@@ -106,16 +107,16 @@ def write_results_to_s3(client, course_id, timestamp, result):
 
 @task(base=LoggedTask)
 def import_from_s3(course_id, timestamp):
+    log.info("Importing from S3: %s %s", course_id, timestamp)
+
+    # copy from S3
+    client = boto3.client(
+        's3',
+        aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
+        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
+    )
+
     try:
-        log.info("Importing from S3: %s %s", course_id, timestamp)
-
-        # copy from S3
-        client = boto3.client(
-            's3',
-            aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
-            aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
-        )
-
         # extract
         temp_dir = tempfile.mkdtemp()
         output_path = os.path.join(temp_dir, "course")
@@ -157,11 +158,11 @@ def import_from_s3(course_id, timestamp):
 
         shutil.rmtree(temp_dir)
 
-        write_results_to_s3(course_id, timestamp, {"status": "success"})
+        write_results_to_s3(client, course_id, timestamp, {"status": "success"})
 
         log.info("Finished import task")
     except Exception as e:
         log.exception("Unknown exception exporting module: %s %s",
                       course_id, timestamp)
-        write_results_to_s3(course_id, timestamp, {"status": "failed", "error": str(e)})
+        write_results_to_s3(client, course_id, timestamp, {"status": "failed", "error": str(e)})
         raise
