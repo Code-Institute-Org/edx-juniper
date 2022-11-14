@@ -82,7 +82,7 @@ def export_to_s3(course_id, timestamp):
         log.exception("Unknown exception exporting module: %s %s",
                       course_id, timestamp)
         write_results_to_s3(client, course_id, timestamp, {
-            "status": "failed",
+            "status": "failed_on_export",
             "lms_base": settings.LMS_BASE})
         raise
 
