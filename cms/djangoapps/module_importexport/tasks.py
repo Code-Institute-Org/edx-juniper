@@ -34,8 +34,15 @@ log = getLogger(__name__)
 
 @task(base=LoggedTask)
 def export_to_s3(course_id, timestamp):
+    log.info("Exporting to S3: %s %s", course_id, timestamp)
+
+    client = boto3.client(
+        's3',
+        aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
+        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
+    )
+
     try:
-        log.info("Exporting to S3: %s %s", course_id, timestamp)
         try:
             course_key = CourseKey.from_string(course_id)
         except InvalidKeyError:
@@ -64,11 +71,6 @@ def export_to_s3(course_id, timestamp):
             tar.add(output_path, arcname="%s_%s" % (course_id, timestamp))
 
         # send to S3
-        client = boto3.client(
-            's3',
-            aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
-            aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
-        )
         object_name = os.path.join(settings.MODULE_EXPORTIMPORT_S3_FOLDER, tarfile_filename)
 
         log.info("Uploading file from %s to %s", tarfile_filename, object_name)
@@ -79,6 +81,9 @@ def export_to_s3(course_id, timestamp):
     except Exception as e:
         log.exception("Unknown exception exporting module: %s %s",
                       course_id, timestamp)
+        write_results_to_s3(client, course_id, timestamp, {
+            "status": "failed",
+            "lms_base": settings.LMS_BASE})
         raise
 
 
@@ -165,10 +170,9 @@ def import_from_s3(course_id, timestamp):
 
         log.info("Finished import task")
     except Exception as e:
-        log.exception("Unknown exception exporting module: %s %s",
+        log.exception("Unknown exception importing module: %s %s",
                       course_id, timestamp)
         write_results_to_s3(client, course_id, timestamp, {
             "status": "failed",
-            "error": str(e),
             "lms_base": settings.LMS_BASE})
         raise
