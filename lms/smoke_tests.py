@@ -7,17 +7,19 @@ from django.http import JsonResponse
 from django.conf import settings
 
 
-def run_smoke_tests():
-    response = JsonResponse({
+def run_smoke_tests(request):
+    status = None
+    results = {
         "lrs": _smoke_test_lrs(),
-        "zoho": _smoke_test_zoho(),
-        "AWS": _smoke_test_aws(),
-        "redis": _smoke_test_redis(),
-        "JWT": _smoke_test_jwt(),
-        "elasticsearch": _smoke_test_elasticsearch()
-    })
+        "zoho": _smoke_test_zoho()
+    }
 
-    return response
+    if all(results.values()):
+        status = 200
+    else:
+        status = 400
+
+    return JsonResponse(results, status_code=status)
 
 
 def _smoke_test_lrs():
@@ -75,15 +77,3 @@ def _smoke_test_zoho():
     else:
         return {"success": True}
 
-
-def _smoke_test_aws():
-    pass
-
-def _smoke_test_redis():
-    pass
-
-def _smoke_test_elasticsearch():
-    pass
-
-def _smoke_test_jwt():
-    pass
