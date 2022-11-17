@@ -7,34 +7,10 @@ from django.http import JsonResponse
 from django.conf import settings
 
 
-def run_smoke_tests(request):
-    status = None
-    results = {
-        "lrs": _smoke_test_lrs(),
-        "zoho": _smoke_test_zoho()
-    }
-
-    if all(results.values()):
-        status = 200
-    else:
-        status = 400
-
-    return JsonResponse(results, status_code=status)
-
-
 def _smoke_test_lrs():
-    try:
         lrs_client = settings.LRS_MONGO_CLIENT
-        try:
-            lrs_db = settings.LRS_MONGO_DB
-            lrs_client[lrs_db].command("ping")
-            return {"success": True}
-        except Exception as e:
-            logging.exception("Unable to ping database")
-            return {"success": False}
-    except pymongo.errors.OperationFailure:
-        logging.exception('MongoDB Connection error.')
-        return {"success": False}
+        lrs_db = settings.LRS_MONGO_DB
+        lrs_client[lrs_db].command("ping")
 
 
 def _smoke_test_zoho():
@@ -52,14 +28,7 @@ def _smoke_test_zoho():
         "grant_type": "refresh_token"
     })
 
-    try:
-        access_token = refresh_resp.json()['access_token']
-    except requests.exceptions.JSONDecodeError:
-        logging.error("ZOHO: invalid token refresh endpoint")
-        return {"success": False}
-    except KeyError:
-        logging.error("ZOHO: invalid API credentials")
-        return {"success": False}
+    access_token = refresh_resp.json()['access_token']
 
     # query ZOHO COQL DB
     auth_headers = {"Authorization": "Zoho-oauthtoken " + access_token}
@@ -72,8 +41,32 @@ def _smoke_test_zoho():
     )
 
     if not coql_response.status_code or coql_response.status_code != 200:
-        logging.error("Invalid COQL endpoint or invalid test query")
-        return {"success": False}
-    else:
-        return {"success": True}
+        raise Exception("Invalid COQL endpoint or invalid test query")
 
+
+SMOKE_TEST = {
+    "lrs": _smoke_test_lrs,
+    "zoho": _smoke_test_zoho,
+}
+
+
+def run_smoke_tests(request):
+    status = None
+    results = dict()
+    success = False
+
+    for name, test in SMOKE_TEST.items():
+        try:
+            test()
+            results[name] = {"success": True}
+        except Exception as e:
+            logging.exception("Smoke Test %s failed", name)
+            results[name] = {"success": False}
+            success = False
+
+    if success:
+        status = 200
+    else:
+        status = 400
+
+    return JsonResponse(results, status=status)
