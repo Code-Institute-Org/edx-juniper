@@ -2,15 +2,27 @@ import json
 import logging
 import pymongo
 import requests
+import search
 
 from django.http import JsonResponse
 from django.conf import settings
+from django.contrib.auth.models import User
+
+
+def _smoke_test_mongo():
+    mongo_client = settings.MONGO_CLIENT
+    mongo_db = settings.CONTENTSTORE['DOC_STORE_CONFIG']['db']
+    mongo_client[mongo_db].command("ping")
+
+
+def _smoke_test_sql():
+    User.objects.all().count()
 
 
 def _smoke_test_lrs():
-        lrs_client = settings.LRS_MONGO_CLIENT
-        lrs_db = settings.LRS_MONGO_DB
-        lrs_client[lrs_db].command("ping")
+    lrs_client = settings.LRS_MONGO_CLIENT
+    lrs_db = settings.LRS_MONGO_DB
+    lrs_client[lrs_db].command("ping")
 
 
 def _smoke_test_zoho():
@@ -44,16 +56,26 @@ def _smoke_test_zoho():
         raise Exception("Invalid COQL endpoint or invalid test query")
 
 
+def _smoke_test_elasticsearch():
+    search.api.perform_search(
+        "python",
+        size=10,
+    )
+
+
 SMOKE_TEST = {
+    "mongo": _smoke_test_mongo,
+    "sql": _smoke_test_sql,
     "lrs": _smoke_test_lrs,
     "zoho": _smoke_test_zoho,
+    "elasticsearch": _smoke_test_elasticsearch
 }
 
 
 def run_smoke_tests(request):
     status = None
     results = dict()
-    success = False
+    success = True
 
     for name, test in SMOKE_TEST.items():
         try:
