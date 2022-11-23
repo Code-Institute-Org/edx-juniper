@@ -21,7 +21,7 @@ def _smoke_test_sql():
 
 def _smoke_test_lrs():
     lrs_client = settings.LRS_MONGO_CLIENT
-    lrs_db = settings.LRS_MONGO_DB
+    lrs_db = lrs_client[settings.AUTH_TOKENS.get('LRS_MONGO_DB', 'dataproduct')]
     lrs_client[lrs_db].command("ping")
 
 
