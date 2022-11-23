@@ -66,10 +66,12 @@ def _smoke_test_elasticsearch():
 SMOKE_TEST = {
     "mongo": _smoke_test_mongo,
     "sql": _smoke_test_sql,
-    "lrs": _smoke_test_lrs,
     "zoho": _smoke_test_zoho,
     "elasticsearch": _smoke_test_elasticsearch
 }
+
+if settings.LRS_MONGO_HOST:
+    SMOKE_TEST["lrs"] = _smoke_test_lrs
 
 
 def run_smoke_tests(request):
