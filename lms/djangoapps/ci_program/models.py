@@ -74,10 +74,14 @@ class Program(TimeStampedModel):
     program_code = models.CharField(max_length=50, null=True, blank=True)
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
     sample_content_for = models.CharField(max_length=50, null=True, blank=True)
-    support_program_for = models.CharField(max_length=50, null=True, blank=True)
+    support_program_for = models.TextField(
+        help_text=_('Comma-separated list of main Program codes eligible for the support Program'),
+        null=True,
+        blank=True
+    )
     support_program_sources = models.TextField(
         help_text=_('Comma-separated list of student sources (colleges) eligible for the support Program'),
-        null=True, 
+        null=True,
         blank=True
     )
     enrolled_students = models.ManyToManyField(

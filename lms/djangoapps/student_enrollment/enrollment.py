@@ -71,7 +71,9 @@ class Enrollment:
                 sample_content = None
 
             # Get the learning supports programme(s), if any
-            learning_supports = Program.objects.filter(support_program_for__iexact=program_to_enroll_in)
+            # regex to avoid partial matches (e.g. disd instead of disdcc)
+            program_code_regex = r"^{}[ ]*[,]|[,][ ]*{}[ ]*[,]|[,][ ]*{}[ ]*[,]?$".format(program_to_enroll_in, program_to_enroll_in, program_to_enroll_in)
+            learning_supports = Program.objects.filter(support_program_for__iregex=program_code_regex)
 
             try:
                 # Get the Program that contains the Zoho program code
@@ -107,8 +109,13 @@ class Enrollment:
                     for prog in learning_supports:
                         eligible_sources = list(map(lambda x: x.strip(" \'\"\r\n"),
                                                     prog.support_program_sources.split(",")))
-                        if student_source in eligible_sources:
+                        # if eligible_sources are empty, treat all students as eligible for enrolment
+                        if not eligible_sources:
                             prog.enroll_student_in_program(user.email)
+                        # otherwise, check student source against_eligible sources before enrolling
+                        else:
+                            if student_source in eligible_sources:
+                                prog.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(

@@ -597,6 +597,11 @@ class Enrollment(SysadminDashboardView):
         except ObjectDoesNotExist:
             sample_content = None
 
+        # Get the support programme(s), if any
+        # regex to avoid partial matches (e.g. disd instead of disdcc)
+        program_code_regex = r"^{}[ ]*[,]|[,][ ]*{}[ ]*[,]|[,][ ]*{}[ ]*[,]?$".format(program_code, program_code, program_code)
+        learning_supports = Program.objects.filter(support_program_for__iregex=program_code_regex)
+
         # Create the user and get their password so they can be
         # emailed to the student later
         log.info("Creating user for %s" % email)
@@ -623,6 +628,16 @@ class Enrollment(SysadminDashboardView):
             if sample_content:
                 sample_content.enroll_student_in_program(email)
                 log.info("%s successfully enrolled in %s", email, sample_content.name)
+
+            # enrol student into support programme(s) if any
+            # NOTE:
+            # only applicable to support programmes not restricted to
+            # specific student sources (specified in the support_program_sources field)
+            if learning_supports:
+                for prog in learning_supports:
+                    if not prog.support_program_sources:
+                        prog.enroll_student_in_program(user.email)
+
         else:
             log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
