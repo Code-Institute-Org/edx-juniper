@@ -83,11 +83,12 @@ class Enrollment:
                 continue
 
             # Get the sample content programme, if any
+            sample_content = None
             if program.sample_content:
                 try:
                     sample_content = Program.objects.get(sample_content_for__iexact=program.sample_content)
                 except ObjectDoesNotExist:
-                    sample_content = None
+                    log.exception("**Could not find sample content program: %s**", program.sample_content)
 
             # Get the learning supports programme(s), if any
             learning_supports = []

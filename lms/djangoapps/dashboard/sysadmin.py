@@ -592,10 +592,11 @@ class Enrollment(SysadminDashboardView):
         program = get_object_or_404(Program, program_code=program_code)
 
         # Get the sample content programme, if any
+        sample_content = None
         try:
-            sample_content = Program.objects.get(sample_content_for__iexact=program_code)
+            sample_content = Program.objects.get(sample_content_for__iexact=program.sample_content)
         except ObjectDoesNotExist:
-            sample_content = None
+            log.exception("**Could not find sample content program: %s**", program.sample_content)
 
         # Get the support programme(s), if any
         learning_supports = []
@@ -642,7 +643,7 @@ class Enrollment(SysadminDashboardView):
                 for prog in learning_supports:
                     if not prog.support_program_sources:
                         prog.enroll_student_in_program(user.email)
-                    
+                        log.info("%s successfully enrolled in %s", email, prog.name)
         else:
             log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
