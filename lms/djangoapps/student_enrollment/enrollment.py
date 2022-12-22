@@ -63,7 +63,7 @@ class Enrollment:
 
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
-
+            
             try:
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
@@ -86,7 +86,7 @@ class Enrollment:
             sample_content = None
             if program.sample_content:
                 try:
-                    sample_content = Program.objects.get(sample_content_for__iexact=program.sample_content)
+                    sample_content = Program.objects.get(program_code__iexact=program.sample_content)
                 except ObjectDoesNotExist:
                     log.exception("**Could not find sample content program: %s**", program.sample_content)
 
@@ -98,7 +98,7 @@ class Enrollment:
 
                 for prog_code in support_program_codes_list:
                     try:
-                        support = Program.objects.get(sample_content_for__iexact=prog_code)
+                        support = Program.objects.get(program_code__iexact=prog_code)
                         learning_supports.append(support)
                     except ObjectDoesNotExist:
                         log.exception("**Could not find support program: %s**", prog_code)
@@ -118,13 +118,13 @@ class Enrollment:
                 if learning_supports:
                     student_source = student["Student_Source"].strip(" \"\'")
                     for prog in learning_supports:
-                        eligible_sources = list(map(lambda x: x.strip(" \'\"\r\n"),
-                                                    prog.support_program_sources.split(",")))
                         # if eligible sources list is empty, treat all students as eligible and enrol
-                        if not eligible_sources:
+                        if not prog.support_program_sources:
                             prog.enroll_student_in_program(user.email)
                         # otherwise check student source against eligible sources before enrolling
                         else:
+                            eligible_sources = list(map(lambda x: x.strip(" \'\"\r\n"),
+                                                    prog.support_program_sources.split(",")))
                             if student_source in eligible_sources:
                                 prog.enroll_student_in_program(user.email)
 
