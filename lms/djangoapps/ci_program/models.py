@@ -73,8 +73,12 @@ class Program(TimeStampedModel):
     video = models.URLField(null=True, blank=True)
     program_code = models.CharField(max_length=50, null=True, blank=True)
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
-    sample_content_for = models.CharField(max_length=50, null=True, blank=True)
-    support_program_for = models.CharField(max_length=50, null=True, blank=True)
+    sample_content = models.CharField(max_length=50, null=True, blank=True)
+    support_programs = models.TextField(
+        help_text=_('Comma-separated list of support programmes to enrol together with main programme'),
+        null=True, 
+        blank=True
+    )
     support_program_sources = models.TextField(
         help_text=_('Comma-separated list of student sources (colleges) eligible for the support Program'),
         null=True, 

@@ -64,15 +64,6 @@ class Enrollment:
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
 
-            # Get the sample content programme, if any
-            try:
-                sample_content = Program.objects.get(sample_content_for__iexact=program_to_enroll_in)
-            except ObjectDoesNotExist:
-                sample_content = None
-
-            # Get the learning supports programme(s), if any
-            learning_supports = Program.objects.filter(support_program_for__iexact=program_to_enroll_in)
-
             try:
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
@@ -91,6 +82,27 @@ class Enrollment:
                 )
                 continue
 
+            # Get the sample content programme, if any
+            if program.sample_content:
+                try:
+                    sample_content = Program.objects.get(sample_content_for__iexact=program.sample_content)
+                except ObjectDoesNotExist:
+                    sample_content = None
+
+            # Get the learning supports programme(s), if any
+            learning_supports = []
+            if program.support_programs:
+                support_program_codes_list = list(map(lambda x: x.strip(" \'\"\r\n"),
+                                                 program.support_programs.split(",")))
+
+                for prog_code in support_program_codes_list:
+                    try:
+                        support = Program.objects.get(sample_content_for__iexact=prog_code)
+                        learning_supports.append(support)
+                    except ObjectDoesNotExist:
+                        log.exception("**Could not find support program: %s**", prog_code)
+                        continue
+
             # Enroll the student in the program
             program_enrollment_status = program.enroll_student_in_program(
                 user.email,
@@ -107,8 +119,13 @@ class Enrollment:
                     for prog in learning_supports:
                         eligible_sources = list(map(lambda x: x.strip(" \'\"\r\n"),
                                                     prog.support_program_sources.split(",")))
-                        if student_source in eligible_sources:
+                        # if eligible sources list is empty, treat all students as eligible and enrol
+                        if not eligible_sources:
                             prog.enroll_student_in_program(user.email)
+                        # otherwise check student source against eligible sources before enrolling
+                        else:
+                            if student_source in eligible_sources:
+                                prog.enroll_student_in_program(user.email)
 
             # Send the email
             email_sent_status = program.send_email(
