@@ -63,7 +63,7 @@ class Enrollment:
 
             # Get the code for the course the student is enrolling in
             program_to_enroll_in = student['Programme_ID']
-            
+
             try:
                 # Get the Program that contains the Zoho program code
                 program = Program.objects.get(
@@ -94,7 +94,7 @@ class Enrollment:
             learning_supports = []
             if program.support_programs:
                 support_program_codes_list = list(map(lambda x: x.strip(" \'\"\r\n"),
-                                                 program.support_programs.split(",")))
+                                                  program.support_programs.split(",")))
 
                 for prog_code in support_program_codes_list:
                     try:
@@ -116,7 +116,7 @@ class Enrollment:
                 if sample_content is not None:
                     sample_content.enroll_student_in_program(user.email)
                 if learning_supports:
-                    student_source = student["Student_Source"].strip(" \"\'")
+                    student_source = student["Student_Source"].strip(" \"\'") if student.get("Student_Source") else None
                     for prog in learning_supports:
                         # if eligible sources list is empty, treat all students as eligible and enrol
                         if not prog.support_program_sources:

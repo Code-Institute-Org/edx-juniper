@@ -550,7 +550,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwad220407",
+                        "Programme_ID": "diwad220407",  # has only DIWADLS
                         # intentional whitespace and single quotes for testing!
                         "Student_Source": "'Eligible College 1 '"  # eligible for DIWADLS
                     },
@@ -580,6 +580,44 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
 
     @responses.activate
+    def test_enrollment_and_single_learning_support_with_student_source_empty(self):
+        # create student with empty CRM Student_Source
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwad220407",  # has DIWADLS learning support, which is source-restricted
+                        "Student_Source": None
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWAD220407 has been enrolled, but DIWADLS has not (because source-restricted and Student Source is empty)
+        self.assertTrue(self.diwad_new in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no other learning supports have been enrolled
+        self.assertFalse(self.diwad_second_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_open_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, or another program (DISD or DIWAD), has been enrolled
+        self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+
+    @responses.activate
     def test_enrollment_and_single_learning_support_not_eligible(self):
 
         responses.add(
@@ -589,7 +627,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwad220407",
+                        "Programme_ID": "diwad220407",  # has only DIWADLS
                         "Student_Source": "Ineligible College 1"  # not eligible for DIWADLS
                     },
                 ],
@@ -624,7 +662,7 @@ class EnrollmentTestCase(TestCase):
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
                         "Programme_ID": "diwad",  # program does not have learning supports
-                        "Student_Source": "Eligible College 1"  # eligible for DIWADLS, but not with this program
+                        "Student_Source": "Eligible College 1"  # eligible for several LS, but no LS is defined for with this program
                     },
                 ],
                 "info": {"more_records": False}
@@ -657,7 +695,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwad221005",
+                        "Programme_ID": "diwad221005",  # has DIWADLS, DIWADLS2, and DIWADLS3
                         "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
                     },
                 ],
@@ -694,7 +732,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwadexp", # has 4 supports (3 restricted + DIWADLSOPEN)
+                        "Programme_ID": "diwadexp",  # has 4 supports (3 restricted + DIWADLSOPEN)
                         "Student_Source": "Eligible College 1"  # eligible for DIWADLS and DIWADLS2, but not DIWADLS3
                     },
                 ],
@@ -723,6 +761,44 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
 
     @responses.activate
+    def test_enrollment_program_with_multiple_supports_and_student_source_empty(self):
+        # set user whose CRM Student_Source is empty
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwadexp",  # has 4 supports (3 restricted + DIWADLSOPEN)
+                        "Student_Source": None
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWADEXP has been enrolled
+        self.assertTrue(self.diwad_exp in list(self.user.program_set.all()))
+
+        # verify that DIWADLSOPEN has been enrolled, but DIWADLS, DIWADLS2, and DIWADLS3 have not (because student source is empty)
+        self.assertTrue(self.diwad_open_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_second_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no specialisation, nor another program (DISD or DIWAD), has been enrolled
+        self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.disd in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+    @responses.activate
     def test_enrollment_in_program_with_multiple_supports_and_sample_content(self):
         # set user whose student source is eligible for 2 out of 3 available supports
         responses.add(
@@ -732,7 +808,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwadexp", # has 4 supports (3 restricted + DIWADLSOPEN)
+                        "Programme_ID": "diwadexp",  # has 4 supports (3 restricted + DIWADLSOPEN)
                         # intentional whitespace and double quotes for testing!
                         "Student_Source": " \"Eligible College 3 \""  # eligible for DIWADLS2 and DIWADLS3, but not DIWADLS1
                     },
@@ -766,7 +842,7 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
-    
+
     @responses.activate
     def test_enrollment_in_program_with_single_unrestricted_support_and_sample_content(self):
         # set user whose student source is eligible for 2 out of 3 restricted supports
@@ -777,7 +853,7 @@ class EnrollmentTestCase(TestCase):
                     {
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
-                        "Programme_ID": "diwadexp2", # has DIWADLSOPEN (learning support) and DIWADSPSC (sample content)
+                        "Programme_ID": "diwadexp2",  # has DIWADLSOPEN (learning support) and DIWADSPSC (sample content)
                         # intentional whitespace and double quotes for testing!
                         "Student_Source": " \"Eligible College 1 \""
                     },
