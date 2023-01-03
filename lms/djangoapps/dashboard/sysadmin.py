@@ -591,12 +591,21 @@ class Enrollment(SysadminDashboardView):
         # Get the program using the code
         program = get_object_or_404(Program, program_code=program_code)
 
+        # Check if program is a specialisation and get its "parent" program
+        parent_program = None
+        if program.specialization_for:
+            try:
+                parent_program = Program.objects.get(program_code__iexact=program.specialization_for)
+            except ObjectDoesNotExist:
+                log.exception("**Parent program not found: %s**", program.specialization_for)
+
         # Get the sample content programme, if any
         sample_content = None
-        try:
-            sample_content = Program.objects.get(program_code__iexact=program.sample_content)
-        except ObjectDoesNotExist:
-            log.exception("**Could not find sample content program: %s**", program.sample_content)
+        if program.sample_content:
+            try:
+                sample_content = Program.objects.get(program_code__iexact=program.sample_content)
+            except ObjectDoesNotExist:
+                log.exception("**Could not find sample content program: %s**", program.sample_content)
 
         # Get the support programme(s), if any
         learning_supports = []
@@ -625,6 +634,11 @@ class Enrollment(SysadminDashboardView):
         else:
             log.error("User creation failed for %s" % email)
             return HttpResponse(b'Unknown error creating student', content_type=500)
+
+        # Unenrol student from "parent" program, if any
+        if parent_program and parent_program in user.program_set.all():
+            parent_program.unenroll_student_from_program(user)
+            log.info("%s successfully unenrolled from %s", email, parent_program.name)
 
         # Enroll the new student into the chosen program
         log.info("Enrolling %s into %s" % (email, program.name))
