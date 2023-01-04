@@ -39,7 +39,8 @@ def export_to_s3(course_id, timestamp):
     client = boto3.client(
         's3',
         aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
-        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
+        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY,
+        endpoint_url=settings.MODULE_EXPORTIMPORT_ENDPOINT_URL
     )
 
     try:
@@ -119,7 +120,8 @@ def import_from_s3(course_id, timestamp):
     client = boto3.client(
         's3',
         aws_access_key_id=settings.MODULE_EXPORTIMPORT_S3_ACCESS_KEY,
-        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY
+        aws_secret_access_key=settings.MODULE_EXPORTIMPORT_S3_SECRET_KEY,
+        endpoint_url=settings.MODULE_EXPORTIMPORT_ENDPOINT_URL
     )
 
     try:
