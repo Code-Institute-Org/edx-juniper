@@ -72,14 +72,25 @@ class Program(TimeStampedModel):
     image = models.URLField(null=True, blank=True)
     video = models.URLField(null=True, blank=True)
     program_code = models.CharField(max_length=50, null=True, blank=True)
+    
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
+
+    # enable multiple sample-content programmes for an individual main programme
+    sample_content = models.ManyToManyField("self", symmetrical=False, related_name="sampled_main_programs")
+    # NOTE: to be removed following refactor
     sample_content_for = models.CharField(max_length=50, null=True, blank=True)
+
+    # enable multiple support programmes for an individual main programme
+    support_programs = models.ManyToManyField("self", symmetrical=False, related_name="supported_main_programs")
+    # NOTE: to be removed following refactor
     support_program_for = models.CharField(max_length=50, null=True, blank=True)
+    
     support_program_sources = models.TextField(
         help_text=_('Comma-separated list of student sources (colleges) eligible for the support Program'),
-        null=True, 
+        null=True,
         blank=True
     )
+
     enrolled_students = models.ManyToManyField(
         User, blank=True)
     # This is used for getting the path to the enrollment email files
