@@ -20,67 +20,18 @@ class EnrollmentTestCase(TestCase):
             email="fred@fred.com"
         )
 
-        self.common_curriculum = Program.objects.create(
-            name="Common Curriculum",
-            program_code="disdcc",
-            sample_content="spsc"
-        )
-
+        # NOTE: sample/support programmes moved to the top of the setup
+        # as they need to be created before their referencing in main programmes
+        
         self.sample_content = Program.objects.create(
             name="Sample Content",
             program_code="spsc",
         )
 
-        self.disd = Program.objects.create(
-            name="Diploma in Software Development",
-            program_code="disd"
-        )
-
-        self.specialisation = Program.objects.create(
-            name="Advanced Frontend",
-            program_code="spadvfe",
-            specialization_for="disdcc"
-        )
-
-        self.changed_specialisation = Program.objects.create(
-            name="Predictive Analytics",
-            program_code="sppredan",
-            specialization_for="disdcc"
-        )
-
-        self.diwad_old = Program.objects.create(
-            name="Diploma in Web Application Development",
-            program_code="diwad"
-        )
-
-        self.diwad_new = Program.objects.create(
-            name="Diploma in Web App Development",
-            program_code="diwad220407",
-            support_programs="diwadls",
-        )
-
-        self.diwad221005 = Program.objects.create(
-            name="L5 Diploma in Web App Development",
-            program_code="diwad221005",
-            # intentional whitespaces and newlines for testing!
-            support_programs="diwadls ,\n diwadls2 , \n\rdiwadls3",
-        )
-
-        # programme with multiple learning supports and a sample content programme
-        self.diwad_exp = Program.objects.create(
-            name="Test Diploma in Web App Development",
-            program_code="diwadexp",
-            # intentional whitespaces and newlines for testing!
-            support_programs="diwadls , \ndiwadls2 , \r diwadls3, \rdiwadlsopen",
-            sample_content="diwadspsc"
-        )
-
-        # programme with single (open) learning support and a sample content programme
-        self.diwad_exp_2 = Program.objects.create(
-            name="Test Diploma in Web App Development 2",
-            program_code="diwadexp2",
-            support_programs="diwadlsopen",
-            sample_content="diwadspsc"
+        # sample content for diwadexp
+        self.diwad_sample_content = Program.objects.create(
+            name="Sample Content Diwad",
+            program_code="diwadspsc",
         )
 
         self.diwad_learning_supports = Program.objects.create(
@@ -113,11 +64,78 @@ class EnrollmentTestCase(TestCase):
             support_program_sources=""
         )
 
-        # sample content for diwadexp
-        self.diwad_sample_content = Program.objects.create(
-            name="Sample Content Diwad",
-            program_code="diwadspsc",
+        self.common_curriculum = Program.objects.create(
+            name="Common Curriculum",
+            program_code="disdcc"
         )
+        self.common_curriculum.sample_content.set([self.sample_content])
+
+        self.disd = Program.objects.create(
+            name="Diploma in Software Development",
+            program_code="disd"
+        )
+
+        self.specialisation = Program.objects.create(
+            name="Advanced Frontend",
+            program_code="spadvfe",
+            specialization_for="disdcc"
+        )
+
+        self.changed_specialisation = Program.objects.create(
+            name="Predictive Analytics",
+            program_code="sppredan",
+            specialization_for="disdcc"
+        )
+
+        self.diwad_old = Program.objects.create(
+            name="Diploma in Web Application Development",
+            program_code="diwad"
+        )
+
+        self.diwad_new = Program.objects.create(
+            name="Diploma in Web App Development",
+            program_code="diwad220407",
+        )
+        self.diwad_new.support_programs.set([self.diwad_learning_supports])
+
+        self.diwad221005 = Program.objects.create(
+            name="L5 Diploma in Web App Development",
+            program_code="diwad221005",
+        )
+        self.diwad221005.support_programs.set([
+            self.diwad_learning_supports,
+            self.diwad_second_learning_supports,
+            self.diwad_different_learning_supports
+        ])
+
+        # programme with multiple learning supports and a sample content programme
+        self.diwad_exp = Program.objects.create(
+            name="Test Diploma in Web App Development",
+            program_code="diwadexp"
+        )
+        self.diwad_exp.support_programs.set([
+            self.diwad_learning_supports,
+            self.diwad_second_learning_supports,
+            self.diwad_different_learning_supports,
+            self.diwad_open_learning_supports
+        ])
+        self.diwad_exp.sample_content.set([self.diwad_sample_content])
+
+        # programme with single (open) learning support and a sample content programme
+        self.diwad_exp_2 = Program.objects.create(
+            name="Test Diploma in Web App Development 2",
+            program_code="diwadexp2",
+        )
+        self.diwad_exp_2.support_programs.set([self.diwad_open_learning_supports])
+        self.diwad_exp_2.sample_content.set([self.diwad_sample_content])
+
+        # programme with single (open) learning support and TWO sample content programmes
+        self.multiple_ls_exp = Program.objects.create(
+            name="Test Diploma in Web App Development 2",
+            program_code="multiplexp",
+        )
+        self.diwad_exp_2.support_programs.set([self.diwad_open_learning_supports])
+        self.diwad_exp_2.sample_content.set([self.diwad_sample_content, self.sample_content])
 
         responses.add(
             responses.POST, settings.ZOHO_REFRESH_ENDPOINT,
