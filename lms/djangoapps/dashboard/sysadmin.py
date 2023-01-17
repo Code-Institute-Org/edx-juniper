@@ -591,11 +591,11 @@ class Enrollment(SysadminDashboardView):
         # Get the program using the code
         program = get_object_or_404(Program, program_code=program_code)
 
-        # Get the sample content programme, if any
-        try:
-            sample_content = Program.objects.get(sample_content_for__iexact=program_code)
-        except ObjectDoesNotExist:
-            sample_content = None
+        # Get the sample content programme(s), if any
+        sample_content = program.sample_content.all()
+
+        # Get the learning supports programme(s), if any
+        learning_supports = program.support_programs.all()
 
         # Create the user and get their password so they can be
         # emailed to the student later
@@ -619,10 +619,18 @@ class Enrollment(SysadminDashboardView):
         # otherwise issue a 500 response
         if program_enrollment_status:
             log.info("%s successfully enrolled in %s", email, program.name)
-            # enrol into specialisation sample content if applicable
+            # enrol into sample content programme(s), if any
             if sample_content:
-                sample_content.enroll_student_in_program(email)
-                log.info("%s successfully enrolled in %s", email, sample_content.name)
+                for sc_prog in sample_content:
+                    sc_prog.enroll_student_in_program(email) 
+                    log.info("%s successfully enrolled in %s", email, sc_prog.name)
+            # if learning supports are specified for the programme, only
+            # enrol the student into support(s) that is not student-source-restricted
+            if learning_supports:
+                for sup_prog in learning_supports:
+                    if not sup_prog.support_program_sources:
+                        sup_prog.enroll_student_in_program(user.email)
+                        log.info("%s successfully enrolled in %s", email, sup_prog.name)
         else:
             log.error("Unable to enroll %s in %s", email, program.name)
             return HttpResponse(b'Unknown error enrolling student', content_type=500)
