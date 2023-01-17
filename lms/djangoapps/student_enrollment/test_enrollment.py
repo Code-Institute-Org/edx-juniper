@@ -130,12 +130,13 @@ class EnrollmentTestCase(TestCase):
         self.diwad_exp_2.sample_content.set([self.diwad_sample_content])
 
         # programme with single (open) learning support and TWO sample content programmes
+        # TODO: write test for this
         self.multiple_ls_exp = Program.objects.create(
             name="Test Diploma in Web App Development 2",
             program_code="multiplexp",
         )
-        self.diwad_exp_2.support_programs.set([self.diwad_open_learning_supports])
-        self.diwad_exp_2.sample_content.set([self.diwad_sample_content, self.sample_content])
+        self.multiple_ls_exp.support_programs.set([self.diwad_open_learning_supports])
+        self.multiple_ls_exp.sample_content.set([self.diwad_sample_content, self.sample_content])
 
         responses.add(
             responses.POST, settings.ZOHO_REFRESH_ENDPOINT,
