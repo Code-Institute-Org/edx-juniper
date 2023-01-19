@@ -76,12 +76,12 @@ class Program(TimeStampedModel):
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
 
     # enable multiple sample-content programmes for an individual main programme
-    sample_content = models.ManyToManyField("self", symmetrical=False, related_name="sampled_main_programs")
+    sample_content = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="sampled_main_programs")
     # NOTE: to be removed following refactor
     sample_content_for = models.CharField(max_length=50, null=True, blank=True)
 
     # enable multiple support programmes for an individual main programme
-    support_programs = models.ManyToManyField("self", symmetrical=False, related_name="supported_main_programs")
+    support_programs = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="supported_main_programs")
     # NOTE: to be removed following refactor
     support_program_for = models.CharField(max_length=50, null=True, blank=True)
     
