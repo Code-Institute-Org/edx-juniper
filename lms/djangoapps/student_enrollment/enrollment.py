@@ -101,7 +101,7 @@ class Enrollment:
                     for sc_prog in sample_content:
                         sc_prog.enroll_student_in_program(user.email)
                 if learning_supports:
-                    student_source = student["Student_Source"].strip(" \"\'") if student["Student_Source"] else None
+                    student_source = student["Student_Source"].strip(" \"\'") if student.get("Student_Source") else None
                     for sup_prog in learning_supports:
                         # if programme has specified eligible student sources (colleges),
                         # check student's source for eligibility before enrolling
