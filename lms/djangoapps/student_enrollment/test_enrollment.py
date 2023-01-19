@@ -28,7 +28,7 @@ class EnrollmentTestCase(TestCase):
             program_code="spsc",
         )
 
-        # sample content for diwadexp
+        # sample content for diwadexp, diwadexp2 and multiplelsxp
         self.diwad_sample_content = Program.objects.create(
             name="Sample Content Diwad",
             program_code="diwadspsc",
@@ -48,7 +48,7 @@ class EnrollmentTestCase(TestCase):
             support_program_sources="Eligible College 3  , \r\n\"Eligible College 1 \""
         )
 
-        # eligible colleges different than for diwadls and diwadls2
+        # support_program_sources (eligible colleges) different than for diwadls and diwadls2
         self.diwad_different_learning_supports = Program.objects.create(
             name="Diploma in Web App Development Learning Supports 3",
             program_code="diwadls3",
@@ -56,7 +56,7 @@ class EnrollmentTestCase(TestCase):
             support_program_sources="  Eligible College 3   "
         )
 
-        # eligible colleges empty - unrestricted learning support
+        # support_program_sources empty - unrestricted learning support
         self.diwad_open_learning_supports = Program.objects.create(
             name="Diploma in Web App Development Open Learning Supports",
             program_code="diwadlsopen",
@@ -130,7 +130,6 @@ class EnrollmentTestCase(TestCase):
         self.diwad_exp_2.sample_content.set([self.diwad_sample_content])
 
         # programme with multiple learning supports and TWO sample content programmes
-        # TODO: write test for this
         self.multiple_ls_exp = Program.objects.create(
             name="Test Diploma in Web App Development 3",
             program_code="multiplelsxp",
@@ -217,9 +216,10 @@ class EnrollmentTestCase(TestCase):
         self.assertTrue(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.sample_content in list(self.user.program_set.all()))
 
-        # verify that no specialisation, or another program (CC), has been enrolled
+        # verify that no specialisation, nor another program (CC), nor open learning support (DIWADLSOPEN), has been enrolled
         self.assertFalse(self.common_curriculum in list(self.user.program_set.all()))
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_open_learning_supports in list(self.user.program_set.all()))
 
     @responses.activate
     def test_enrollment_non_existent_program(self):
@@ -252,7 +252,7 @@ class EnrollmentTestCase(TestCase):
         # verify that no program has been enrolled
         self.assertEqual(list(self.user.program_set.all()), [])
 
-    # specialisation enrolment tests
+    # SPECIALISATION ENROLMENT TESTS
 
     @responses.activate
     def test_specialisation_enrollment(self):
