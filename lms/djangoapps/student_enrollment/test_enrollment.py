@@ -561,7 +561,7 @@ class EnrollmentTestCase(TestCase):
         # verify that SPSC is still enrolled
         self.assertTrue(self.sample_content in list(self.user.program_set.all()))
 
-    # Learning supports enrolment tests (and combined with sample content)
+    # LEARNING SUPPORTS ENROLMENT TESTS (AND COMBINED WITH SAMPLE CONTENT)
 
     @responses.activate
     def test_enrollment_and_single_learning_support_eligible(self):
@@ -685,7 +685,7 @@ class EnrollmentTestCase(TestCase):
                         "Full_Name": "fred fredriksson",
                         "Email": self.user.email,
                         "Programme_ID": "diwad",  # program does not have learning supports
-                        "Student_Source": "Eligible College 1"  # eligible for several LS, but no LS is defined for with this program
+                        "Student_Source": "Eligible College 1"  # eligible for several LS, but no LS is defined for this program
                     },
                 ],
                 "info": {"more_records": False}
@@ -698,9 +698,13 @@ class EnrollmentTestCase(TestCase):
         # run enrollment task
         Enrollment(dryrun=False).enroll()
 
-        # verify that "old" DIWAD has been enrolled, but DIWADLS has not, nor has DIWADLSOPEN
+        # verify that "old" DIWAD has been enrolled
         self.assertTrue(self.diwad_old in list(self.user.program_set.all()))
+
+        # verify that no learning supports have been enrolled
         self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_second_learning_supports in list(self.user.program_set.all()))
+        self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_open_learning_supports in list(self.user.program_set.all()))
 
         # verify that no specialisation, nor another program (DISD or DIWAD220407), has been enrolled
@@ -878,7 +882,7 @@ class EnrollmentTestCase(TestCase):
                         "Email": self.user.email,
                         "Programme_ID": "diwadexp2",  # has DIWADLSOPEN (learning support) and DIWADSPSC (sample content)
                         # intentional whitespace and double quotes for testing!
-                        "Student_Source": " \"Eligible College 1 \""
+                        "Student_Source": " \"Eligible College 1 \""  # Eligible for DIWADLS and DIWADLS2, but neither is defined for this programme
                     },
                 ],
                 "info": {"more_records": False}
@@ -896,6 +900,8 @@ class EnrollmentTestCase(TestCase):
 
         # verify that only DIWADLSOPEN support has been enrolled
         self.assertTrue(self.diwad_open_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no other learning support has been enrolled (because not specified for this programme)
         self.assertFalse(self.diwad_learning_supports in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_second_learning_supports in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_different_learning_supports in list(self.user.program_set.all()))
