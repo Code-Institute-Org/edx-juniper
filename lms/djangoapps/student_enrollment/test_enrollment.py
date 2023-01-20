@@ -22,7 +22,7 @@ class EnrollmentTestCase(TestCase):
 
         # NOTE: sample/support programmes moved to the top of the setup
         # as they need to be created before their referencing in main programmes
-        
+
         self.sample_content = Program.objects.create(
             name="Sample Content",
             program_code="spsc",
@@ -959,3 +959,66 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_new in list(self.user.program_set.all()))
+
+    # TESTS FOR NO BACKWARDS RELATION (symmetrical=False)
+
+    # NOTE: these tests are not a realistic work scenario; they are only here to verify
+    # that no 'backwards' enrollment occurs i.e. that, if a support/sample programme
+    # is enrolled, no main programme is auto-enrolled together with it
+
+    @responses.activate
+    def test_standalone_enrollment_sample_content(self):
+
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "spsc"
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that SPSC has been enrolled
+        self.assertTrue(self.sample_content in list(self.user.program_set.all()))
+
+        # verify that no other programme has been enrolled
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
+
+    @responses.activate
+    def test_standalone_enrollment_learning_support(self):
+        responses.add(
+            responses.POST, settings.ZOHO_COQL_ENDPOINT,
+            json={
+                "data": [
+                    {
+                        "Full_Name": "fred fredriksson",
+                        "Email": self.user.email,
+                        "Programme_ID": "diwadlsopen",
+                    },
+                ],
+                "info": {"more_records": False}
+            },
+            status=200)
+
+        # check that enrolled programme list is empty initially
+        self.assertEqual(list(self.user.program_set.all()), [])
+
+        # run enrollment task
+        Enrollment(dryrun=False).enroll()
+
+        # verify that DIWADLSOPEN has been enrolled
+        self.assertTrue(self.diwad_open_learning_supports in list(self.user.program_set.all()))
+
+        # verify that no other programme has been enrolled
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
