@@ -189,6 +189,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
 
+        self.assertEqual(len(list(self.user.program_set.all())), 2)
+
     @responses.activate
     def test_enrollment_disd_and_no_sample_content(self):
 
@@ -220,6 +222,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.common_curriculum in list(self.user.program_set.all()))
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_open_learning_supports in list(self.user.program_set.all()))
+
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
 
     @responses.activate
     def test_enrollment_non_existent_program(self):
@@ -602,6 +606,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
 
+        self.assertEqual(len(list(self.user.program_set.all())), 2)
+
     @responses.activate
     def test_enrollment_and_single_learning_support_with_student_source_empty(self):
         # create student with empty CRM Student_Source
@@ -640,6 +646,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
 
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
+
     @responses.activate
     def test_enrollment_and_single_learning_support_not_eligible(self):
 
@@ -673,6 +681,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
 
     @responses.activate
     def test_enrollment_program_without_supports_although_source_eligible(self):
@@ -712,6 +722,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_new in list(self.user.program_set.all()))
 
+        self.assertEqual(len(list(self.user.program_set.all())), 1)
+
     @responses.activate
     def test_enrollment_program_with_multiple_supports_some_eligible(self):
         # set user whose student source is eligible for 2 out of 3 available supports
@@ -748,6 +760,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+        self.assertEqual(len(list(self.user.program_set.all())), 3)
 
     @responses.activate
     def test_enrollment_program_with_multiple_supports_some_eligible_one_unrestricted(self):
@@ -787,6 +801,9 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
 
+        # DIWADEXP + DIWADLS + DIWADLS2 + DIWADLSOPEN + DIWADSPSC
+        self.assertEqual(len(list(self.user.program_set.all())), 5)
+
     @responses.activate
     def test_enrollment_program_with_multiple_supports_and_student_source_empty(self):
         # set user whose CRM Student_Source is empty
@@ -824,6 +841,9 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+        # DIWADEXP + DIWADLSOPEN + DIWADSPSC
+        self.assertEqual(len(list(self.user.program_set.all())), 3)
 
     @responses.activate
     def test_enrollment_in_program_with_multiple_supports_and_sample_content(self):
@@ -869,6 +889,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.specialisation in list(self.user.program_set.all()))
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
+
+        self.assertEqual(len(list(self.user.program_set.all())), 5)
 
     @responses.activate
     def test_enrollment_in_program_with_single_unrestricted_support_and_sample_content(self):
@@ -917,6 +939,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
 
+        self.assertEqual(len(list(self.user.program_set.all())), 3)
+
     @responses.activate
     def test_enrollment_in_program_with_multiple_supports_and_multiple_sample_content(self):
         # set user whose student source is eligible for 1 out of 2 restricted supports
@@ -959,6 +983,8 @@ class EnrollmentTestCase(TestCase):
         self.assertFalse(self.disd in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_old in list(self.user.program_set.all()))
         self.assertFalse(self.diwad_new in list(self.user.program_set.all()))
+
+        self.assertEqual(len(list(self.user.program_set.all())), 5)
 
     # TESTS FOR NO BACKWARDS RELATION (symmetrical=False)
 
