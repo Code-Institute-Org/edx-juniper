@@ -9,6 +9,8 @@ REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 
+L3_PROGRAM_CODES = ('l3bootcamp', 'l3disd', 'l3cisd')
+
 # COQL Queries
 # LMS_Version can be removed from where clause when Ginkgo is decommissioned 
 # Target decommission date: End of Q1 2020
@@ -56,6 +58,18 @@ WHERE ((
 )
 LIMIT {page},{per_page}
 """
+
+L3_CAREERS_CORNER_QUERY = """
+SELECT Email, Full_Name, Programme_ID
+FROM Contacts
+WHERE ((
+    (Programme_ID in {l3_program_codes}) AND (Is_Active = true)
+    )
+    AND (LMS_Version = 'Juniper (learn.codeinstitute.net)')
+)
+LIMIT {page},{per_page}
+"""
+
 RECORDS_PER_PAGE = 200
 
 
@@ -148,6 +162,36 @@ def get_students_to_be_enrolled_in_careers_module():
 
     for page in count():
         query = ENROLL_IN_CAREERS_MODULE_QUERY.format(
+                    page=page*RECORDS_PER_PAGE,
+                    per_page=RECORDS_PER_PAGE)
+        students_resp = requests.post(
+            COQL_ENDPOINT,
+            headers=auth_headers,
+            json={"select_query":query})
+        if students_resp.status_code != 200:
+            return students
+
+        students.extend(students_resp.json()['data'])
+        if not students_resp.json()['info']['more_records']:
+            return students
+
+# L3 Careers Corner enrolment
+
+
+def get_students_to_be_enrolled_in_careers_corner():
+    """Fetch from Zoho all students
+    with the Is Active status of 'true' and 
+    the Programme ID is one of L3_PROGRAM_CODES
+
+    API documentation for this endpoint:
+    https://www.zohoapis.com/crm/v2/coql
+    """
+    students = []
+    auth_headers = get_auth_headers()
+
+    for page in count():
+        query = L3_CAREERS_CORNER_QUERY.format(
+                    l3_program_codes=L3_PROGRAM_CODES,
                     page=page*RECORDS_PER_PAGE,
                     per_page=RECORDS_PER_PAGE)
         students_resp = requests.post(

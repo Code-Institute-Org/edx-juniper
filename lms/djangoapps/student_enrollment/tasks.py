@@ -5,7 +5,9 @@ from celery_utils.logged_task import LoggedTask
 from student_enrollment.enrollment import Enrollment, SpecialisationEnrollment
 from student_enrollment.unenrollment import Unenrollment
 from student_enrollment.enroll_students_in_careers_module import (
-    StudentCareerEnrollment)
+    StudentCareerEnrollment,
+    CareersCornerEnrollment
+)
 from student_enrollment.enrollment_stats import (
     EnrollmentStats)
 from student_enrollment.reminder import Reminder
@@ -30,6 +32,13 @@ def enroll_students_in_careers_module(dryrun=False):
     ''' Enroll students in the careers module
     '''
     StudentCareerEnrollment(dryrun).enroll_in_careers()
+
+
+@task(base=LoggedTask)
+def enroll_l3_students_in_careers_corner(dryrun=False):
+    ''' Enroll L3 students in the Careers Corner programme
+    '''
+    CareersCornerEnrollment(dryrun).enroll()
 
 
 @task(base=LoggedTask)
