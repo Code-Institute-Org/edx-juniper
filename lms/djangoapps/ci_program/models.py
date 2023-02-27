@@ -39,13 +39,11 @@ class Program(TimeStampedModel):
         blank=True,
         default=uuid4,
         editable=False,
-        unique=True,
     )
 
     name = models.CharField(
         help_text=_('The user-facing display name for this Program.'),
         max_length=255,
-        unique=True,
     )
 
     subtitle = models.CharField(
@@ -71,13 +69,18 @@ class Program(TimeStampedModel):
     full_description = models.TextField(null=True, blank=True)
     image = models.URLField(null=True, blank=True)
     video = models.URLField(null=True, blank=True)
-    program_code = models.CharField(max_length=50, null=True, blank=True)
+    program_code = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        unique=True,
+    )
     specialization_for = models.CharField(max_length=50, null=True, blank=True)
     sample_content_for = models.CharField(max_length=50, null=True, blank=True)
     support_program_for = models.CharField(max_length=50, null=True, blank=True)
     support_program_sources = models.TextField(
         help_text=_('Comma-separated list of student sources (colleges) eligible for the support Program'),
-        null=True, 
+        null=True,
         blank=True
     )
     enrolled_students = models.ManyToManyField(
