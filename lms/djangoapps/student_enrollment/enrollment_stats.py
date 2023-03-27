@@ -16,6 +16,8 @@ from django.contrib.auth.models import User
 from student.models import CourseEnrollment
 from ci_program.api import get_course_locators_for_program
 
+from django.conf import settings
+
 
 class EnrollmentStats:
     ''' Generate the enrollment stats for the 5DCC and email them to marketing
@@ -45,7 +47,7 @@ class EnrollmentStats:
         for the email (to, from, subject, body)
         """
         self.to_address = "aaron@codeinstitute.net"
-        self.from_address = "learning@codeinstitute.net"
+        self.from_address = settings.DEFAULT_FROM_EMAIL
         self.subject = "Login numbers for 5DCC"
         self.get_email_body()
 

@@ -397,7 +397,7 @@ class Program(TimeStampedModel):
         # Set the values that will be used for sending the email
         student_password = password
         to_address = student.email
-        from_address = 'learning@codeinstitute.net'
+        from_address = settings.DEFAULT_FROM_EMAIL
         if self.program_code == 'SBAACC':
             from_address = 'springboard@codeinstitute.net'
 
