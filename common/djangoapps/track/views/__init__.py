@@ -103,7 +103,7 @@ def user_track(request):
             'activity_object': page,
             'extra_data': json.dumps(data, default=str),
         }
-        if settings.LRS_IMPLEMENTATION_VERSION == 'v1':
+        if settings.LRS_IMPLEMENTATION_VERSION == 'lrs_call_lambda':
             attempt_to_store_lrs_record.apply_async(
                 args=[lrs_data], queue=settings.LRS_QUEUE)
         else:

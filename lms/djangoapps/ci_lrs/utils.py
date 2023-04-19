@@ -53,7 +53,7 @@ def write_lrs_record_to_mongo(self, data):
     while True:
         try:
             data['environment'] = settings.SITE_NAME
-            settings.LRS_INTEGRATIONS_MONGO_DB[settings.LRS_INTEGRATIONS_MONGO_COLLECTION].insert_one(data)
+            settings.LRS_MONGO_DB[settings.LRS_STUDENT_ACTIVITY_COLLECTION].insert_one(data)
             return increment
         except PyMongoError:
             logger.exception("LRS Mongo Error")
