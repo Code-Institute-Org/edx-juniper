@@ -1,10 +1,12 @@
 import json
 import requests
+import time
 
 from celery import task
 from celery.utils.log import get_task_logger
 from celery_utils.logged_task import LoggedTask
 from django.conf import settings
+from pymongo.errors import PyMongoError
 
 logger = get_task_logger(__name__)
 
@@ -30,3 +32,33 @@ def attempt_to_store_lrs_record(self, data):
     except TimeoutError:
         logger.exception("LRS Timeout")
         return False
+
+@task(bind=True, base=LoggedTask)
+def write_lrs_record_to_mongo(self, data):
+    """ Writes LRS data directly to DB
+    Retries on exception with incremental backoff
+
+        context = {
+            'activity_time': timezone.now().isoformat(),
+            'actor': 1 # (request.user.id),
+            'verb': 'play_video', # (this is the edx event_type)
+            'activity_object': 'myopenedx.com/urlToPage' # (url to page)
+            'extra_data': '{\"position\": 1}' # (any extra data of the event)
+        }
+
+    """
+    increment = 0
+    backoff_intervals = [1, 2, 5, 10, 30, 60, 300]
+
+    while True:
+        try:
+            data['environment'] = settings.SITE_NAME
+            settings.LRS_INTEGRATIONS_MONGO_DB[settings.LRS_INTEGRATIONS_MONGO_COLLECTION].insert_one(data)
+            return increment
+        except PyMongoError:
+            logger.exception("LRS Mongo Error")
+            backoff_seconds = backoff_intervals[increment]
+            if backoff_seconds < 300:
+                increment += 1
+            time.sleep(backoff_seconds)
+
