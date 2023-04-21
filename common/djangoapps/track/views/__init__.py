@@ -103,11 +103,11 @@ def user_track(request):
             'activity_object': page,
             'extra_data': json.dumps(data, default=str),
         }
-        if settings.LRS_IMPLEMENTATION_VERSION == 'lrs_call_lambda':
-            attempt_to_store_lrs_record.apply_async(
+        if settings.LRS_IMPLEMENTATION_VERSION == 'write_to_lrs':
+            write_lrs_record_to_mongo.apply_async(
                 args=[lrs_data], queue=settings.LRS_QUEUE)
         else:
-            write_lrs_record_to_mongo.apply_async(
+            attempt_to_store_lrs_record.apply_async(
                 args=[lrs_data], queue=settings.LRS_QUEUE)
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
