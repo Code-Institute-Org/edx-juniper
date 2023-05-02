@@ -25,6 +25,7 @@ def attempt_to_store_lrs_record(self, data):
 
     """
     try:
+        data['activity_time'] = data['activity_time'].isoformat()
         res = requests.post(settings.LRS_ENDPOINT, data=json.dumps(data),
                             headers={'x-api-key': settings.LRS_API_KEY},
                             timeout=settings.LRS_TIMEOUT)
@@ -45,13 +46,13 @@ def write_lrs_record_to_mongo(self, data):
             'activity_object': 'myopenedx.com/urlToPage' # (url to page)
             'extra_data': '{\"position\": 1}' # (any extra data of the event)
         }
-
     """
     increment = 0
     backoff_intervals = [1, 2, 5, 10, 30, 60, 300]
 
     while True:
         try:
+            # Store info in database
             data['environment'] = settings.SITE_NAME
             settings.LRS_MONGO_DB[settings.LRS_STUDENT_ACTIVITY_COLLECTION].insert_one(data)
             return increment
