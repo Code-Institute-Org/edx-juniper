@@ -97,7 +97,7 @@ def user_track(request):
 
     if settings.LRS_ENDPOINT:
         lrs_data = {
-            'activity_time': timezone.now(),
+            'activity_time': timezone.now().isoformat(),
             'actor': request.user.id,
             'verb': name,
             'activity_object': page,
