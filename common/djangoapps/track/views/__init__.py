@@ -10,7 +10,7 @@ from django.utils import timezone
 from eventtracking import tracker as eventtracker
 from ipware.ip import get_ip
 
-from lms.djangoapps.ci_lrs.utils import attempt_to_store_lrs_record
+from lms.djangoapps.ci_lrs.utils import attempt_to_store_lrs_record, write_lrs_record_to_mongo
 from track import contexts, shim, tracker
 
 
@@ -103,8 +103,12 @@ def user_track(request):
             'activity_object': page,
             'extra_data': json.dumps(data, default=str),
         }
-        attempt_to_store_lrs_record.apply_async(
-            args=[lrs_data], queue=settings.LRS_QUEUE)
+        if settings.LRS_IMPLEMENTATION_VERSION == 'write_to_lrs':
+            write_lrs_record_to_mongo.apply_async(
+                args=[lrs_data], queue=settings.LRS_QUEUE)
+        else:
+            attempt_to_store_lrs_record.apply_async(
+                args=[lrs_data], queue=settings.LRS_QUEUE)
 
     with eventtracker.get_tracker().context('edx.course.browser', context_override):
         eventtracker.emit(name=name, data=data)
