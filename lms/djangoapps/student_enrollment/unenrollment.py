@@ -13,6 +13,8 @@ from student_enrollment.zoho import (
 
 log = getLogger(__name__)
 
+LMS_PLATFORM = settings.LMS_CREDIT_RATING_BODY
+
 
 class Unenrollment:
     ''' Unenroll students from their relevant programs
@@ -59,6 +61,7 @@ class Unenrollment:
                         'email': student['Email'],
                         'crm_field': 'Email',
                         'unexpected_value': student['Email'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'unenroll',
                         'message': 'Email on Student\'s CRM profile not found on LMS'
                     }
@@ -78,6 +81,7 @@ class Unenrollment:
                         'email': student['Email'],
                         'crm_field': 'Programme_ID',
                         'unexpected_value': student['Programme_ID'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'unenroll',
                         'message': 'Programme ID does not exist on LMS'
                     }

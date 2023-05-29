@@ -8,44 +8,53 @@ CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
+CREDIT_RATING_BODY = settings.LMS_CREDIT_RATING_BODY
 
 # COQL Queries
-# LMS_Version can be removed from where clause when Ginkgo is decommissioned 
-# Target decommission date: End of Q1 2020
+# NOTE: "Excessive" parentheses added because Zoho COQL requires every subsequent
+# chained condition to be wrapped in separate parentheses e.g. (A AND (B AND (C OR D)))
+# otherwise a Syntax Error is received
 
 ENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Student_Source
 FROM Contacts
-WHERE ((
-        (Credit_Rating_Body = {credit_rating_body}) AND (Lead_Status = 'Enroll') AND (Programme_ID is not null)
-    )
+WHERE (
+    Credit_Rating_Body = '{credit_rating_body}'
     AND (
-        (LMS_Version = 'Upgrade to Juniper') OR (LMS_Version = 'Juniper (learn.codeinstitute.net)')
-    )
-)
+    Lead_Status = 'Enroll'
+    AND (
+    Programme_ID is not null
+)))
 LIMIT {page},{per_page}
 """
 
 UNENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
-WHERE ((
-        (Credit_Rating_Body = {credit_rating_body}) AND (LMS_Access_Status = 'To be removed') AND (Reason_for_Unenrollment is not null)
-    )
+WHERE (
+    Credit_Rating_Body = '{credit_rating_body}'
     AND (
-        (Programme_ID is not null) AND (LMS_Version = 'Juniper (learn.codeinstitute.net)')
-    )
-)
+    LMS_Access_Status = 'To be removed'
+    AND (
+    Reason_for_Unenrollment is not null
+)))
 LIMIT {page},{per_page}
 """
 
 ENROLL_SPECIALISATION_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialization_Enrollment_Date, Specialisation_Change_Requested_Within_7_Days
 FROM Contacts
-WHERE (Credit_Rating_Body = {credit_rating_body}) AND (Specialisation_Enrollment_Status = 'Approved') AND (Specialisation_programme_id is not null)
+WHERE (
+    Credit_Rating_Body = '{credit_rating_body}'
+    AND (
+    Specialisation_Enrollment_Status = 'Approved'
+    AND (
+    Specialisation_programme_id is not null
+)))
 LIMIT {page},{per_page}
 """
 
+# Currently not used - Careers enrolment handled by CRM + Zapier automation
 ENROLL_IN_CAREERS_MODULE_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
@@ -70,9 +79,10 @@ def get_students_to_be_enrolled():
 
     for page in count():
         query = ENROLL_QUERY.format(
-                    page=page*RECORDS_PER_PAGE,
-                    per_page=RECORDS_PER_PAGE,
-                    credit_rating_body=settings.LMS_CREDIT_RATING_BODY)
+            credit_rating_body=CREDIT_RATING_BODY,
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE
+        )
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
@@ -96,9 +106,9 @@ def get_students_to_be_enrolled_into_specialisation():
 
     for page in count():
         query = ENROLL_SPECIALISATION_QUERY.format(
+            credit_rating_body=CREDIT_RATING_BODY,
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE,
-            credit_rating_body=settings.LMS_CREDIT_RATING_BODY
         )
         students_resp = requests.post(
             COQL_ENDPOINT,
@@ -124,9 +134,10 @@ def get_students_to_be_unenrolled():
 
     for page in count():
         query = UNENROLL_QUERY.format(
-                    page=page*RECORDS_PER_PAGE,
-                    per_page=RECORDS_PER_PAGE,
-                    credit_rating_body=settings.LMS_CREDIT_RATING_BODY)
+            credit_rating_body=CREDIT_RATING_BODY,
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE,
+        )
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
@@ -139,6 +150,7 @@ def get_students_to_be_unenrolled():
             return students
 
 
+# Currently not used
 def get_students_to_be_enrolled_in_careers_module():
     """Fetch from Zoho all students
     with the Access_to_Careers_Module status

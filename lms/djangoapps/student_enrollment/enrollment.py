@@ -28,6 +28,8 @@ This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
+LMS_PLATFORM = settings.LMS_CREDIT_RATING_BODY
+
 today = date.today().isoformat()
 
 
@@ -85,6 +87,7 @@ class Enrollment:
                         'email': student['Email'],
                         'crm_field': 'Programme_ID',
                         'unexpected_value': student['Programme_ID'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'enroll',
                         'message': 'Programme ID does not exist on LMS'
                     }
@@ -219,6 +222,7 @@ class SpecialisationEnrollment:
                         'email': student['Email'],
                         'crm_field': 'Specialisation_programme_id',
                         'unexpected_value': student['Specialisation_programme_id'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'enroll specialisation',
                         'message': ('Student is already enrolled into this specialisation')
                     }
@@ -238,6 +242,7 @@ class SpecialisationEnrollment:
                         'email': student['Email'],
                         'crm_field': 'Specialisation_programme_id',
                         'unexpected_value': student['Specialisation_programme_id'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'enroll specialisation',
                         'message': 'Specialisation programme ID does not exist on LMS'
                     }
@@ -268,6 +273,7 @@ class SpecialisationEnrollment:
                                     'email': student['Email'],
                                     'crm_field': 'Specialisation_programme_id',
                                     'unexpected_value': student['Specialisation_programme_id'],
+                                    'lms_platform': LMS_PLATFORM,
                                     'attempted_action': 'enroll specialisation',
                                     'message': ('Specialisation change field checked, but student'
                                                 + ' is already enrolled into the same specialisation')
