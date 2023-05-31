@@ -13,7 +13,7 @@ from student_enrollment.zoho import (
 
 log = getLogger(__name__)
 
-LMS_PLATFORM = settings.LMS_CREDIT_RATING_BODY
+LMS_PLATFORM = settings.SITE_NAME
 
 
 class Unenrollment:

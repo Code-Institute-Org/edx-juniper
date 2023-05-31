@@ -28,7 +28,7 @@ This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
-LMS_PLATFORM = settings.LMS_CREDIT_RATING_BODY
+LMS_PLATFORM = settings.SITE_NAME
 
 today = date.today().isoformat()
 
