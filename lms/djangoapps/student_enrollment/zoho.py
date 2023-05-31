@@ -8,7 +8,24 @@ CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
-CREDIT_RATING_BODY = settings.LMS_CREDIT_RATING_BODY
+
+CREDIT_RATING_BODY_LIST = settings.LMS_CREDIT_RATING_BODY
+
+# NOTE: ZOHO COQL's IN operator requires a comma-separated sequence of strings, either wrapped
+# in () or without any wrapping. Formatting a JSON array (from settings) into a COQL-acceptable format (no [] allowed)
+# with Python requires either a simple string (for a single-element array) or a tuple (for multiple elements).
+# If a tuple is used for a one-element array, it results in an (X,) format, which triggers a COQL query error.
+# On the other hand, if the single element is injected into the query as a simple string, it "loses" its wrapping quotes,
+# which again triggers a COQL query error.
+#
+# Hence the solution:
+# - for single-element array, index the single element, and wrap it into parentheses AND quotes before injecting it
+# - for multiple-element array, convert it into a tuple (of strings) and inject it
+
+if len(CREDIT_RATING_BODY_LIST) == 1:
+    CREDIT_RATING_BODY = '(\'{}\')'.format(CREDIT_RATING_BODY_LIST[0])
+else:
+    CREDIT_RATING_BODY = tuple(CREDIT_RATING_BODY_LIST)
 
 # COQL Queries
 # NOTE: "Excessive" parentheses added because Zoho COQL requires every subsequent
@@ -19,7 +36,7 @@ ENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Student_Source
 FROM Contacts
 WHERE (
-    Credit_Rating_Body = '{credit_rating_body}'
+    Credit_Rating_Body in {credit_rating_body}
     AND (
     Lead_Status = 'Enroll'
     AND (
@@ -32,7 +49,7 @@ UNENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
 WHERE (
-    Credit_Rating_Body = '{credit_rating_body}'
+    Credit_Rating_Body in {credit_rating_body}
     AND (
     LMS_Access_Status = 'To be removed'
     AND (
@@ -45,7 +62,7 @@ ENROLL_SPECIALISATION_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialization_Enrollment_Date, Specialisation_Change_Requested_Within_7_Days
 FROM Contacts
 WHERE (
-    Credit_Rating_Body = '{credit_rating_body}'
+    Credit_Rating_Body in {credit_rating_body}
     AND (
     Specialisation_Enrollment_Status = 'Approved'
     AND (
@@ -83,6 +100,7 @@ def get_students_to_be_enrolled():
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE
         )
+
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
