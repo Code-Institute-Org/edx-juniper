@@ -13,7 +13,9 @@ from student_enrollment.zoho import (
 
 log = getLogger(__name__)
 
-LMS_PLATFORM = settings.SITE_NAME
+# the only reliable way to get the output "<instance>.codeinstitute[-platform].net"
+# required for the enrolment exception Zaps
+LMS_PLATFORM = settings.FEATURES["PREVIEW_LMS_BASE"].split("preview.")[1]
 
 
 class Unenrollment:

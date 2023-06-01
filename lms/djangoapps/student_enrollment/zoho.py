@@ -9,7 +9,8 @@ REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 
-CREDIT_RATING_BODY_LIST = settings.LMS_CREDIT_RATING_BODY
+LMS_CRM_ELIGIBILITY_KEY = settings.LMS_CRM_STUDENT_ELIGIBILITY_FIELD
+LMS_CRM_ELIGIBLE_VALUES = settings.LMS_CRM_STUDENT_ELIGIBILITY_FIELD_VALUES
 
 # NOTE: ZOHO COQL's IN operator requires a comma-separated sequence of strings, either wrapped
 # in () or without any wrapping. Formatting a JSON array (from settings) into a COQL-acceptable format (no [] allowed)
@@ -22,10 +23,10 @@ CREDIT_RATING_BODY_LIST = settings.LMS_CREDIT_RATING_BODY
 # - for single-element array, index the single element, and wrap it into parentheses AND quotes before injecting it
 # - for multiple-element array, convert it into a tuple (of strings) and inject it
 
-if len(CREDIT_RATING_BODY_LIST) == 1:
-    CREDIT_RATING_BODY = '(\'{}\')'.format(CREDIT_RATING_BODY_LIST[0])
+if len(LMS_CRM_ELIGIBLE_VALUES) == 1:
+    LMS_CRM_ELIGIBLE_VALUES = '(\'{}\')'.format(LMS_CRM_ELIGIBLE_VALUES[0])
 else:
-    CREDIT_RATING_BODY = tuple(CREDIT_RATING_BODY_LIST)
+    LMS_CRM_ELIGIBLE_VALUES = tuple(LMS_CRM_ELIGIBLE_VALUES)
 
 # COQL Queries
 # NOTE: "Excessive" parentheses added because Zoho COQL requires every subsequent
@@ -36,7 +37,7 @@ ENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Student_Source
 FROM Contacts
 WHERE (
-    Credit_Rating_Body in {credit_rating_body}
+    {crm_eligibility_key} in {eligible_values}
     AND (
     Lead_Status = 'Enroll'
     AND (
@@ -49,7 +50,7 @@ UNENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
 WHERE (
-    Credit_Rating_Body in {credit_rating_body}
+    {crm_eligibility_key} in {eligible_values}
     AND (
     LMS_Access_Status = 'To be removed'
     AND (
@@ -62,7 +63,7 @@ ENROLL_SPECIALISATION_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialization_Enrollment_Date, Specialisation_Change_Requested_Within_7_Days
 FROM Contacts
 WHERE (
-    Credit_Rating_Body in {credit_rating_body}
+    {crm_eligibility_key} in {eligible_values}
     AND (
     Specialisation_Enrollment_Status = 'Approved'
     AND (
@@ -96,7 +97,8 @@ def get_students_to_be_enrolled():
 
     for page in count():
         query = ENROLL_QUERY.format(
-            credit_rating_body=CREDIT_RATING_BODY,
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE
         )
@@ -124,7 +126,8 @@ def get_students_to_be_enrolled_into_specialisation():
 
     for page in count():
         query = ENROLL_SPECIALISATION_QUERY.format(
-            credit_rating_body=CREDIT_RATING_BODY,
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE,
         )
@@ -152,7 +155,8 @@ def get_students_to_be_unenrolled():
 
     for page in count():
         query = UNENROLL_QUERY.format(
-            credit_rating_body=CREDIT_RATING_BODY,
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE,
         )

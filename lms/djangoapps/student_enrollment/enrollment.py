@@ -28,7 +28,10 @@ This collection is used to store any courses that should be excluded from the
 initial student onboarding/enrollment process like the Careers module.
 """
 EXCLUDED_FROM_ONBOARDING = ['course-v1:code_institute+cc_101+2018_T1']
-LMS_PLATFORM = settings.SITE_NAME
+
+# the only reliable way to get the output "<instance>.codeinstitute[-platform].net"
+# required for the enrolment exception Zaps
+LMS_PLATFORM = settings.FEATURES["PREVIEW_LMS_BASE"].split("preview.")[1]
 
 today = date.today().isoformat()
 
