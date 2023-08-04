@@ -185,22 +185,6 @@ def get_auth_headers():
     return {"Authorization": "Zoho-oauthtoken " + access_token}
 
 
-# NOTE: to be removed once direct CRM update is implemented
-# for both Enrolment and Unenrolment
-def update_student_record(zap_url, student_email):
-    """
-    Update the Zoho record (via Zapier) for a student to indicate their new status
-    within the LMS.
-
-    `student_email` is the email of the student that is to be updated
-    """
-
-    params = {
-        'student_email': student_email
-    }
-    response = requests.post(zap_url, data=params)
-
-
 def update_student_crm_record(student_id, field_updates):
     """
     Update the Zoho CRM student record to indicate their new status

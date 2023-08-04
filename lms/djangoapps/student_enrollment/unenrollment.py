@@ -7,8 +7,9 @@ from django.conf import settings
 from ci_program.models import Program
 from student_enrollment.utils import post_to_zapier
 from student_enrollment.zoho import (
+    ZohoApiError,
     get_students_to_be_unenrolled,
-    update_student_record
+    update_student_crm_record
 )
 
 log = getLogger(__name__)
@@ -91,8 +92,11 @@ class Unenrollment:
             except ObjectDoesNotExist as does_not_exist_exception:
                 log.exception(str(does_not_exist_exception))
                 # Student is already unenrolled, so update the CRM accordingly
-                update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
-                continue
+                try:
+                    update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'})
+                except ZohoApiError:
+                    log.exception("Could not update student record in Zoho for %s upon Unenrolment" % student['Email'])
+                    continue
 
             # To unenroll student, deactivate student's course enrollments
             # for all modules on the given program
@@ -107,4 +111,8 @@ class Unenrollment:
             program.enrolled_students.remove(user)
 
             # update the student record on the CRM
-            update_student_record(settings.ZAPIER_UNENROLLMENT_URL, user.email)
+            try:
+                update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'})
+            except ZohoApiError:
+                log.exception("Could not update student record in Zoho for %s upon Unenrolment" % student['Email'])
+                continue
