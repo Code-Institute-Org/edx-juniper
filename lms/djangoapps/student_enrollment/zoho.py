@@ -88,7 +88,6 @@ def get_students_to_be_enrolled():
 
         students.extend(students_resp.json()['data'])
         if not students_resp.json()['info']['more_records']:
-            print(students)
             return students
 
 
