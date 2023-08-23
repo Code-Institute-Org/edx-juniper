@@ -13,6 +13,10 @@ from student_enrollment.zoho import (
 
 log = getLogger(__name__)
 
+# the only reliable way to get the output "<instance>.codeinstitute[-platform].net"
+# required for the enrolment exception Zaps
+LMS_PLATFORM = settings.FEATURES["PREVIEW_LMS_BASE"].split("preview.")[1]
+
 
 class Unenrollment:
     ''' Unenroll students from their relevant programs
@@ -59,6 +63,7 @@ class Unenrollment:
                         'email': student['Email'],
                         'crm_field': 'Email',
                         'unexpected_value': student['Email'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'unenroll',
                         'message': 'Email on Student\'s CRM profile not found on LMS'
                     }
@@ -78,6 +83,7 @@ class Unenrollment:
                         'email': student['Email'],
                         'crm_field': 'Programme_ID',
                         'unexpected_value': student['Programme_ID'],
+                        'lms_platform': LMS_PLATFORM,
                         'attempted_action': 'unenroll',
                         'message': 'Programme ID does not exist on LMS'
                     }

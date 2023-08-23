@@ -9,43 +9,70 @@ REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
 
+LMS_CRM_ELIGIBILITY_KEY = settings.LMS_CRM_STUDENT_ELIGIBILITY_FIELD
+LMS_CRM_ELIGIBLE_VALUES = settings.LMS_CRM_STUDENT_ELIGIBILITY_FIELD_VALUES
+
+# NOTE: ZOHO COQL's IN operator requires a comma-separated sequence of strings, either wrapped
+# in () or without any wrapping. Formatting a JSON array (from settings) into a COQL-acceptable format (no [] allowed)
+# with Python requires either a simple string (for a single-element array) or a tuple (for multiple elements).
+# If a tuple is used for a one-element array, it results in an (X,) format, which triggers a COQL query error.
+# On the other hand, if the single element is injected into the query as a simple string, it "loses" its wrapping quotes,
+# which again triggers a COQL query error.
+#
+# Hence the solution:
+# - for single-element array, index the single element, and wrap it into parentheses AND quotes before injecting it
+# - for multiple-element array, convert it into a tuple (of strings) and inject it
+
+if len(LMS_CRM_ELIGIBLE_VALUES) == 1:
+    LMS_CRM_ELIGIBLE_VALUES = '(\'{}\')'.format(LMS_CRM_ELIGIBLE_VALUES[0])
+else:
+    LMS_CRM_ELIGIBLE_VALUES = tuple(LMS_CRM_ELIGIBLE_VALUES)
+
 # COQL Queries
-# LMS_Version can be removed from where clause when Ginkgo is decommissioned 
-# Target decommission date: End of Q1 2020
+# NOTE: "Excessive" parentheses added because Zoho COQL requires every subsequent
+# chained condition to be wrapped in separate parentheses e.g. (A AND (B AND (C OR D)))
+# otherwise a Syntax Error is received
 
 ENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Student_Source
 FROM Contacts
-WHERE ((
-        (Lead_Status = 'Enroll') AND (Programme_ID is not null)
-    )
+WHERE (
+    {crm_eligibility_key} in {eligible_values}
     AND (
-        (LMS_Version = 'Upgrade to Juniper') OR (LMS_Version = 'Juniper (learn.codeinstitute.net)')
-    )
-)
+    Lead_Status = 'Enroll'
+    AND (
+    Programme_ID is not null
+)))
 LIMIT {page},{per_page}
 """
 
 UNENROLL_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
-WHERE ((
-        (LMS_Access_Status = 'To be removed') AND (Reason_for_Unenrollment is not null)
-    )
+WHERE (
+    {crm_eligibility_key} in {eligible_values}
     AND (
-        (Programme_ID is not null) AND (LMS_Version = 'Juniper (learn.codeinstitute.net)')
-    )
-)
+    LMS_Access_Status = 'To be removed'
+    AND (
+    Reason_for_Unenrollment is not null
+)))
 LIMIT {page},{per_page}
 """
 
 ENROLL_SPECIALISATION_QUERY = """
 SELECT Email, Full_Name, Programme_ID, Specialisation_programme_id, Specialization_Enrollment_Date, Specialisation_Change_Requested_Within_7_Days
 FROM Contacts
-WHERE (Specialisation_Enrollment_Status = 'Approved') AND (Specialisation_programme_id is not null)
+WHERE (
+    {crm_eligibility_key} in {eligible_values}
+    AND (
+    Specialisation_Enrollment_Status = 'Approved'
+    AND (
+    Specialisation_programme_id is not null
+)))
 LIMIT {page},{per_page}
 """
 
+# Currently not used - Careers enrolment handled by CRM + Zapier automation
 ENROLL_IN_CAREERS_MODULE_QUERY = """
 SELECT Email, Full_Name, Programme_ID
 FROM Contacts
@@ -70,8 +97,12 @@ def get_students_to_be_enrolled():
 
     for page in count():
         query = ENROLL_QUERY.format(
-                    page=page*RECORDS_PER_PAGE,
-                    per_page=RECORDS_PER_PAGE)
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE
+        )
+
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
@@ -95,6 +126,8 @@ def get_students_to_be_enrolled_into_specialisation():
 
     for page in count():
         query = ENROLL_SPECIALISATION_QUERY.format(
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
             page=page*RECORDS_PER_PAGE,
             per_page=RECORDS_PER_PAGE,
         )
@@ -122,8 +155,11 @@ def get_students_to_be_unenrolled():
 
     for page in count():
         query = UNENROLL_QUERY.format(
-                    page=page*RECORDS_PER_PAGE,
-                    per_page=RECORDS_PER_PAGE)
+            crm_eligibility_key=LMS_CRM_ELIGIBILITY_KEY,
+            eligible_values=LMS_CRM_ELIGIBLE_VALUES,
+            page=page*RECORDS_PER_PAGE,
+            per_page=RECORDS_PER_PAGE,
+        )
         students_resp = requests.post(
             COQL_ENDPOINT,
             headers=auth_headers,
@@ -136,6 +172,7 @@ def get_students_to_be_unenrolled():
             return students
 
 
+# Currently not used
 def get_students_to_be_enrolled_in_careers_module():
     """Fetch from Zoho all students
     with the Access_to_Careers_Module status
