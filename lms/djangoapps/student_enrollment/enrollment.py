@@ -10,8 +10,11 @@ from student_enrollment.utils import (
     post_to_zapier
 )
 from student_enrollment.zoho import (
+    ZohoApiError,
     get_students_to_be_enrolled,
-    get_students_to_be_enrolled_into_specialisation
+    get_students_to_be_enrolled_into_specialisation,
+    update_student_crm_record,
+    current_date_for_crm
 )
 from student_enrollment.models import EnrollmentStatusHistory
 from student_enrollment.models import ProgramAccessStatus
@@ -126,13 +129,6 @@ class Enrollment:
                 access.allowed_access = True
                 access.save()
 
-            # Used to update the status from 'Enroll' to 'Online'
-            # in the CRM
-            post_to_zapier(
-                settings.ZAPIER_ENROLLMENT_URL,
-                {'email': user.email}
-            )
-
             enrollment_status = EnrollmentStatusHistory(
                 student=user,
                 program=program,
@@ -142,6 +138,22 @@ class Enrollment:
                 email_sent=email_sent_status
             )
             enrollment_status.save()
+
+            # Update student profile (Contacts) in Zoho
+            today = current_date_for_crm()
+
+            update_data = {
+                'Lead_Status': 'Online',
+                'LMS_Access_Status': 'Active',
+                'LMS_Enrollment_Date': today,
+                'Final_Status_Date': today
+            }
+
+            try:
+                update_student_crm_record(student['id'], update_data)
+            except ZohoApiError:
+                log.exception("Could not update student record in Zoho for %s upon Enrolment" % student['Email'])
+                continue
 
 
 class SpecialisationEnrollment:

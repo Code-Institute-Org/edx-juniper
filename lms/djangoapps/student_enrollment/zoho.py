@@ -1,4 +1,5 @@
 from itertools import count
+from datetime import datetime
 import re
 import requests
 from django.conf import settings
@@ -8,6 +9,12 @@ CLIENT_SECRET = settings.ZOHO_CLIENT_SECRET
 REFRESH_TOKEN = settings.ZOHO_REFRESH_TOKEN
 REFRESH_ENDPOINT = settings.ZOHO_REFRESH_ENDPOINT
 COQL_ENDPOINT = settings.ZOHO_COQL_ENDPOINT
+STUDENTS_ENDPOINT = settings.ZOHO_STUDENTS_ENDPOINT
+
+
+class ZohoApiError(Exception):
+    pass
+
 
 # COQL Queries
 # LMS_Version can be removed from where clause when Ginkgo is decommissioned 
@@ -177,15 +184,22 @@ def get_auth_headers():
     return {"Authorization": "Zoho-oauthtoken " + access_token}
 
 
-def update_student_record(zap_url, student_email):
+def update_student_crm_record(student_id, field_updates):
     """
-    Update the Zoho record for a student to indicate their new status
+    Update the Zoho CRM student record to indicate their new status
     within the LMS.
-
-    `student_email` is the email of the student that is to be updated
     """
+    record_update_url = STUDENTS_ENDPOINT + '/' + student_id
 
-    params = {
-        'student_email': student_email
-    }
-    response = requests.post(zap_url, data=params)
+    zoho_resp = requests.put(
+        record_update_url,
+        json={"data": [field_updates]},
+        headers=get_auth_headers()
+    )
+
+    if zoho_resp.status_code != 200:
+        raise ZohoApiError()
+
+
+def current_date_for_crm():
+    return datetime.strftime(datetime.utcnow(), "%Y-%m-%d")
