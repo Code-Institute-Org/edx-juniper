@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.mail import get_connection
 from django.template.loader import render_to_string
+from django.db.models import Q
 import requests
 from student.models import UserProfile
 
@@ -40,15 +41,18 @@ def register_student(email, full_name, password=None):
     """
     username = email
 
-    if password:
-        user = User.objects.create_user(username, email, password)
-        create_user_profile(user, full_name)
-        return user, None
-    else:
-        password = User.objects.make_random_password()
-        user = User.objects.create_user(username, email, password)
-        create_user_profile(user, full_name)
-        return user, password
+    try:
+        if password:
+            user = User.objects.create_user(username, email, password)
+            create_user_profile(user, full_name)
+            return user, None
+        else:
+            password = User.objects.make_random_password()
+            user = User.objects.create_user(username, email, password)
+            create_user_profile(user, full_name)
+            return user, password
+    except Exception as e:
+        logging.exception("Exception registering user: %s %s", email, full_name)
 
 
 def get_or_register_student(email, full_name, password=None):
@@ -66,7 +70,7 @@ def get_or_register_student(email, full_name, password=None):
     Returns a user instance, the user's password and the enrollment type.
     """
     try:
-        user = User.objects.get(email=email)
+        user = User.objects.get(Q(email=email) | Q(username=email))
         try:
             user.program_set.first().program_code == "5DCC"
             return user, None, 3
