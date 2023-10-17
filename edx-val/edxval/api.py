@@ -1164,9 +1164,9 @@ def import_transcript_from_fs(edx_video_id, language_code, file_name, provider, 
 
     # check if the transcript exists and if it does, make sure that overriding
     # existing transcripts is enabled before proceeding to import it
-    if (existing_transcript and
-            not OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS.is_enabled()):
-        return
+#    if (existing_transcript and
+#            not OVERRIDE_EXISTING_IMPORTED_TRANSCRIPTS.is_enabled()):
+#        return
 
     # Read file from import file system and attach it to transcript record in DS.
     try:
