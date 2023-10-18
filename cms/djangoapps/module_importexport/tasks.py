@@ -142,7 +142,7 @@ def import_from_s3(course_id, timestamp):
         while not s3_file_exists(client, object_name) and datetime.now() < retry_until:
             time.sleep(3)
 
-        log.info("Attempting download file: from %s to ", object_name, tarfile_path)
+        log.info("Attempting download file: from %s to %s", object_name, tarfile_path)
         client.download_file(settings.MODULE_EXPORTIMPORT_S3_BUCKET, object_name, tarfile_path)
 
         log.info("Extracting tar: %s", tarfile_path)

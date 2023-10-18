@@ -1064,9 +1064,8 @@ def import_from_xml(xml, edx_video_id, resource_fs, static_dir, external_transcr
 
     # If video with edx_video_id already exists, associate it with the given course_id.
     try:
-#        if not edx_video_id:
-        # Trash fix
-        raise Video.DoesNotExist
+        if not edx_video_id:
+            raise Video.DoesNotExist
 
         video = Video.objects.get(edx_video_id=edx_video_id)
         logger.info(
