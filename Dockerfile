@@ -90,6 +90,7 @@ RUN pip install -r requirements/constraints.txt
 
 
 # Install updated version of edxval
+RUN pip uninstall edx-val
 COPY ./edx-val/ /openedx/edx-val/
 RUN cd /openedx/edx-val && python3 setup.py install
 
