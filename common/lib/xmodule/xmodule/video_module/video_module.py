@@ -17,6 +17,7 @@ Examples of html5 videos for manual testing:
 import copy
 import json
 import logging
+import uuid
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
@@ -647,6 +648,8 @@ class VideoBlock(
             system.parse_asides(xml_object, definition_id, usage_id, id_generator)
         field_data = cls.parse_video_xml(xml_object, id_generator)
         kvs = InheritanceKeyValueStore(initial_values=field_data)
+        # Force recreation of Videos when imported
+        kvs._fields["edx_video_id"] = str(uuid.uuid4())
         field_data = KvsFieldData(kvs)
         video = system.construct_xblock_from_class(
             cls,
