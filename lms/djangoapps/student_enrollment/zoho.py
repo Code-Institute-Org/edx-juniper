@@ -66,14 +66,13 @@ LIMIT {page},{per_page}
 RECORDS_PER_PAGE = 200
 
 
-def get_students_to_be_enrolled():
+def get_students_to_be_enrolled(auth_headers):
     """Fetch from Zoho all students
     with a Lead Status of 'Enroll'
     API documentation for this endpoint:
     https://www.zohoapis.com/crm/v2/coql
     """
     students = []
-    auth_headers = get_auth_headers()
 
     for page in count():
         query = ENROLL_QUERY.format(
@@ -117,7 +116,7 @@ def get_students_to_be_enrolled_into_specialisation():
             return students
 
 
-def get_students_to_be_unenrolled():
+def get_students_to_be_unenrolled(auth_headers):
     """Fetch from Zoho all students
     with an LMS_Access_Status of 'To be removed'
     and a provided 'Reason for Removal'
@@ -125,7 +124,6 @@ def get_students_to_be_unenrolled():
     https://www.zohoapis.com/crm/v2/coql
     """
     students = []
-    auth_headers = get_auth_headers()
 
     for page in count():
         query = UNENROLL_QUERY.format(
@@ -184,7 +182,7 @@ def get_auth_headers():
     return {"Authorization": "Zoho-oauthtoken " + access_token}
 
 
-def update_student_crm_record(student_id, field_updates):
+def update_student_crm_record(student_id, field_updates, auth_headers):
     """
     Update the Zoho CRM student record to indicate their new status
     within the LMS.
@@ -194,7 +192,7 @@ def update_student_crm_record(student_id, field_updates):
     zoho_resp = requests.put(
         record_update_url,
         json={"data": [field_updates]},
-        headers=get_auth_headers()
+        headers=auth_headers
     )
 
     if zoho_resp.status_code != 200:
