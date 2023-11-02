@@ -1,3 +1,4 @@
+import time
 from itertools import count
 from datetime import datetime
 import re
@@ -17,7 +18,7 @@ class ZohoApiError(Exception):
 
 
 # COQL Queries
-# LMS_Version can be removed from where clause when Ginkgo is decommissioned 
+# LMS_Version can be removed from where clause when Ginkgo is decommissioned
 # Target decommission date: End of Q1 2020
 
 ENROLL_QUERY = """
@@ -174,11 +175,23 @@ def get_access_token():
         "client_secret": CLIENT_SECRET,
         "grant_type": "refresh_token"
     })
-    return refresh_resp.json()['access_token']
+    data = refresh_resp.json()
+    if data.get("access_token"):
+        return data['access_token']
+    else:
+        return None
 
 
 def get_auth_headers():
-    access_token = get_access_token()
+    access_token = None
+    retries = 1
+    while access_token is None and retries < 5:
+        access_token = get_access_token()
+        retries += 1
+        if access_token is None:
+            time.sleep(10 * retries)
+    if access_token is None:
+        raise ZohoApiError("Could not retrieve Access Token")
     return {"Authorization": "Zoho-oauthtoken " + access_token}
 
 
