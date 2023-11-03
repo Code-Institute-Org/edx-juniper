@@ -43,7 +43,12 @@ class Unenrollment:
         emails the SC team with a description of the issue encountered
         """
 
-        auth_headers = get_auth_headers()
+        try:
+            auth_headers = get_auth_headers()
+        except ZohoApiError:
+            log.exception("Could not retrieve Zoho Access Token. Unenrollment run failed.")
+            return
+
         self.students = get_students_to_be_unenrolled(auth_headers)
 
         for student in self.students:

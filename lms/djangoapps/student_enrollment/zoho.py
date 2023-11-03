@@ -1,6 +1,7 @@
 import time
 from itertools import count
 from datetime import datetime
+from logging import getLogger
 import re
 import requests
 from django.conf import settings
@@ -15,6 +16,9 @@ STUDENTS_ENDPOINT = settings.ZOHO_STUDENTS_ENDPOINT
 
 class ZohoApiError(Exception):
     pass
+
+
+log = getLogger(__name__)
 
 
 # COQL Queries
@@ -189,6 +193,7 @@ def get_auth_headers():
         access_token = get_access_token()
         retries += 1
         if access_token is None:
+            log.info("Zoho Access Token not retrieved yet, retrying in %s seconds", (10 * retries))
             time.sleep(10 * retries)
     if access_token is None:
         raise ZohoApiError("Could not retrieve Access Token")

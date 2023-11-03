@@ -51,8 +51,11 @@ class Enrollment:
         If a student doesn't exist in the system, then we will first register them
         and then enroll them in the relevant programme (specified by Programme_ID)
         """
-
-        auth_headers = get_auth_headers()
+        try:
+            auth_headers = get_auth_headers()
+        except ZohoApiError:
+            log.exception("Could not retrieve Zoho Access Token. Enrollment run failed.")
+            return
 
         zoho_students = get_students_to_be_enrolled(auth_headers)
 
