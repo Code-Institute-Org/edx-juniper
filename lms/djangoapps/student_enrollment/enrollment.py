@@ -11,6 +11,7 @@ from student_enrollment.utils import (
 )
 from student_enrollment.zoho import (
     ZohoApiError,
+    get_auth_headers,
     get_students_to_be_enrolled,
     get_students_to_be_enrolled_into_specialisation,
     update_student_crm_record,
@@ -50,7 +51,13 @@ class Enrollment:
         If a student doesn't exist in the system, then we will first register them
         and then enroll them in the relevant programme (specified by Programme_ID)
         """
-        zoho_students = get_students_to_be_enrolled()
+        try:
+            auth_headers = get_auth_headers()
+        except ZohoApiError:
+            log.exception("Could not retrieve Zoho Access Token. Enrollment run failed.")
+            return
+
+        zoho_students = get_students_to_be_enrolled(auth_headers)
 
         for student in zoho_students:
             if not student['Email']:
@@ -150,7 +157,7 @@ class Enrollment:
             }
 
             try:
-                update_student_crm_record(student['id'], update_data)
+                update_student_crm_record(student['id'], update_data, auth_headers)
             except ZohoApiError:
                 log.exception("Could not update student record in Zoho for %s upon Enrolment" % student['Email'])
                 continue

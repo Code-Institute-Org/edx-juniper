@@ -8,6 +8,7 @@ from ci_program.models import Program
 from student_enrollment.utils import post_to_zapier
 from student_enrollment.zoho import (
     ZohoApiError,
+    get_auth_headers,
     get_students_to_be_unenrolled,
     update_student_crm_record
 )
@@ -41,7 +42,14 @@ class Unenrollment:
         4. If the student does not pass all the checks in point 2, trigger a zap which
         emails the SC team with a description of the issue encountered
         """
-        self.students = get_students_to_be_unenrolled()
+
+        try:
+            auth_headers = get_auth_headers()
+        except ZohoApiError:
+            log.exception("Could not retrieve Zoho Access Token. Unenrollment run failed.")
+            return
+
+        self.students = get_students_to_be_unenrolled(auth_headers)
 
         for student in self.students:
             if self.dryrun:
@@ -93,7 +101,7 @@ class Unenrollment:
                 log.exception(str(does_not_exist_exception))
                 # Student is already unenrolled, so update the CRM accordingly
                 try:
-                    update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'})
+                    update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'}, auth_headers)
                 except ZohoApiError:
                     log.exception("Could not update student record in Zoho for %s upon Unenrolment" % student['Email'])
                     continue
@@ -112,7 +120,7 @@ class Unenrollment:
 
             # update the student record on the CRM
             try:
-                update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'})
+                update_student_crm_record(student['id'], {'LMS_Access_Status': 'Removed'}, auth_headers)
             except ZohoApiError:
                 log.exception("Could not update student record in Zoho for %s upon Unenrolment" % student['Email'])
                 continue
