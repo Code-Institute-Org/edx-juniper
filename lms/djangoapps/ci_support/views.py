@@ -32,9 +32,10 @@ def support(request, program_slug, student_id=None):
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def tutor(request, program_slug, student_id=None):
     """ Display the tutor page. """
+    import ipdb; ipdb.set_trace()
     programme = Program.objects.get(marketing_slug=program_slug)
     modules = programme.get_program_descriptor(request).get('modules')
-    tutoring_modules = construct_tutoring_modules(modules) or {}
+    tutoring_modules = construct_tutoring_modules(modules)
     return render_to_response(
         'ci_support/support/tutor_page.html',
         {
