@@ -34,7 +34,7 @@ def tutor(request, program_slug, student_id=None):
     """ Display the tutor page. """
     programme = Program.objects.get(marketing_slug=program_slug)
     modules = programme.get_program_descriptor(request).get('modules')
-    tutoring_modules = construct_tutoring_modules(modules)
+    tutoring_modules = construct_tutoring_modules(modules) or {}
     return render_to_response(
         'ci_support/support/tutor_page.html',
         {
