@@ -178,3 +178,46 @@ def import_from_s3(course_id, timestamp):
             "status": "failed",
             "lms_base": settings.LMS_BASE})
         raise
+
+@task(base=LoggedTask)
+def create_copy_of_module(source_course_id, target_course_id):
+    try:
+        try:
+            course_key = CourseKey.from_string(source_course_id)
+        except InvalidKeyError:
+            raise CommandError(u"Invalid source_course_key: '%s'." % source_course_id)
+
+        if not modulestore().get_course(course_key):
+            raise CommandError(u"Course with %s key not found." % source_course_id)
+
+        temp_dir = tempfile.mkdtemp()
+        output_path = os.path.join(temp_dir, "course")
+        os.makedirs(output_path, exist_ok=True)
+
+        log.info("Exporting source course %s to %s", course_key, output_path)
+
+        root_dir = os.path.dirname(output_path)
+        course_dir = os.path.splitext(os.path.basename(output_path))[0]
+
+        log.info("Export: %s %s %s", course_key, root_dir, course_dir)
+        export_course_to_xml(modulestore(), contentstore(), course_key, root_dir, course_dir)
+
+        # import module
+        log.info("Import course: ")
+        import_course_from_xml(
+            modulestore(),
+            ModuleStoreEnum.UserID.mgmt_command,
+            root_dir,
+            source_dirs=[course_dir],
+            load_error_modules=False,
+            static_content_store=contentstore(),
+            verbose=True,
+            do_import_static=True,
+            target_id=CourseKey.from_string(target_course_id),
+            create_if_not_present=True,
+        )
+
+        shutil.rmtree(temp_dir)
+    except Exception as e:
+            log.exception("Unknown exception copying source module %s to target module: %s",
+                        source_course_id, target_course_id)
