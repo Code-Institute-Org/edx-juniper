@@ -203,8 +203,8 @@ def create_copy_of_module(source_course_id, target_course_id):
         export_course_to_xml(modulestore(), contentstore(), course_key, root_dir, course_dir)
 
         # import module
-        log.info("Import course: ")
-        import_course_from_xml(
+        log.info("Import course: %s", target_course_id)
+        imported_course = import_course_from_xml(
             modulestore(),
             ModuleStoreEnum.UserID.mgmt_command,
             root_dir,
@@ -216,6 +216,8 @@ def create_copy_of_module(source_course_id, target_course_id):
             target_id=CourseKey.from_string(target_course_id),
             create_if_not_present=True,
         )
+
+        log.info("Imported course: %s", imported_course)
 
         shutil.rmtree(temp_dir)
     except Exception as e:
