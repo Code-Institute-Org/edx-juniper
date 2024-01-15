@@ -1,4 +1,5 @@
 from datetime import date
+from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from logging import getLogger
 from rest_framework import status
 from rest_framework.views import APIView
@@ -39,6 +40,7 @@ class StudentEnrollment(APIView):
     will enroll a given student in a program using the email address
     and program code provided.
     """
+    authentication_classes = (JwtAuthentication, )
 
     def post(self, request):
         
