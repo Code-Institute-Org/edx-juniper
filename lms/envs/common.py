@@ -2597,6 +2597,10 @@ REST_FRAMEWORK = {
         'service_user': '800/minute',
         'registration_validation': '30/minute',
     },
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'edx_rest_framework_extensions.auth.jwt.authentication.JwtAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
 }
 
 SWAGGER_SETTINGS = {
