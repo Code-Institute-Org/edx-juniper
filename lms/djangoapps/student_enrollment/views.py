@@ -2,6 +2,7 @@ from datetime import date
 from edx_rest_framework_extensions.auth.jwt.authentication import JwtAuthentication
 from logging import getLogger
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from ci_program.api import get_program_by_program_code
@@ -41,6 +42,7 @@ class StudentEnrollment(APIView):
     and program code provided.
     """
     authentication_classes = (JwtAuthentication, )
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         
