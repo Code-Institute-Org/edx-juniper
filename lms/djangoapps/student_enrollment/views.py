@@ -42,10 +42,10 @@ class StudentEnrollment(APIView):
     and program code provided.
     """
     authentication_classes = (JwtAuthentication, )
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        
+        # import ipdb; ipdb.set_trace()
         log.info("Received request from enrollment API")
         data = request.data
         serializer = EnrollmentSerializer(data=data)

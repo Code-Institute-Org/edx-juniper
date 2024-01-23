@@ -2,9 +2,65 @@ import base64
 
 from django.test import TestCase
 from django.contrib.auth.models import User
+from datetime import datetime
 from oauth2_provider.models import Application
 
+from student_enrollment.utils import retrieve_jwt_token
+from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
+
+from openedx.core.djangoapps.oauth_dispatch.tests.factories import ApplicationFactory, AccessTokenFactory
+from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+
+from ci_program.models import Program, CourseCode, ProgramCourseCode
+
 import requests
+
+ENROLL_ENDPOINT = '/enrollment/enroll/'
+
+course_overview_data = {
+    '_location': BlockUsageLocator(CourseLocator('CodeInstitute', 'HE101', '2020', None, None), 'course', 'course'),
+    'advertised_start': None,
+    'announcement': None,
+    'catalog_visibility': 'both',
+    'cert_html_view_enabled': True,
+    'cert_name_long': '',
+    'cert_name_short': '',
+    'certificate_available_date': None,
+    'certificates_display_behavior': 'end',
+    'certificates_show_before_end': False,
+    'course_image_url': '/asset-v1:CodeInstitute+HE101+2020+type@asset+block@images_course_image.jpg',
+    'course_video_url': None,
+    'created': datetime.now(),
+    'days_early_for_beta': None,
+    'display_name': 'HTML Essentials',
+    'display_number_with_default': 'HE101',
+    'display_org_with_default': 'CodeInstitute',
+    'effort': None,
+    'eligible_for_financial_aid': True,
+    'end': None,
+    'end_date': None,
+    'end_of_course_survey_url': None,
+    'enrollment_domain': None,
+    'enrollment_end': None,
+    'enrollment_start': None,
+    'has_any_active_web_certificate': False,
+    'id': CourseLocator('CodeInstitute', 'HE101', '2020', None, None),
+    'invitation_only': False,
+    'language': 'en',
+    'lowest_passing_grade': 0.5,
+    'marketing_url': None,
+    'max_student_enrollments_allowed': None,
+    'mobile_available': False,
+    'modified': datetime.now(),
+    'org': 'CodeInstitute',
+    'self_paced': False,
+    'short_description': '',
+    'social_sharing_url': None,
+    'start': datetime.now(),
+    'start_date': datetime.now(),
+    'version': 11,
+    'visible_to_staff_only': False
+}
 
 
 class AuthTestCase(TestCase):
@@ -14,30 +70,21 @@ class AuthTestCase(TestCase):
     - make a call to enrollment endpoint without AUTHHEADER
     """
     def setUp(self):
-        self.login_service_user = User.objects.get(username='login_service_user')
-        self.login_service_user.set_password('arglebargle')
-        self.login_service_user.save()
-        Application.objects.create(
-            client_id='enrollment-auth',
-            user=self.login_service_user, 
-            client_type='confidential',
-            authorization_grant_type='client-credentials',
-            client_secret='k8xYnSGcXpfeeLhS',
-            name='enrollment-auth')
-        self.auth_application = Application.objects.get(name='enrollment-auth')
+        self.enrollment_user = User.objects.create_superuser(username='enrollment_user', email='enrollment@codeinstitute.net', password='arglebargle')
+        self.oauth_client = ApplicationFactory.create()
+        self.access_token = AccessTokenFactory.create(user=self.enrollment_user, application=self.oauth_client).token
+        self.course_overview = CourseOverview.objects.create(**course_overview_data)
+        self.program = Program.objects.create(name='Enrollment Test', program_code='t1')
+        self.course_code = CourseCode.objects.create(key='CodeInstitute+HE101+2020', display_name='HTML Essentials')
+        self.program_course_code = ProgramCourseCode.objects.create(program=self.program, course_code=self.course_code, position=1)
+
     
-    def test_jwt_retrieval(self):
-        client_id = self.auth_application.client_id
-        client_secret = self.auth_application.client_secret
+    def test_enrollment_with_token(self):
+        email = 'bob@bob.com'
+        resp = self.client.post(ENROLL_ENDPOINT, data={
+                'full_name': email, 'email': email, 'course_code': 't1'})
 
-        credential = "{client_id}:{client_secret}".format(client_id=client_id, client_secret=client_secret)
-        encoded_credential = base64.b64encode(credential.encode("utf-8")).decode("utf-8")
+        self.assertEqual(resp.status_code, 201)
 
-        headers = {"Authorization": "Basic {encoded_credential}".format(encoded_credential=encoded_credential), "Cache-Control": "no-cache"}
-        data = {"grant_type": "client_credentials", "token_type": "jwt"}
-        # data = {"client_id": client_id, "username": self.login_service_user.username, "grant_type": "password", "password": "arglebargle","token_type": "jwt"}
-
-        token_request = requests.post('http://myopenedx.com/oauth2/access_token/', headers=headers, data=data)
-        import ipdb; ipdb.set_trace()
-        access_token = token_request.json()["access_token"]
-        print(access_token)
+    def test_enrollment_without_token(self):
+        pass

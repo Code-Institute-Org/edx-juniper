@@ -2,6 +2,7 @@
 This module contains some handy utility functions for
 creating/registering users, as well as sending emails.
 """
+import base64
 
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -126,3 +127,21 @@ def post_to_zapier(zap_url, data):
         to Zapier
     """
     response = requests.post(zap_url, data=data)
+
+def retrieve_jwt_token(application, endpoint):
+        client_id = application.client_id
+        client_secret = application.client_secret
+
+        credential = "{client_id}:{client_secret}".format(client_id=client_id, client_secret=client_secret)
+        encoded_credential = base64.b64encode(credential.encode("utf-8")).decode("utf-8")
+
+        headers = {"Authorization": "Basic {encoded_credential}".format(encoded_credential=encoded_credential), "Cache-Control": "no-cache"}
+        data = {"grant_type": "client_credentials", "token_type": "jwt"}
+
+        token_request = requests.post(endpoint, headers=headers, data=data)
+        import ipdb; ipdb.set_trace()
+        if token_request.status_code != 200:
+            raise Exception('Invalid request')
+        return token_request.json()["access_token"]
+        
+
