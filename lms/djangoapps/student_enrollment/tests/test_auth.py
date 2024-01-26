@@ -1,6 +1,6 @@
 import base64
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from datetime import datetime
 from oauth2_provider.models import Application
@@ -10,12 +10,15 @@ from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 
 from openedx.core.djangoapps.oauth_dispatch.tests.factories import ApplicationFactory, AccessTokenFactory
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+from openedx.core.djangoapps.oauth_dispatch.jwt import create_jwt_for_user
 
 from ci_program.models import Program, CourseCode, ProgramCourseCode
 
 import requests
 
-ENROLL_ENDPOINT = '/enrollment/enroll/'
+# ENROLL_ENDPOINT = 'http://127.0.0.1:8000/enrollment/enroll/'
+ENROLLMENT_ENDPOINT = '/enrollment/enroll/'
+ACCESS_TOKEN_ENDPOINT = '/oauth2/access_token/'
 
 course_overview_data = {
     '_location': BlockUsageLocator(CourseLocator('CodeInstitute', 'HE101', '2020', None, None), 'course', 'course'),
@@ -77,14 +80,33 @@ class AuthTestCase(TestCase):
         self.program = Program.objects.create(name='Enrollment Test', program_code='t1')
         self.course_code = CourseCode.objects.create(key='CodeInstitute+HE101+2020', display_name='HTML Essentials')
         self.program_course_code = ProgramCourseCode.objects.create(program=self.program, course_code=self.course_code, position=1)
+        with override_settings(JWT_EXPIRATION=300, OAUTH_ID_TOKEN_EXPIRATION=300):
+            self.expected_jwt = create_jwt_for_user(self.enrollment_user)
 
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def tearDown(self):
+        self.enrollment_user.delete()
+        self.oauth_client.delete()
+        self.course_overview.delete()
+        self.program.delete()
+        self.course_code.delete()
+        self.program_course_code.delete()
     
     def test_enrollment_with_token(self):
-        email = 'bob@bob.com'
-        resp = self.client.post(ENROLL_ENDPOINT, data={
-                'full_name': email, 'email': email, 'course_code': 't1'})
-
+        email = "bob@bob.com"
+        headers = {
+            "HTTP_AUTHORIZATION": "JWT {access_token}".format(access_token=self.expected_jwt)
+        }
+        resp = self.client.post(ENROLLMENT_ENDPOINT, data={
+                "full_name": email, "email": email, "course_code": "t1"}, **headers)
         self.assertEqual(resp.status_code, 201)
 
     def test_enrollment_without_token(self):
-        pass
+        email = 'bob@bob.com'
+        resp = self.client.post(ENROLLMENT_ENDPOINT, data={
+                "full_name": email, "email": email, "course_code": "t1"})
+        self.assertEqual(resp.status_code, 401)
+        
