@@ -2,7 +2,6 @@
 This module contains some handy utility functions for
 creating/registering users, as well as sending emails.
 """
-import base64
 
 from django.contrib.auth.models import User
 from django.conf import settings
