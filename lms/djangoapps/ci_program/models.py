@@ -181,9 +181,12 @@ class Program(TimeStampedModel):
             block_ids.append("module_id like 'block-v1:{}+{}+%%'".format(
                 course_locator.org, course_locator.course))
 
-        raw_sql = "SELECT * from courseware_studentmodule WHERE student_id = {} AND ({}) ORDER BY modified DESC".format(
-            request.user.id, " OR ".join(block_ids))
-        activity_log = request.user.studentmodule_set.raw(raw_sql)
+        if block_ids:
+            raw_sql = "SELECT * from courseware_studentmodule WHERE student_id = {} AND ({}) ORDER BY modified DESC".format(
+                request.user.id, " OR ".join(block_ids))
+            activity_log = request.user.studentmodule_set.raw(raw_sql)
+        else:
+            activity_log = []
 
         module_tree = self._read_module_tree_from_mongo(request.user)
 
