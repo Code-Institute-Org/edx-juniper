@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from oauth2_provider.models import Application
 
-from student_enrollment.utils import retrieve_jwt_token
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 
 from openedx.core.djangoapps.oauth_dispatch.tests.factories import ApplicationFactory, AccessTokenFactory
@@ -14,7 +13,6 @@ from openedx.core.djangoapps.oauth_dispatch.jwt import create_jwt_for_user
 
 from ci_program.models import Program, CourseCode, ProgramCourseCode
 
-import requests
 
 # ENROLL_ENDPOINT = 'http://127.0.0.1:8000/enrollment/enroll/'
 ENROLLMENT_ENDPOINT = '/enrollment/enroll/'
