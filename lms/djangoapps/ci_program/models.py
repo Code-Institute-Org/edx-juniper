@@ -175,9 +175,18 @@ class Program(TimeStampedModel):
         """
 
         # Gather the basic information about the program
-        activity_log = request.user.studentmodule_set.filter(
-            course_id__in=self.get_course_locators())
-        activity_log = activity_log.order_by('-modified')
+        # TODO: Replace this lookup - use "starts with org+course+" - leave out run
+        block_ids = []
+        for course_locator in self.get_course_locators():
+            block_ids.append("module_id like 'block-v1:{}+{}+%%'".format(
+                course_locator.org, course_locator.course))
+
+        if block_ids:
+            raw_sql = "SELECT * from courseware_studentmodule WHERE student_id = {} AND ({}) ORDER BY modified DESC".format(
+                request.user.id, " OR ".join(block_ids))
+            activity_log = request.user.studentmodule_set.raw(raw_sql)
+        else:
+            activity_log = []
 
         module_tree = self._read_module_tree_from_mongo(request.user)
 
