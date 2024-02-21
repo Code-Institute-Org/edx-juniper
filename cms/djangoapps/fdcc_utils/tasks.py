@@ -13,7 +13,7 @@ from opaque_keys.edx.keys import CourseKey
 from xmodule.modulestore.django import modulestore
 from contentstore.views.certificates import CertificateManager, _get_course_and_check_access
 from contentstore.views.item import _get_xblock, _save_xblock
-from fdcc_utils.utils import get_sections
+from fdcc_utils.utils import get_course, get_sections
 from lms.djangoapps.certificates.api import set_cert_generation_enabled
 
 log = logging.getLogger(__name__)
@@ -72,7 +72,12 @@ def schedule_fdcc_module(course_id=None, only_visible=None):
         start_date = start_date - timedelta(days=start_date.weekday())
 
     fdcc_admin = User.objects.get(username=os.getenv('FDCC_ADMIN_USERNAME'))
-    sections = get_sections(course_id, (only_visible is True))
+    course_xblock = get_course(course_id)
+    _save_xblock(fdcc_admin, course_xblock, metadata={
+        'start': start_date.strftime('%Y-%m-%d') + 'T05:00:00Z',
+        'end': (start_date + timedelta(days=6)).strftime('%Y-%m-%d') + 'T23:00:00Z'
+    })
+    sections = get_sections(course_xblock, (only_visible is True))
     for i, section_xblock in enumerate(sections):
         day_increment = min(i, 4)  # Max 4 days which brings it to Friday
         start_time = (start_date + timedelta(days=day_increment)).strftime('%Y-%m-%d') + 'T05:00:00Z'
