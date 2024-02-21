@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 @task(base=LoggedTask)
 def configure_fdcc_certificate(course_id=None, cert_is_active=None, self_generation_enabled=None):
-    log.info("Configuring Certificate for course %s - cert_is_active: %s - self_generation_enabled: %s",
+    log.info(u"Configuring Certificate for course %s - cert_is_active: %s - self_generation_enabled: %s",
              course_id, cert_is_active, self_generation_enabled)
 
     if not cert_is_active and self_generation_enabled is True:
@@ -59,7 +59,7 @@ def configure_fdcc_certificate(course_id=None, cert_is_active=None, self_generat
     # Dis-/enable certificate self generation
     set_cert_generation_enabled(course_key, self_generation_enabled)
 
-    log.info("Configured Certificate for course %s - cert_is_active: %s - self_generation_enabled: %s",
+    log.info(u"Configured Certificate for course %s - cert_is_active: %s - self_generation_enabled: %s",
              course_id, cert_is_active, self_generation_enabled)
 
 
