@@ -1498,6 +1498,7 @@ INSTALLED_APPS = [
     'openedx.core.djangoapps.content.learning_sequences.apps.LearningSequencesConfig',
 
     'module_importexport',
+    'cms.djangoapps.fdcc_utils',
 ]
 
 
