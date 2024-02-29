@@ -292,13 +292,22 @@ class Program(TimeStampedModel):
         block_id = activity_log[0].module_state_key.block_id
         if block_id == 'course' and course_key:
             latest_course_id = course_key.html_id().split(':')[1]
-            course_xblock = module_tree[latest_course_id]
+            course_xblock = self._find_course(latest_course_id, module_tree)
             children = course_xblock.get('fields', {}).get('children')
             if children:
                 activity_state = json.loads(activity_log[0].state)
                 section_block = children[activity_state.get('position', 1) - 1]
                 block_id = section_block[1] if section_block else None
         return block_id
+
+    def _find_course(self, course_id, module_tree):
+        if course_id in module_tree:
+            return module_tree[course_id]
+        else:
+            for key in module_tree:
+                if course_id.startswith(key.rsplit('+', 1)[0]):
+                    return module_tree[key]
+        return {}
 
     def _read_module_tree_from_mongo(self, user):
         if self.course_codes.exists():
