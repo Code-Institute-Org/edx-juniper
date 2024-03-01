@@ -31,6 +31,7 @@ from lms.djangoapps.courseware.exceptions import CourseAccessRedirect, Redirect
 from lms.djangoapps.experiments.utils import get_experiment_user_metadata_context
 from lms.djangoapps.gating.api import get_entrance_exam_score_ratio, get_entrance_exam_usage_key
 from lms.djangoapps.grades.api import CourseGradeFactory
+from lms.djangoapps.courseware.courseware_access_exception import CoursewareAccessException
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.djangoapps.crawlers.models import CrawlersConfig
 from openedx.core.djangoapps.lang_pref import LANGUAGE_KEY
@@ -134,19 +135,38 @@ class CoursewareIndex(View):
         self.course = None
         self.url = request.path
 
+        def _redirect_if_course_updated():
+            course_id = "course-v1:{}+{}+".format(self.course_key.org, self.course_key.course)
+            updated_modules = request.user.courseenrollment_set.filter(course__id__startswith=course_id)
+            if updated_modules:
+                raise Redirect(
+                    reverse(
+                        "courseware_position",
+                        args=(
+                            updated_modules[0].course_id,
+                            chapter,
+                            section,
+                            position
+                        )
+                    )
+                )
+
         try:
             set_custom_metrics_for_course_key(self.course_key)
             self._clean_position()
             with modulestore().bulk_operations(self.course_key):
 
                 self.view = STUDENT_VIEW
+                try:
+                    self.course = get_course_with_access(
+                        request.user, 'load', self.course_key,
+                        depth=CONTENT_DEPTH,
+                        check_if_enrolled=True,
+                        check_if_authenticated=True
+                    )
+                except Http404 as nfe:
+                    _redirect_if_course_updated()
 
-                self.course = get_course_with_access(
-                    request.user, 'load', self.course_key,
-                    depth=CONTENT_DEPTH,
-                    check_if_enrolled=True,
-                    check_if_authenticated=True
-                )
                 self.course_overview = CourseOverview.get_from_id(self.course.id)
                 self.is_staff = has_access(request.user, 'staff', self.course)
 
@@ -163,6 +183,12 @@ class CoursewareIndex(View):
                 self._setup_masquerade_for_effective_user()
 
                 return self.render(request)
+        except CourseAccessRedirect as exception:  # pylint: disable=broad-except
+            _redirect_if_course_updated()
+            return CourseTabView.handle_exceptions(request, self.course_key, self.course, exception)
+        except CoursewareAccessException as exception:  # pylint: disable=broad-except
+            _redirect_if_course_updated()
+            return CourseTabView.handle_exceptions(request, self.course_key, self.course, exception)
         except Exception as exception:  # pylint: disable=broad-except
             return CourseTabView.handle_exceptions(request, self.course_key, self.course, exception)
 

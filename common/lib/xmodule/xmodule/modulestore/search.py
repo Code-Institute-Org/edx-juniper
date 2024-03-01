@@ -8,6 +8,7 @@ from six.moves import range
 from lms.djangoapps.courseware.masquerade import MASQUERADE_SETTINGS_KEY
 from student.roles import GlobalStaff
 from .exceptions import ItemNotFoundError, NoPathToItem
+from opaque_keys.edx.keys import CourseKey, UsageKey
 
 LOGGER = getLogger(__name__)
 
@@ -81,13 +82,46 @@ def path_to_location(modulestore, usage_key, request=None, full_path=False):
             newpath = (next_usage, path)
             queue.append((parent, newpath))
 
+    def find_updated_path_to_course(usage_key):
+        course_id = "course-v1:{}+{}+".format(usage_key.org, usage_key.course)
+        updated_modules = request.user.courseenrollment_set.filter(course__id__startswith=course_id)
+        if updated_modules:
+            course_key = CourseKey.from_string(updated_modules[0].course_id)
+            usage_key = usage_key.replace(course_key=course_key)
+
+            queue = [(usage_key, ())]
+            while len(queue) > 0:
+                (next_usage, path) = queue.pop()  # Takes from the end
+
+                parent = modulestore.get_parent_location(next_usage)
+
+                if next_usage.block_type == "course":
+                    path = (next_usage, path)
+                    return flatten(path)
+                elif parent is None:
+                    return None
+
+                # otherwise, add parent locations at the end
+                newpath = (next_usage, path)
+                queue.append((parent, newpath))
+        else:
+            return None
+
+
     with modulestore.bulk_operations(usage_key.course_key):
         if not modulestore.has_item(usage_key):
-            raise ItemNotFoundError(usage_key)
+            course_id = "course-v1:{}+{}+".format(usage_key.org, usage_key.course)
+            updated_modules = request.user.courseenrollment_set.filter(course__id__startswith=course_id)
+            if updated_modules:
+                usage_key = usage_key.replace(course_key=updated_modules[0].course_id)
+            else:
+                raise ItemNotFoundError(usage_key)
 
         path = find_path_to_course()
         if path is None:
-            raise NoPathToItem(usage_key)
+            path = find_updated_path_to_course(usage_key)
+            if path is None:
+                raise NoPathToItem(usage_key)
 
         if full_path:
             return path
