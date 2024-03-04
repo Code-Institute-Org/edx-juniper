@@ -139,17 +139,16 @@ class CoursewareIndex(View):
             course_id = "course-v1:{}+{}+".format(self.course_key.org, self.course_key.course)
             updated_modules = request.user.courseenrollment_set.filter(course__id__startswith=course_id)
             if updated_modules:
-                raise Redirect(
-                    reverse(
-                        "courseware_position",
-                        args=(
-                            updated_modules[0].course_id,
-                            chapter,
-                            section,
-                            position
-                        )
-                    )
-                )
+                course_id = updated_modules[0].course_id
+                if chapter and section and position:
+                    redirect_url = reverse("courseware_position", args=(course_id, chapter, section, position))
+                elif chapter and section:
+                    redirect_url = reverse("courseware_section", args=(course_id, chapter, section))
+                elif chapter:
+                    redirect_url = reverse("courseware_chapter", args=(course_id, chapter))
+                else:
+                    redirect_url = reverse("courseware")
+                raise Redirect(redirect_url)
 
         try:
             set_custom_metrics_for_course_key(self.course_key)
