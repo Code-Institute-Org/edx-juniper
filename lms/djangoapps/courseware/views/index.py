@@ -147,14 +147,13 @@ class CoursewareIndex(View):
                 elif chapter:
                     redirect_url = reverse("courseware_chapter", args=(course_id, chapter))
                 else:
-                    redirect_url = reverse("courseware")
+                    redirect_url = reverse("courseware", args=(course_id,))
                 raise Redirect(redirect_url)
 
         try:
             set_custom_metrics_for_course_key(self.course_key)
             self._clean_position()
             with modulestore().bulk_operations(self.course_key):
-
                 self.view = STUDENT_VIEW
                 try:
                     self.course = get_course_with_access(
@@ -183,7 +182,6 @@ class CoursewareIndex(View):
 
                 return self.render(request)
         except CourseAccessRedirect as exception:  # pylint: disable=broad-except
-            _redirect_if_course_updated()
             return CourseTabView.handle_exceptions(request, self.course_key, self.course, exception)
         except CoursewareAccessException as exception:  # pylint: disable=broad-except
             _redirect_if_course_updated()
