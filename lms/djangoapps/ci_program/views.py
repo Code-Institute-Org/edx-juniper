@@ -43,7 +43,7 @@ def show_program_bookmarks(request, program_name):
 
     program = Program.objects.get(marketing_slug=program_name)
     bookmarks = Bookmark.objects.filter(
-        course_key__in=program.get_course_locators(),
+#        course_key__in=program.get_course_locators(),
         user=request.user)
     page_data = bookmarks[(page - 1) * page_size: page * page_size]
 
