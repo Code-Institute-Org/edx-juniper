@@ -182,6 +182,7 @@ class CoursewareIndex(View):
 
                 return self.render(request)
         except CourseAccessRedirect as exception:  # pylint: disable=broad-except
+            _redirect_if_course_updated()
             return CourseTabView.handle_exceptions(request, self.course_key, self.course, exception)
         except CoursewareAccessException as exception:  # pylint: disable=broad-except
             _redirect_if_course_updated()
@@ -254,7 +255,7 @@ class CoursewareIndex(View):
             self.section = self._find_section()
 
             if self.chapter and self.section:
-                self._redirect_if_not_requested_section()
+#                self._redirect_if_not_requested_section()
                 self._save_positions()
                 self._prefetch_and_bind_section()
                 self._redirect_to_learning_mfe()
