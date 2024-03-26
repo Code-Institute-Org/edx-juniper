@@ -2597,11 +2597,11 @@ REST_FRAMEWORK = {
         'service_user': '800/minute',
         'registration_validation': '30/minute',
     },
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'edx_rest_framework_extensions.auth.jwt.authentication.JwtAuthentication'
-    ),
+    ],
 }
 
 SWAGGER_SETTINGS = {
