@@ -91,7 +91,6 @@ def user_track(request):
             pass
 
     context_override = contexts.course_context_from_url(page)
-    context_override['username'] = username
     context_override['event_source'] = 'browser'
     context_override['page'] = page
 
