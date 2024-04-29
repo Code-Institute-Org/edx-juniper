@@ -83,6 +83,12 @@ class Program(TimeStampedModel):
         null=True,
         blank=True
     )
+    support_tabs = models.CharField(
+        max_length=255,
+        help_text=_('Comma-separated list of support tabs available for Program'),
+        null=True,
+        blank=True,
+    )
     enrolled_students = models.ManyToManyField(
         User, blank=True)
     # This is used for getting the path to the enrollment email files
