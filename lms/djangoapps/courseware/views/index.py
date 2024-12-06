@@ -165,6 +165,10 @@ class CoursewareIndex(View):
                 except Http404 as nfe:
                     _redirect_if_course_updated()
 
+                # handle url errors in course key
+                if not self.course:
+                    raise Http404
+
                 self.course_overview = CourseOverview.get_from_id(self.course.id)
                 self.is_staff = has_access(request.user, 'staff', self.course)
 
