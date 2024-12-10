@@ -26,16 +26,16 @@ COPY ./requirements/ /openedx/edx-platform/requirements
 COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
 ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
-RUN pip install setuptools==39.0.1 pip==9.0.3
+RUN pip install --trusted-host pypi.python.org setuptools==39.0.1 pip==9.0.3
 
 # Install patched version of ora2
-RUN pip install https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
+RUN pip install --trusted-host pypi.python.org https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
 
 # Install ironwood-compatible scorm xblock
-RUN pip install "openedx-scorm-xblock<11.0.0,>=10.0.0"
+RUN pip install --trusted-host pypi.python.org "openedx-scorm-xblock<11.0.0,>=10.0.0"
 
 # Install development libraries
-RUN pip install -r requirements/edx/ci-dev.txt
+RUN pip install --trusted-host pypi.python.org -r requirements/edx/ci-dev.txt
 
 # Using local version
 COPY ./lms/ /openedx/edx-platform/lms
@@ -84,9 +84,9 @@ COPY ./tox.ini /openedx/edx-platform/
 COPY ./config /openedx/config
 
 # Install edx local
-RUN pip install setuptools_scm==5.0.2
-RUN pip install -r requirements/edx/base.txt
-RUN pip install -r requirements/constraints.txt
+RUN pip install --trusted-host pypi.python.org  setuptools_scm==5.0.2
+RUN pip install --trusted-host pypi.python.org  -r requirements/edx/base.txt
+RUN pip install --trusted-host pypi.python.org  -r requirements/constraints.txt
 
 
 # Install updated version of edxval
