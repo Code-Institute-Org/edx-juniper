@@ -8,7 +8,7 @@ class ProgramAdmin(admin.ModelAdmin):
         "status",
         "name",
     )
-
+    exclude = ["enrolled_students"]
     ordering = ("-status",)
 
 admin.site.register(ProgramCourseCode)

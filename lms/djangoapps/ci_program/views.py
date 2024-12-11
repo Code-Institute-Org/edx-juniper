@@ -7,6 +7,7 @@ from django.core.cache import cache
 from edxmako.shortcuts import render_to_response
 from ci_program.models import Program
 from openedx.core.djangoapps.bookmarks.models import Bookmark
+from django.http import Http404
 
 
 @login_required
@@ -17,7 +18,10 @@ def show_programs(request, program_name):
     student_email = request.user.email
     cache_key = '%s_program_name' % student_email
 
-    program = Program.objects.get(marketing_slug=program_name)
+    try:
+        program = Program.objects.get(marketing_slug=program_name)
+    except Program.DoesNotExist:
+        raise Http404
     if request.user not in program.enrolled_students.all():
         return redirect(reverse('dashboard'))
 
