@@ -76,8 +76,10 @@ def user_track(request):
     """
     try:
         username = request.user.username
+        user_id = request.user.id
     except:
         username = "anonymous"
+        user_id = 0
 
     name = _get_request_value(request, 'event_type')
     data = _get_request_value(request, 'event', {})
@@ -91,7 +93,7 @@ def user_track(request):
             pass
 
     context_override = contexts.course_context_from_url(page)
-    context_override['username'] = username
+    context_override['user_id'] = user_id
     context_override['event_source'] = 'browser'
     context_override['page'] = page
 
