@@ -302,7 +302,14 @@ class Program(TimeStampedModel):
             children = course_xblock.get('fields', {}).get('children')
             if children:
                 activity_state = json.loads(activity_log[0].state)
-                section_block = children[activity_state.get('position', 1) - 1]
+                # Bugs have occured when student was enrolled in multiple runs
+                # of the same course where the number of children was different
+                child_index = activity_state.get('position', 1) - 1
+                if len(children) > child_index:
+                    section_block = children[child_index]
+                else:
+                    log.warning("Activity log position out of sync with course: %s %s", child_index, course_key)
+                    section_block = children[0]
                 block_id = section_block[1] if section_block else None
         return block_id
 
