@@ -35,6 +35,27 @@ class XBlockTreeBuilder(object):
         return (xblock['block_type'] == block_type and
                 xblock['block_id'] == block_id)
 
+    def collect_xblocks(self, course, section_vertical):
+        xblocks = []
+        for xblock_block_type, xblock_block_id in section_vertical:
+            for xblock in course['blocks']:
+                if self.xblock_is_type(xblock, xblock_block_type, xblock_block_id):
+                    if self.is_xblock_visible_to_user(xblock):
+                        xblocks.append(xblock)
+        return xblocks
+
+    def collect_verticals(self, course, unit_children):
+        verticals = []
+        for vertical_block_type, vertical_block_id in unit_children:
+            for vertical in course['blocks']:
+                if self.xblock_is_type(vertical, vertical_block_type, vertical_block_id):
+                    if self.is_xblock_visible_to_user(vertical):
+                        verticals.append(vertical)
+                        vertical['xblocks'] = self.collect_xblocks(
+                            course,
+                            vertical.get('fields', {}).get('children', []))
+        return verticals
+
     def collect_units(self, course, section_children):
         units = []
         for unit_block_type, unit_block_id in section_children:
@@ -42,6 +63,9 @@ class XBlockTreeBuilder(object):
                 if self.xblock_is_type(unit, unit_block_type, unit_block_id):
                     if self.is_xblock_visible_to_user(unit):
                         units.append(unit)
+                        unit['verticals'] = self.collect_verticals(
+                            course,
+                            unit.get('fields', {}).get('children', []))
         return units
 
     def collect_sections(self, course, children):
