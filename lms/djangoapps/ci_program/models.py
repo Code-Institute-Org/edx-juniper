@@ -200,6 +200,10 @@ class Program(TimeStampedModel):
         latest_block_id = self._get_or_infer_block_id(
             activity_log, latest_course_key, module_tree)
 
+        section_block_id, unit_block_id = self._find_section_unit(
+            module_tree, activity_log, latest_block_id)
+
+
         completed_block_ids = [
             ac.module_state_key.block_id for ac in activity_log]
         self._add_progress_info_to_module_tree(
@@ -222,6 +226,8 @@ class Program(TimeStampedModel):
             "latest_course_key": latest_course_key,
             "completed_percent": completed_percent,
             'modules': modules,
+            'section_block_id': section_block_id,
+            'unit_block_id': unit_block_id,
         }
 
         return program_descriptor
@@ -282,6 +288,30 @@ class Program(TimeStampedModel):
             return activity_log[0].module_state_key.course_key
         else:
             return None
+
+    def _find_section_unit(self, module_tree, activity_log, xblock_id):
+        if not activity_log:
+            return None, None
+        latest_course_key = self._get_latest_course_key(activity_log)
+        latest_course_id = latest_course_key.html_id().split(':')[1]
+        block_id = activity_log[0].module_state_key.block_id
+        course_xblock = self._find_course(latest_course_id, module_tree)
+        for section in course_xblock['sections']:
+            if xblock_id == section['block_id']:
+                if section['units']:
+                    return section['block_id'], section['units'][0]['block_id']
+                else:
+                    return section['block_id'], None
+            for unit in section['units']:
+                if xblock_id == unit['block_id']:
+                    return section['block_id'], unit['block_id']
+                for vertical in unit['verticals']:
+                    if xblock_id == vertical['block_id']:
+                        return section['block_id'], unit['block_id']
+                    for xblock in vertical['xblocks']:
+                        if xblock_id == xblock['block_id']:
+                            return section['block_id'], unit['block_id']
+        return None, None
 
     def _get_or_infer_block_id(
             self, activity_log, course_key, module_tree):
