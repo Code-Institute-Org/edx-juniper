@@ -302,6 +302,10 @@
                 newPosition = $(event.currentTarget).data('element');
             }
 
+            // attempting to fix error where a student has activity from multiple duplicate courses (same xblockid)
+            if (newPosition < 1) { newPosition = 1; }
+            if (newPosition > this.num_contents) { newPosition = this.num_contents; }
+
             if ((newPosition >= 1) && (newPosition <= this.num_contents)) {
                 isBottomNav = $(event.target).closest('nav[class="sequence-bottom"]').length > 0;
 
