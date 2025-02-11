@@ -296,7 +296,7 @@ class Program(TimeStampedModel):
         latest_course_id = latest_course_key.html_id().split(':')[1]
         block_id = activity_log[0].module_state_key.block_id
         course_xblock = self._find_course(latest_course_id, module_tree)
-        for section in course_xblock['sections']:
+        for section in course_xblock.get('sections') or []:
             if xblock_id == section['block_id']:
                 if section['units']:
                     return section['block_id'], section['units'][0]['block_id']
