@@ -104,7 +104,14 @@ class StaticContentImporter:
         remap_dict = {}
 
         static_dir = self.course_data_path / content_subdir
+        log.info(u'DEBUG: Scanning static directory: %s', static_dir)
+        
         for dirname, _, filenames in os.walk(static_dir):
+            # Debug: log PDF files found
+            pdf_files = [f for f in filenames if f.lower().endswith('.pdf')]
+            if pdf_files:
+                log.info(u'DEBUG: Found PDF files in %s: %s', dirname, pdf_files)
+            
             for filename in filenames:
 
                 file_path = os.path.join(dirname, filename)
@@ -112,6 +119,9 @@ class StaticContentImporter:
                 if re.match(ASSET_IGNORE_REGEX, filename):
                     if verbose:
                         log.debug('skipping static content %s...', file_path)
+                    # Debug: specifically log if we're skipping PDF files
+                    if filename.lower().endswith('.pdf'):
+                        log.warning(u'DEBUG: Skipping PDF file due to ASSET_IGNORE_REGEX: %s', filename)
                     continue
 
                 if verbose:
@@ -123,15 +133,34 @@ class StaticContentImporter:
                     # store the remapping information which will be needed
                     # to subsitute in the module data
                     remap_dict[imported_file_attrs[0]] = imported_file_attrs[1]
+                elif filename.lower().endswith('.pdf'):
+                    # Debug: log when PDF import returns None
+                    log.warning(u'DEBUG: PDF file import returned None: %s', filename)
 
         return remap_dict
 
     def import_static_file(self, full_file_path, base_dir):
         filename = os.path.basename(full_file_path)
+        
+        # Debug logging for PDF files
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: Processing PDF file: %s', filename)
+            log.info(u'DEBUG: Full path: %s', full_file_path)
+            log.info(u'DEBUG: Base dir: %s', base_dir)
+        
         try:
             with open(full_file_path, 'rb') as f:
                 data = f.read()
+                
+            # Debug logging for PDF files - file size
+            if filename.lower().endswith('.pdf'):
+                log.info(u'DEBUG: PDF file size: %d bytes', len(data))
+                
         except IOError:
+            # Debug logging for PDF file read errors
+            if filename.lower().endswith('.pdf'):
+                log.error(u'DEBUG: IOError reading PDF file: %s', filename)
+            
             # OS X "companion files". See
             # http://www.diigo.com/annotated/0c936fda5da4aa1159c189cea227e174
             if filename.startswith('._'):
@@ -143,9 +172,23 @@ class StaticContentImporter:
         file_subpath = full_file_path.replace(base_dir, '')
         if file_subpath.startswith('/'):
             file_subpath = file_subpath[1:]
+        
+        # Debug logging for PDF files - file path processing
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF file_subpath: %s', file_subpath)
+            
         asset_key = StaticContent.compute_location(self.target_id, file_subpath)
 
+        # Debug logging for PDF files - asset key
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF asset_key: %s', asset_key)
+            log.info(u'DEBUG: PDF asset_key.path: %s', asset_key.path)
+
         policy_ele = self.policy.get(asset_key.path, {})
+
+        # Debug logging for PDF files - policy
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF policy_ele: %s', policy_ele)
 
         # During export display name is used to create files, strip away slashes from name
         displayname = escape_invalid_characters(
@@ -155,16 +198,35 @@ class StaticContentImporter:
         locked = policy_ele.get('locked', False)
         mime_type = policy_ele.get('contentType')
 
+        # Debug logging for PDF files - display name and MIME type
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF displayname: %s', displayname)
+            log.info(u'DEBUG: PDF initial mime_type: %s', mime_type)
+
         # Check extracted contentType in list of all valid mimetypes
         if not mime_type or mime_type not in self.mimetypes_list:
             mime_type = mimetypes.guess_type(filename)[0]  # Assign guessed mimetype
+            
+        # Debug logging for PDF files - final MIME type
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF final mime_type: %s', mime_type)
+            
         content = StaticContent(
             asset_key, displayname, mime_type, data,
             import_path=file_subpath, locked=locked
         )
 
+        # Debug logging for PDF files - StaticContent creation
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF StaticContent created successfully')
+
         # first let's save a thumbnail so we can get back a thumbnail location
         thumbnail_content, thumbnail_location = self.static_content_store.generate_thumbnail(content)
+
+        # Debug logging for PDF files - thumbnail generation
+        if filename.lower().endswith('.pdf'):
+            log.info(u'DEBUG: PDF thumbnail_content: %s', thumbnail_content is not None)
+            log.info(u'DEBUG: PDF thumbnail_location: %s', thumbnail_location)
 
         if thumbnail_content is not None:
             content.thumbnail_location = thumbnail_location
@@ -172,7 +234,17 @@ class StaticContentImporter:
         # then commit the content
         try:
             self.static_content_store.save(content)
+            
+            # Debug logging for PDF files - successful save
+            if filename.lower().endswith('.pdf'):
+                log.info(u'DEBUG: PDF file successfully saved: %s', filename)
+                log.info(u'DEBUG: Asset key: %s', asset_key)
+                
         except Exception as err:
+            # Debug logging for PDF save errors
+            if filename.lower().endswith('.pdf'):
+                log.error(u'DEBUG: Error saving PDF file %s: %s', filename, err)
+                
             log.exception(u'Error importing {0}, error={1}'.format(
                 file_subpath, err
             ))
