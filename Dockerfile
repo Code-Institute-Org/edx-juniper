@@ -27,23 +27,21 @@ COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
 ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
 
-# Your existing (very old) pip/setuptools; OK for Py3.5.9
-RUN pip install --trusted-host pypi.python.org setuptools==39.0.1 pip==9.0.3
+RUN pip install --trusted-host pypi.python.org "pip==20.3.4" "setuptools<52" "wheel<0.37"
 
-RUN pip install --trusted-host pypi.python.org "edx-toggles==1.2.2"
-
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 "edx-toggles==1.2.2"
 RUN printf "edx-toggles==1.2.2\n" > /tmp/pins.txt
 
-# Install patched version of ora2 (apply pin constraints just in case)
-RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 -c /tmp/pins.txt \
+    "https://github.com/edx/RateXBlock/archive/refs/tags/2.0.tar.gz"
+
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 -c /tmp/pins.txt \
     https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
 
-# Install ironwood-compatible scorm xblock (also with the pin constraints)
-RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 -c /tmp/pins.txt \
     "openedx-scorm-xblock<11.0.0,>=10.0.0"
 
-# Install development libraries (ensure they don't yank a newer edx-toggles)
-RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 -c /tmp/pins.txt \
     -r /openedx/edx-platform/requirements/edx/ci-dev.txt
 
 # Using local version
@@ -94,7 +92,8 @@ COPY ./config /openedx/config
 
 # Install edx local
 RUN pip install --trusted-host pypi.python.org  setuptools_scm==5.0.2
-RUN pip install --trusted-host pypi.python.org  -r requirements/edx/base.txt
+RUN pip install --trusted-host pypi.python.org --retries 5 --timeout 120 -c /tmp/pins.txt \
+    -r /openedx/edx-platform/requirements/edx/base.txt
 RUN pip install --trusted-host pypi.python.org  -r requirements/constraints.txt
 
 
