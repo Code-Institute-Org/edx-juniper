@@ -61,11 +61,11 @@ def mentor(request, program_slug, student_id=None):
 @transaction.non_atomic_requests
 @login_required
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
-def slack(request, program_slug, student_id=None):
-    """ Display the slack page. """
+def discord(request, program_slug, student_id=None):
+    """ Display the discord page. """
     
     return render_to_response(
-        'ci_support/support/slack.html',
+        'ci_support/support/discord.html',
         {'program_slug': program_slug, 'student': request.user})
 
 
