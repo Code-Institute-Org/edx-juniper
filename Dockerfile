@@ -16,7 +16,7 @@ RUN apt update && \
 WORKDIR /openedx/edx-platform
 
 # Install python with pyenv
-ARG PYTHON_VERSION=3.6.1
+ARG PYTHON_VERSION=3.5.9
 ENV PYENV_ROOT /opt/pyenv
 RUN git clone https://github.com/pyenv/pyenv $PYENV_ROOT --branch v1.2.18 --depth 1 \
     && $PYENV_ROOT/bin/pyenv install $PYTHON_VERSION
@@ -25,17 +25,26 @@ RUN git clone https://github.com/pyenv/pyenv $PYENV_ROOT --branch v1.2.18 --dept
 COPY ./requirements/ /openedx/edx-platform/requirements
 COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
-ENV PATH /opt/pyenv/versions/3.6.1/bin:${PATH}
+ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
+
+# Your existing (very old) pip/setuptools; OK for Py3.5.9
 RUN pip install --trusted-host pypi.python.org setuptools==39.0.1 pip==9.0.3
 
-# Install patched version of ora2
-RUN pip install --trusted-host pypi.python.org https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
+RUN pip install --trusted-host pypi.python.org "edx-toggles==1.2.2"
 
-# Install ironwood-compatible scorm xblock
-RUN pip install --trusted-host pypi.python.org "openedx-scorm-xblock<11.0.0,>=10.0.0"
+RUN printf "edx-toggles==1.2.2\n" > /tmp/pins.txt
 
-# Install development libraries
-RUN pip install --trusted-host pypi.python.org -r requirements/edx/ci-dev.txt
+# Install patched version of ora2 (apply pin constraints just in case)
+RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+    https://github.com/overhangio/edx-ora2/archive/overhangio/boto2to3.zip
+
+# Install ironwood-compatible scorm xblock (also with the pin constraints)
+RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+    "openedx-scorm-xblock<11.0.0,>=10.0.0"
+
+# Install development libraries (ensure they don't yank a newer edx-toggles)
+RUN pip install --trusted-host pypi.python.org -c /tmp/pins.txt \
+    -r /openedx/edx-platform/requirements/edx/ci-dev.txt
 
 # Using local version
 COPY ./lms/ /openedx/edx-platform/lms
