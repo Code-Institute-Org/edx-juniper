@@ -16,7 +16,7 @@ RUN apt update && \
 WORKDIR /openedx/edx-platform
 
 # Install python with pyenv
-ARG PYTHON_VERSION=3.5.9
+ARG PYTHON_VERSION=3.6.1
 ENV PYENV_ROOT /opt/pyenv
 RUN git clone https://github.com/pyenv/pyenv $PYENV_ROOT --branch v1.2.18 --depth 1 \
     && $PYENV_ROOT/bin/pyenv install $PYTHON_VERSION
@@ -25,7 +25,7 @@ RUN git clone https://github.com/pyenv/pyenv $PYENV_ROOT --branch v1.2.18 --dept
 COPY ./requirements/ /openedx/edx-platform/requirements
 COPY ./common/lib/ /openedx/edx-platform/common/lib/
 
-ENV PATH /opt/pyenv/versions/3.5.9/bin:${PATH}
+ENV PATH /opt/pyenv/versions/3.6.1/bin:${PATH}
 RUN pip install --trusted-host pypi.python.org setuptools==39.0.1 pip==9.0.3
 
 # Install patched version of ora2
