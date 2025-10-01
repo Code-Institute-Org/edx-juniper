@@ -29,7 +29,7 @@ astroid==2.3.3            # via -r requirements/edx/testing.txt, pylint, pylint-
 attrs==19.3.0             # via -r requirements/edx/testing.txt, edx-ace, jsonschema, pytest
 babel==2.8.0              # via -r requirements/edx/testing.txt, enmerkar, enmerkar-underscore, sphinx
 beautifulsoup4==4.9.1     # via -r requirements/edx/testing.txt, pynliner
-billiard==3.3.0.23        # via -r requirements/edx/testing.txt, celery
+billiard==3.6.3.0        # via -r requirements/edx/testing.txt, celery
 bleach==3.1.5             # via -r requirements/edx/testing.txt, edx-enterprise, lti-consumer-xblock, ora2
 bok-choy==1.1.1           # via -r requirements/edx/testing.txt
 boto3==1.4.8              # via -r requirements/edx/testing.txt, fs-s3fs
