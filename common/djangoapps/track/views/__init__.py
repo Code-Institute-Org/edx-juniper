@@ -92,6 +92,11 @@ def user_track(request):
         except ValueError:
             pass
 
+        try:
+            data.pop('username')
+        except KeyError:
+            pass
+
     context_override = contexts.course_context_from_url(page)
     context_override['user_id'] = user_id
     context_override['event_source'] = 'browser'
@@ -128,13 +133,13 @@ def server_track(request, event_type, event, page=None):
         return  # don't log
 
     try:
-        username = request.user.username
+        user_id = request.user.id
     except:
-        username = "anonymous"
+        user_id = 0
 
     context_override = _get_course_context(page)
     context_override.update({
-        'username': username,
+        'user_id': user_id,
         'event_source': 'server',
         'page': page
     })
@@ -170,7 +175,6 @@ def task_track(request_info, task_info, event_type, event, page=None):
 
     context_override = contexts.course_context_from_url(page)
     context_override.update({
-        'username': request_info.get('username', 'unknown'),
         'ip': request_info.get('ip', 'unknown'),
         'agent': request_info.get('agent', 'unknown'),
         'host': request_info.get('host', 'unknown'),
